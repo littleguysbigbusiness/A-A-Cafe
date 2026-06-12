@@ -190,12 +190,14 @@
                         <div class="pos-grid">
                             <div class="pos-item" onclick="selectManualItem(this, 'Muffin', 2)">Muffin ($2)</div>
                             <div class="pos-item" onclick="selectManualItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Pie', 10)">Pie ($10)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
                             <div class="pos-item" onclick="selectManualItem(this, 'Donut', 3)">Donut ($3)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Cheesecake', 11)">CheeseCk ($11)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Cheesecake', 11)">Cheesecake ($11)</div>
                             <div class="pos-item" onclick="selectManualItem(this, 'Coffee', 4)">Coffee ($4)</div>
                             <div class="pos-item" onclick="selectManualItem(this, 'Tea', 4)">Tea ($4)</div>
                             <div class="pos-item" onclick="selectManualItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Espresso Shot', 5)">Espresso ($5)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
                         </div>
                         <div class="total-display">$<span id="manualTotal">0</span></div>
                         <button class="btn-action" id="manualSubmitBtn" onclick="dispatchManualOrder()" style="background:var(--pos-green); color:white;">Post Cash/Card Ticket</button>
@@ -262,12 +264,16 @@
 
     <script>
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
+        
         let manualSelectedItems = [];
         let manualCurrentTotal = 0;
 
         let activeStaffName = "";
         let activeStaffRank = 1;
         let currentInspectedCustomer = "";
+        
+        // SYSTEM MEMORY FOR SAFE BUTTON ACTIONS
+        let currentLiveOrders = [];
 
         function routeTo(panelId) {
             document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
@@ -324,7 +330,7 @@
                 status: 'Pending',
                 paid: 'No',
                 eta: '5-10m',
-                notes: `Walk-in Register Ticket by: ${activeStaffName}`,
+                notes: `Walk-in Ticket by: ${activeStaffName}`,
                 chef_notes: ''
             };
 
@@ -345,8 +351,13 @@
             try {
                 const res = await fetch(`${BASE_API_URL}/Sheet1`);
                 const pipeline = await res.json();
-                const target = document.getElementById('liveOrdersList');
                 
+                // Save safely to memory so buttons can pull from it instead of HTML strings
+                if(pipeline && !pipeline.error) {
+                    currentLiveOrders = pipeline;
+                }
+
+                const target = document.getElementById('liveOrdersList');
                 const currentFocus = document.activeElement ? document.activeElement.id : null;
                 const currentValue = document.activeElement ? document.activeElement.value : null;
 
@@ -378,8 +389,8 @@
                                 <textarea id="note-${o.id}" rows="2" onchange="updateFieldDirectly('${o.id}', 'notes', this.value)">${o.notes||''}</textarea>
 
                                 <div style="display:flex; gap:10px; margin-top:5px;">
-                                    ${o.paid!=='Yes'?`<button style="background:var(--pos-green); color:white; padding:10px; border:none; border-radius:4px; font-weight:bold; flex:1; cursor:pointer;" onclick="processPipelineWorkflow('${o.id}', 'paid', 'Yes', ${JSON.stringify(o)})">Mark Paid</button>`:''}
-                                    ${o.status!=='Completed'?`<button style="background:var(--pos-blue); color:white; padding:10px; border:none; border-radius:4px; font-weight:bold; flex:1; cursor:pointer;" onclick="processPipelineWorkflow('${o.id}', 'status', 'Completed', ${JSON.stringify(o)})">Complete</button>`:''}
+                                    ${o.paid!=='Yes'?`<button style="background:var(--pos-green); color:white; padding:10px; border:none; border-radius:4px; font-weight:bold; flex:1; cursor:pointer;" onclick="processPipelineWorkflow('${o.id}', 'paid', 'Yes')">Mark Paid</button>`:''}
+                                    ${o.status!=='Completed'?`<button style="background:var(--pos-blue); color:white; padding:10px; border:none; border-radius:4px; font-weight:bold; flex:1; cursor:pointer;" onclick="processPipelineWorkflow('${o.id}', 'status', 'Completed')">Complete</button>`:''}
                                 </div>
                             </div>
                         </div>`;
@@ -402,22 +413,41 @@
             });
         }
 
-        async function processPipelineWorkflow(id, key, val, orderObject) {
+        // OVERHAULED BUTTON FUNCTION
+        async function processPipelineWorkflow(id, key, val) {
+            // Find order details securely from terminal memory
+            const orderObject = currentLiveOrders.find(ord => ord.id === id);
+            
+            if(!orderObject) {
+                alert("Database mismatch. Syncing...");
+                return fetchLiveKitchenOrders();
+            }
+
+            // Apply the new button action to memory
             orderObject[key] = val;
+
+            // Check if BOTH Paid and Completed conditions are now met
             if(orderObject.status === 'Completed' && orderObject.paid === 'Yes') {
+                
+                // 1. Send the full data to the archive tab
                 await fetch(`${BASE_API_URL}/record_keeping`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify([orderObject])
                 });
+                
+                // 2. Erase it from the live kitchen queue
                 await fetch(`${BASE_API_URL}/Sheet1`, {
                     method: 'DELETE',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({condition: {id: id}})
                 });
             } else {
+                // Otherwise, just update the single tag (Paid or Status)
                 await updateFieldDirectly(id, key, val);
             }
+            
+            // Force interface refresh
             fetchLiveKitchenOrders();
         }
 
@@ -434,7 +464,6 @@
             });
         }
 
-        // CONTROL INFRASTRUCTURE LOOKUPS
         async function runSecurityProfileLookup() {
             const targetQuery = document.getElementById('crmSearchName').value.trim();
             if(!targetQuery) return;
