@@ -3,50 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Online</title>
+    <title>Cafe Order & Live Tracker</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
         .menu-item { padding: 12px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; text-align: center; background: #fafafa; font-weight: bold; }
         .menu-item.selected { background: #008CBA; color: white; border-color: #008CBA; }
         .total-box { background: #e7f3fe; padding: 15px; border-radius: 6px; text-align: right; font-size: 18px; font-weight: bold; margin: 15px 0; }
         button { background: #4CAF50; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
         button:disabled { background: #ccc; }
-        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        .tracker-card { background: #fff; border-left: 5px solid #008CBA; padding: 12px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .status-badge { background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .status-badge.completed { background: #4CAF50; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Place Your Order</h2>
-        <label><strong>Your Name:</strong></label>
-        <input type="text" id="custName" placeholder="Enter your name...">
+    <h1 style="text-align: center; margin-bottom: 30px;">☕ Cafe Dashboard</h1>
 
-        <p><strong>Select Items:</strong></p>
-        <div class="menu-grid">
-            <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Red Velvet Cupcake', 2)">Velvet Cupcake ($2)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Pies Whole', 10)">Whole Pie ($10)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Whole Cheese Cake', 11)">Cheesecake ($11)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Whole Cake', 11)">Whole Cake ($11)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Tea', 4)">Tea ($4)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Matcha', 9)">Matcha ($9)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Ice Matcha', 10)">Ice Matcha ($10)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Espresso', 5)">Espresso ($5)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Cappuccino', 5)">Cappuccino ($5)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Mix Drink', 1)">Mix Drink ($1)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Pancakes', 9)">Pancakes ($9)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Fairy Bread', 8)">Fairy Bread ($8)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Fruit Smoothie', 5)">Smoothie ($5)</div>
-            <div class="menu-item" onclick="toggleItem(this, 'Super Smoothie', 8)">Super Smoothie ($8)</div>
+    <div class="grid-2">
+        <div class="panel">
+            <h2>Place Your Order</h2>
+            <label><strong>Your Name:</strong></label>
+            <input type="text" id="custName" placeholder="Enter your name..." style="margin-top: 5px; margin-bottom: 15px;">
+
+            <p><strong>Select Items:</strong></p>
+            <div class="menu-grid">
+                <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Red Velvet Cupcake', 2)">Velvet Cupcake ($2)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Pies Whole', 10)">Whole Pie ($10)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Whole Cheese Cake', 11)">Cheesecake ($11)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Whole Cake', 11)">Whole Cake ($11)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Tea', 4)">Tea ($4)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Matcha', 9)">Matcha ($9)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Ice Matcha', 10)">Ice Matcha ($10)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Espresso', 5)">Espresso ($5)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Cappuccino', 5)">Cappuccino ($5)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Mix Drink', 1)">Mix Drink ($1)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Pancakes', 9)">Pancakes ($9)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Fairy Bread', 8)">Fairy Bread ($8)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Fruit Smoothie', 5)">Smoothie ($5)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Super Smoothie', 8)">Super Smoothie ($8)</div>
+            </div>
+
+            <div class="total-box">Total: $<span id="totalPrice">0</span></div>
+            <button id="submitBtn" onclick="submitCustomerOrder()">Submit Order</button>
         </div>
 
-        <div class="total-box">Total: $<span id="totalPrice">0</span></div>
-        <button id="submitBtn" onclick="submitCustomerOrder()">Submit Order</button>
+        <div class="panel">
+            <h2>Live Order Status Tracking</h2>
+            <p style="font-size:12px; color:#666; font-style:italic;">Updates live automatically in background...</p>
+            <div id="customerTrackerList">Loading orders...</div>
+        </div>
     </div>
 
     <script>
@@ -71,12 +85,11 @@
             const name = document.getElementById('custName').value.trim();
             if (!name || selectedItems.length === 0) return alert('Enter your name and pick items!');
 
-            // Check if user is banned before allowing submission
             try {
                 const checkRes = await fetch(`${BASE_API_URL}/customers?search={"customer":"${name}"}`);
                 const checkData = await checkRes.json();
                 if(checkData.length > 0 && checkData[0].status === 'Banned') {
-                    return alert('Order could not be processed. Please speak to staff.');
+                    return alert('Order rejected. Please approach the cafe register counter.');
                 }
             } catch(e) {}
 
@@ -89,7 +102,9 @@
                 total: currentTotal,
                 status: 'Pending',
                 paid: 'No',
-                notes: ''
+                eta: 'TBD',
+                notes: '',
+                chef_notes: ''
             };
 
             await fetch(`${BASE_API_URL}/Sheet1`, {
@@ -98,9 +113,37 @@
                 body: JSON.stringify([order])
             });
 
-            alert('Order submitted successfully!');
+            alert('Order sent to the kitchen!');
             location.reload();
         }
+
+        // BACKGROUND AUTOMATIC TRACKER ENGINE
+        async function trackLiveOrders() {
+            try {
+                const res = await fetch(`${BASE_API_URL}/Sheet1`);
+                const orders = await res.json();
+                const container = document.getElementById('customerTrackerList');
+                container.innerHTML = '';
+
+                // Filter out closed/completed orders older than a few minutes if desired, or show all active
+                orders.reverse().slice(0, 10).forEach(o => {
+                    container.innerHTML += `
+                        <div class="tracker-card">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>${o.customer}</strong>
+                                <span class="status-badge ${o.status.toLowerCase() === 'completed' ? 'completed' : ''}">${o.status}</span>
+                            </div>
+                            <div style="font-size:13px; margin-top:5px; color:#555;">Items: ${o.items}</div>
+                            <div style="font-size:13px; font-weight:bold; color:#d32f2f; margin-top:3px;">⏱️ Kitchen ETA: ${o.eta || 'Calculating...'}</div>
+                        </div>
+                    `;
+                });
+            } catch(e) {}
+        }
+
+        // Run immediately and set loop interval to 5000ms (5 seconds)
+        trackLiveOrders();
+        setInterval(trackLiveOrders, 5000);
     </script>
 </body>
 </html>
