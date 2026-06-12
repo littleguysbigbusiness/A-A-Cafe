@@ -7,7 +7,7 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
-        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
         .menu-item { padding: 12px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; text-align: center; background: #fafafa; font-weight: bold; }
         .menu-item.selected { background: #008CBA; color: white; border-color: #008CBA; }
@@ -19,6 +19,7 @@
         .status-badge { background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .status-badge.completed { background: #4CAF50; }
         .error-msg { background: #ffebee; color: #c62828; padding: 15px; border-radius: 6px; border: 1px solid #ef9a9a; font-weight: bold; margin-bottom: 15px; display: none; }
+        .history-item { border-bottom: 1px solid #eee; padding: 8px 0; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -59,10 +60,20 @@
             <button id="submitBtn" onclick="submitCustomerOrder()">Submit Order</button>
         </div>
 
-        <div class="panel">
-            <h2>My Live Orders</h2>
-            <p style="font-size:12px; color:#666; font-style:italic;">Only showing your active orders. Updates live every 5 seconds.</p>
-            <div id="customerTrackerList">No active orders tracked for your device yet. Submit an order to start tracking!</div>
+        <div>
+            <div class="panel">
+                <h2>My Active Live Orders</h2>
+                <p style="font-size:12px; color:#666; font-style:italic;">Showing your active counter queue orders.</p>
+                <div id="customerTrackerList">Type your name on the left to see active trackers.</div>
+            </div>
+
+            <div class="panel">
+                <h2>📜 My Past Order History Logs</h2>
+                <p style="font-size:12px; color:#666; font-style:italic;">Type your name above to view all past logs and completed invoices.</p>
+                <div id="pastHistoryList" style="max-height: 300px; overflow-y: auto;">
+                    Enter your name to load your past logs.
+                </div>
+            </div>
         </div>
     </div>
 
@@ -71,7 +82,7 @@
         let selectedItems = [];
         let currentTotal = 0;
 
-        // Auto-fill their name if they have ordered on this device before
+        // Auto-load name from local device memory if it exists
         if (localStorage.getItem('cafeCustomerName')) {
             document.getElementById('custName').value = localStorage.getItem('cafeCustomerName');
         }
@@ -95,10 +106,10 @@
                 const checkRes = await fetch(`${BASE_API_URL}/customers?search={"customer":"${name}"}`);
                 const checkData = await checkRes.json();
                 if(checkData.length > 0 && checkData[0].status === 'Banned') {
-                    // Lock interface
                     document.getElementById('banAlert').style.display = 'block';
                     document.getElementById('submitBtn').disabled = true;
-                    document.getElementById('customerTrackerList').innerText = "Tracking disabled for suspended profiles.";
+                    document.getElementById('customerTrackerList').innerText = "Tracking disabled.";
+                    document.getElementById('pastHistoryList').innerText = "History locked.";
                     return true;
                 }
             } catch(e) {}
@@ -111,12 +122,11 @@
             const name = document.getElementById('custName').value.trim();
             if (!name || selectedItems.length === 0) return alert('Enter your name and pick items!');
 
-            // Enforce Ban Check on submission
             const isBanned = await checkBanStatus(name);
             if (isBanned) return;
 
             document.getElementById('submitBtn').disabled = true;
-            localStorage.setItem('cafeCustomerName', name); // Remember user on this device
+            localStorage.setItem('cafeCustomerName', name); 
 
             const order = {
                 id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
@@ -138,73 +148,97 @@
 
             alert('Order sent to the kitchen!');
             
-            // Reset items but keep name
             selectedItems = [];
             currentTotal = 0;
             document.getElementById('totalPrice').innerText = 0;
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('selected'));
             document.getElementById('submitBtn').disabled = false;
             
-            trackMyOrders();
+            updateCustomerDashboardData();
         }
 
-        // TARGETED SECURE TRACKING ENGINE
-        async function trackMyOrders() {
-            const currentSavedUser = localStorage.getItem('cafeCustomerName');
+        // LOOPS BOTH ACTIVE TRACKER AND PAST ARCHIVES
+        async function updateCustomerDashboardData() {
+            const currentSavedUser = document.getElementById('custName').value.trim();
             if (!currentSavedUser) return;
 
-            // Re-verify they haven't been banned mid-session
+            localStorage.setItem('cafeCustomerName', currentSavedUser);
+
+            // 1. Verify user profile isn't banned
             try {
                 const checkRes = await fetch(`${BASE_API_URL}/customers?search={"customer":"${currentSavedUser}"}`);
                 const checkData = await checkRes.json();
                 if(checkData.length > 0 && checkData[0].status === 'Banned') {
                     document.getElementById('banAlert').style.display = 'block';
                     document.getElementById('submitBtn').disabled = true;
-                    document.getElementById('customerTrackerList').innerText = "Tracking disabled for suspended profiles.";
+                    document.getElementById('customerTrackerList').innerText = "Tracking disabled.";
+                    document.getElementById('pastHistoryList').innerText = "History locked.";
                     return;
                 }
             } catch(e) {}
 
+            // 2. Fetch Live Active Queue Orders (Sheet1)
             try {
-                // Stein filters the rows directly on the server to only send back this user's rows
                 const res = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${currentSavedUser}"}`);
                 const orders = await res.json();
                 const container = document.getElementById('customerTrackerList');
                 
                 if(!orders || orders.length === 0 || orders.error) {
-                    container.innerText = "No current active orders found under your name.";
-                    return;
-                }
-
-                container.innerHTML = '';
-                // Reverse to display newest submissions first
-                orders.reverse().slice(0, 5).forEach(o => {
-                    container.innerHTML += `
-                        <div class="tracker-card">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <strong>Order Reference: ${o.id}</strong>
-                                <span class="status-badge ${o.status.toLowerCase() === 'completed' ? 'completed' : ''}">${o.status}</span>
+                    container.innerText = "No current active orders in the kitchen line.";
+                } else {
+                    container.innerHTML = '';
+                    orders.reverse().forEach(o => {
+                        container.innerHTML += `
+                            <div class="tracker-card">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <strong>ID: ${o.id}</strong>
+                                    <span class="status-badge">${o.status}</span>
+                                </div>
+                                <div style="font-size:13px; margin-top:5px; color:#555;">Items: ${o.items}</div>
+                                <div style="font-size:13px; font-weight:bold; color:#008CBA; margin-top:3px;">⏱️ Kitchen ETA: ${o.eta || 'Calculating...'}</div>
                             </div>
-                            <div style="font-size:13px; margin-top:5px; color:#555;"><strong>Items ordered:</strong> ${o.items}</div>
-                            <div style="font-size:13px; font-weight:bold; color:#008CBA; margin-top:3px;">⏱️ Your Food ETA: ${o.eta || 'Calculating...'}</div>
-                        </div>
-                    `;
-                });
+                        `;
+                    });
+                }
+            } catch(e) {}
+
+            // 3. Fetch Completed Past Archives (record_keeping)
+            try {
+                const historyRes = await fetch(`${BASE_API_URL}/record_keeping?search={"customer":"${currentSavedUser}"}`);
+                const historyData = await historyRes.json();
+                const historyContainer = document.getElementById('pastHistoryList');
+
+                if(!historyData || historyData.length === 0 || historyData.error) {
+                    historyContainer.innerText = "No archived past orders found.";
+                } else {
+                    historyContainer.innerHTML = '';
+                    historyData.reverse().forEach(h => {
+                        historyContainer.innerHTML += `
+                            <div class="history-item">
+                                ✅ <strong>${h.id}</strong> - ${h.items} <span style="color:#2e7d32; font-weight:bold;">($${h.total})</span>
+                            </div>
+                        `;
+                    });
+                }
             } catch(e) {}
         }
 
-        // Check ban immediately if name exists, run intervals
-        const checkExistingName = localStorage.getItem('cafeCustomerName');
-        if(checkExistingName) {
-            checkBanStatus(checkExistingName);
+        // Initialize dashboard on load
+        const initialName = document.getElementById('custName').value.trim();
+        if(initialName) {
+            checkBanStatus(initialName);
+            updateCustomerDashboardData();
         }
         
-        trackMyOrders();
-        setInterval(trackMyOrders, 5000);
+        // Auto-refresh tracker elements every 5 seconds
+        setInterval(updateCustomerDashboardData, 5000);
         
-        // Listen to name changes to check ban profiles proactively
+        // Instant look up when they stop typing or switch names in the field box
         document.getElementById('custName').addEventListener('change', function() {
-            if(this.value.trim()) checkBanStatus(this.value.trim());
+            if(this.value.trim()) {
+                checkBanStatus(this.value.trim());
+                updateCustomerDashboardData();
+            }
         });
     </script>
 </body>
