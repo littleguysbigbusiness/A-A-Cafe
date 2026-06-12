@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Control Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .dashboard { display: none; max-width: 1200px; margin: 0 auto; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: #555; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .tab-btn.active { background: #008CBA; }
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .order-card { border-left: 6px solid #ff9800; padding: 15px; margin-bottom: 15px; background: #fff; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .order-card.completed { border-left-color: #4CAF50; background: #fdfdfd; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 5px; }
+        .badge.paid { background: #e2fbe8; color: #2e7d32; }
+        .badge.unpaid { background: #fff3e0; color: #e65100; }
+        input, textarea, select { width: 100%; padding: 8px; margin: 5px 0 15px 0; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        button { background: #008CBA; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .ban-btn { background: #d32f2f; }
+    </style>
+</head>
+<body>
+
+    <div id="loginSection" class="login-box">
+        <h2>Staff Authentication</h2>
+        <label>Staff Username:</label>
+        <input type="text" id="staffUser" placeholder="Enter name...">
+        <label>Passcode / Special Code:</label>
+        <input type="password" id="staffPass" placeholder="Enter code...">
+        <button style="width:100%" onclick="loginStaff()">Login</button>
+    </div>
+
+    <div id="dashboardSection" class="dashboard">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h1>Staff Workspace</h1>
+            <span id="welcomeMsg" style="font-weight:bold; color:#555;"></span>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('ordersTab')">📋 Live Orders</button>
+            <button class="tab-btn" onclick="switchTab('lookupTab')">🔍 Customer Lookup & Bans</button>
+            <button class="tab-btn" onclick="switchTab('staffTab')">👥 Staff Management</button>
+        </div>
+
+        <div id="ordersTab" class="tab-content panel">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <h2>Current Queue</h2>
+                <button onclick="fetchLiveOrders()">🔄 Refresh Grid</button>
+            </div>
+            <div id="liveOrdersList">Loading...</div>
+        </div>
+
+        <div id="lookupTab" class="tab-content panel" style="display:none;">
+            <h2>Customer Intelligence File</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Search Profile</h3>
+                    <input type="text" id="searchName" placeholder="Type user name to inspect...">
+                    <button onclick="lookupCustomer()">Search Customer</button>
+                    
+                    <div id="lookupResult" style="margin-top:20px; padding:15px; background:#fafafa; border-radius:6px; display:none;">
+                        <h4 id="resName" style="margin:0;"></h4>
+                        <p><strong>Account Status:</strong> <span id="resStatus"></span></p>
+                        <p><strong>Permanent Internal Notes:</strong></p>
+                        <textarea id="resPermNotes" rows="3"></textarea>
+                        <button onclick="savePermNotes()">Save Permanent Notes</button>
+                        <button id="banToggleBtn" class="ban-btn" style="margin-top:10px;" onclick="toggleBan()"></button>
+                    </div>
+                </div>
+                <div>
+                    <h3>Past Order History</h3>
+                    <div id="pastOrdersHistory" style="max-height: 400px; overflow-y: auto; background:#fff; border:1px solid #eee; padding:10px;">
+                        Search for a customer to compile their ledger history.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="staffTab" class="tab-content panel" style="display:none;">
+            <h2>Authorized Handlers</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Register New Staff</h3>
+                    <input type="text" id="newStaffName" placeholder="Staff Name">
+                    <input type="text" id="newStaffCode" placeholder="Access Code">
+                    <button onclick="addStaff()">Authorize Employee</button>
+                </div>
+                <div>
+                    <h3>Active Staff Directory</h3>
+                    <ul id="staffDirectoryList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
+        let activeStaffName = "";
+
+        // AUTHENTICATION RETRIEVAL
+        async function loginStaff() {
+            const user = document.getElementById('staffUser').value.trim();
+            const pass = document.getElementById('staffPass').value.trim();
+            
+            try {
+                const res = await fetch(`${BASE_API_URL}/staff`);
+                const staffList = await res.json();
+                const matched = staffList.find(s => s.name.toLowerCase() === user.toLowerCase() && String(s.code) === pass);
+                
+                if (matched) {
+                    activeStaffName = matched.name;
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('dashboardSection').style.display = 'block';
+                    document.getElementById('welcomeMsg').innerText = `Handler: ${activeStaffName}`;
+                    fetchLiveOrders();
+                } else {
+                    alert("Invalid Name or Code credentials.");
+                }
+            } catch(e) { alert("Auth connection error."); }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).style.display = 'block';
+            event.target.classList.add('active');
+            if(tabId === 'staffTab') fetchStaffDirectory();
+        }
+
+        // TAB 1: ORDER LOGIC
+        async function fetchLiveOrders() {
+            const res = await fetch(`${BASE_API_URL}/Sheet1`);
+            const orders = await res.json();
+            const container = document.getElementById('liveOrdersList');
+            container.innerHTML = '';
+
+            orders.reverse().forEach(order => {
+                const card = document.createElement('div');
+                card.className = `order-card ${order.status === 'Completed' ? 'completed' : ''}`;
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;">
+                        <span><strong>ID:</strong> ${order.id} | Status: <strong>${order.status}</strong></span>
+                        <span><strong>Cost: $${order.total || '0'}</strong> 
+                        <span class="badge ${order.paid === 'Yes' ? 'paid' : 'unpaid'}">${order.paid === 'Yes' ? 'Paid' : 'Unpaid'}</span></span>
+                    </div>
+                    <h3>${order.customer}</h3>
+                    <p><strong>Items:</strong> ${order.items}</p>
+                    <textarea placeholder="Staff Operational Notes..." onchange="updateOrderField('${order.id}', 'notes', this.value)">${order.notes || ''}</textarea>
+                    <div style="display:flex; gap:10px;">
+                        ${order.paid !== 'Yes' ? `<button style="background:#4CAF50; flex:1;" onclick="updateOrderField('${order.id}', 'paid', 'Yes')">💰 Mark Paid</button>` : ''}
+                        ${order.status !== 'Completed' ? `<button style="background:#2196F3; flex:1;" onclick="updateOrderField('${order.id}', 'status', 'Completed')">✔️ Finish Order</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function updateOrderField(id, field, value) {
+            let updatePayload = {};
+            updatePayload[field] = value;
+            await fetch(`${BASE_API_URL}/Sheet1`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ condition: { id: id }, set: updatePayload })
+            });
+            fetchLiveOrders();
+        }
+
+        // TAB 2: CUSTOMER LOOKUP, HISTORIES & BANS
+        let currentInspectedCustomer = "";
+        async function lookupCustomer() {
+            const name = document.getElementById('searchName').value.trim();
+            if(!name) return;
+            currentInspectedCustomer = name;
+
+            // Fetch Profiles
+            const profileRes = await fetch(`${BASE_API_URL}/customers?search={"customer":"${name}"}`);
+            const profileData = await profileRes.json();
+            
+            document.getElementById('lookupResult').style.display = 'block';
+            document.getElementById('resName').innerText = name;
+
+            if (profileData.length > 0) {
+                document.getElementById('resStatus').innerText = profileData[0].status || 'Active';
+                document.getElementById('resPermNotes').value = profileData[0].perm_notes || '';
+                document.getElementById('banToggleBtn').innerText = profileData[0].status === 'Banned' ? '😇 Unban User' : '🚫 Ban Customer';
+            } else {
+                document.getElementById('resStatus').innerText = 'Active (New)';
+                document.getElementById('resPermNotes').value = '';
+                document.getElementById('banToggleBtn').innerText = '🚫 Ban Customer';
+            }
+
+            // Fetch ledger history
+            const ledgerRes = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${name}"}`);
+            const ledgerData = await ledgerRes.json();
+            const historyBox = document.getElementById('pastOrdersHistory');
+            historyBox.innerHTML = '';
+
+            if(ledgerData.length === 0) {
+                historyBox.innerText = "No recorded purchases found.";
+            } else {
+                ledgerData.reverse().forEach(o => {
+                    historyBox.innerHTML += `<div style="border-bottom:1px solid #eee; padding:5px 0;">
+                        <strong>${o.id}</strong> - ${o.items} ($${o.total}) | Paid: ${o.paid} | Note: ${o.notes || 'None'}
+                    </div>`;
+                });
+            }
+        }
+
+        async function savePermNotes() {
+            const notes = document.getElementById('resPermNotes').value;
+            await fetch(`${BASE_API_URL}/customers`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ condition: { customer: currentInspectedCustomer }, set: { perm_notes: notes } })
+            });
+            alert('Saved permanent notes.');
+        }
+
+        async function toggleBan() {
+            const currentStatus = document.getElementById('resStatus').innerText;
+            const newStatus = currentStatus === 'Banned' ? 'Active' : 'Banned';
+            
+            const check = await fetch(`${BASE_API_URL}/customers?search={"customer":"${currentInspectedCustomer}"}`);
+            const checkData = await check.json();
+
+            if (checkData.length > 0) {
+                await fetch(`${BASE_API_URL}/customers`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ condition: { customer: currentInspectedCustomer }, set: { status: newStatus } })
+                });
+            } else {
+                await fetch(`${BASE_API_URL}/customers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([{ customer: currentInspectedCustomer, status: newStatus, perm_notes: '' }])
+                });
+            }
+            lookupCustomer();
+        }
+
+        // TAB 3: STAFF DIRECTORY MANAGEMENT
+        async function fetchStaffDirectory() {
+            const res = await fetch(`${BASE_API_URL}/staff`);
+            const staff = await res.json();
+            const list = document.getElementById('staffDirectoryList');
+            list.innerHTML = '';
+            staff.forEach(s => {
+                list.innerHTML += `<li><strong>${s.name}</strong> (Access Code: ${s.code})</li>`;
+            });
+        }
+
+        async function addStaff() {
+            const name = document.getElementById('newStaffName').value.trim();
+            const code = document.getElementById('newStaffCode').value.trim();
+            if(!name || !code) return;
+
+            await fetch(`${BASE_API_URL}/staff`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([{ name, code }])
+            });
+            document.getElementById('newStaffName').value = '';
+            document.getElementById('newStaffCode').value = '';
+            fetchStaffDirectory();
+        }
+    </script>
+</body>
+</html>
