@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Order Dashboard (Stein Connected)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        .container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex: 1; }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
+        .menu-item { padding: 12px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; text-align: center; background: #fafafa; font-weight: bold; transition: 0.2s; }
+        .menu-item:hover { background: #f0f0f0; }
+        .menu-item.selected { background: #ff9800; color: white; border-color: #ff9800; }
+        button { background: #008CBA; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+        button:hover { background: #007B9A; }
+        .order-card { background: #fff; border: 1px solid #eee; border-left: 6px solid #ff9800; padding: 15px; margin-bottom: 15px; border-radius: 6px; position: relative; }
+        .order-card.completed { border-left-color: #4CAF50; background: #fafafa; }
+        .order-meta { font-size: 0.85em; color: #777; margin-bottom: 8px; }
+        textarea { width: 100%; margin-top: 8px; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; resize: vertical; }
+        .loading { text-align: center; color: #666; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <h1 style="text-align: center; margin-bottom: 30px;">Staff Order Dashboard</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>New Order</h2>
+            <label for="customerName"><strong>Customer Name:</strong></label>
+            <input type="text" id="customerName" placeholder="Type customer name..." style="width: 100%; padding: 10px; margin: 10px 0 20px 0; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px;">
+            
+            <p><strong>Select Items:</strong></p>
+            <div class="menu-grid" id="menuGrid">
+                <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Red Velvet Cupcake', 2)">Velvet Cupcake ($2)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Pies Whole', 10)">Whole Pie ($10)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Whole Cheese Cake', 11)">Cheesecake ($11)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Whole Cake', 11)">Whole Cake ($11)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Tea', 4)">Tea ($4)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Matcha', 9)">Matcha ($9)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Ice Matcha', 10)">Ice Matcha ($10)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Espresso', 5)">Espresso ($5)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Cappuccino', 5)">Cappuccino ($5)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Mix Drink (Orange/Water/Etc)', 1)">Mix Drink ($1)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Pancakes', 9)">Pancakes ($9)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Fairy Bread', 8)">Fairy Bread ($8)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Fruit Smoothie', 5)">Smoothie ($5)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Smoothie Super Edition', 8)">Super Smoothie ($8)</div>
+            </div>
+
+            <button id="submitBtn" onclick="submitOrder()">Submit Order</button>
+        </div>
+
+        <div class="panel">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Active Orders</h2>
+                <button onclick="fetchOrders()" style="width: auto; padding: 6px 12px; font-size: 13px; background: #555;">🔄 Refresh</button>
+            </div>
+            <div id="ordersList" class="loading">Loading live orders from Google Sheets...</div>
+        </div>
+    </div>
+
+    <script>
+        // Target Sheet name inside your Stein API. Default is Sheet1.
+        const SHEET_NAME = "Sheet1"; 
+        const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
+
+        let selectedItems = [];
+
+        function toggleItem(element, name, price) {
+            element.classList.toggle('selected');
+            const index = selectedItems.indexOf(name);
+            if (index > -1) {
+                selectedItems.splice(index, 1);
+            } else {
+                selectedItems.push(name);
+            }
+        }
+
+        // FETCH FROM GOOGLE SHEETS
+        async function fetchOrders() {
+            try {
+                const response = await fetch(`${BASE_API_URL}/${SHEET_NAME}`);
+                const data = await response.json();
+                renderOrders(data);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                document.getElementById('ordersList').innerText = "Failed to load orders. Check your API URL configuration.";
+            }
+        }
+
+        function renderOrders(orders) {
+            const list = document.getElementById('ordersList');
+            list.innerHTML = '';
+            
+            if (!orders || orders.length === 0 || orders.error) {
+                list.innerHTML = '<p class="loading">No active orders logged yet.</p>';
+                return;
+            }
+
+            // Reverse to show newest pending orders right at the top
+            orders.reverse().forEach((order) => {
+                const card = document.createElement('div');
+                card.className = `order-card ${order.status === 'Completed' ? 'completed' : ''}`;
+                card.innerHTML = `
+                    <div class="order-meta"><strong>ID:</strong> ${order.id} | <strong>Status:</strong> ${order.status}</div>
+                    <h3 style="margin: 0 0 5px 0;">${order.customer}</h3>
+                    <p style="margin: 0; font-size: 14px;"><strong>Items:</strong> ${order.items}</p>
+                    <textarea placeholder="Add staff notes here..." onchange="updateNotes('${order.id}', this.value)">${order.notes || ''}</textarea>
+                    ${order.status !== 'Completed' ? `<button style="background:#4CAF50; margin-top:10px; padding: 6px; font-size:14px;" onclick="completeOrder('${order.id}')">Mark Completed</button>` : ''}
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // PUSH NEW ORDER TO GOOGLE SHEETS
+        async function submitOrder() {
+            const name = document.getElementById('customerName').value.trim();
+            if (!name || selectedItems.length === 0) {
+                alert('Please enter a customer name and select items.');
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = "Saving to Spreadsheet...";
+
+            const newOrder = {
+                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                customer: name,
+                items: selectedItems.join(', '),
+                status: 'Pending',
+                notes: ''
+            };
+
+            try {
+                await fetch(`${BASE_API_URL}/${SHEET_NAME}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([newOrder])
+                });
+                
+                // Reset form completely
+                document.getElementById('customerName').value = '';
+                document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('selected'));
+                selectedItems = [];
+                
+                // Refresh local view
+                await fetchOrders();
+            } catch (error) {
+                alert('Error connecting to Sheets api');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Submit Order";
+            }
+        }
+
+        // UPDATE STATUS IN SHEET BY MATCHING THE UNIQUE ID
+        async function completeOrder(orderId) {
+            try {
+                await fetch(`${BASE_API_URL}/${SHEET_NAME}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        condition: { id: orderId },
+                        set: { status: 'Completed' }
+                    })
+                });
+                fetchOrders();
+            } catch (error) {
+                console.error("Error updating status:", error);
+            }
+        }
+
+        // UPDATE NOTES IN SHEET BY MATCHING THE UNIQUE ID
+        async function updateNotes(orderId, text) {
+            try {
+                await fetch(`${BASE_API_URL}/${SHEET_NAME}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        condition: { id: orderId },
+                        set: { notes: text }
+                    })
+                });
+            } catch (error) {
+                console.error("Error saving notes:", error);
+            }
+        }
+
+        // Initial Load when staff opens page
+        fetchOrders();
+    </script>
+</body>
+</html>
