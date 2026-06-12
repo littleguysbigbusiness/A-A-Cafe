@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cafe Order & Live Tracker</title>
+    <title>Cafe Order & My Tracker</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
@@ -13,27 +13,30 @@
         .menu-item.selected { background: #008CBA; color: white; border-color: #008CBA; }
         .total-box { background: #e7f3fe; padding: 15px; border-radius: 6px; text-align: right; font-size: 18px; font-weight: bold; margin: 15px 0; }
         button { background: #4CAF50; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
-        button:disabled { background: #ccc; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
         input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
         .tracker-card { background: #fff; border-left: 5px solid #008CBA; padding: 12px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .status-badge { background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .status-badge.completed { background: #4CAF50; }
+        .error-msg { background: #ffebee; color: #c62828; padding: 15px; border-radius: 6px; border: 1px solid #ef9a9a; font-weight: bold; margin-bottom: 15px; display: none; }
     </style>
 </head>
 <body>
 
-    <h1 style="text-align: center; margin-bottom: 30px;">☕ Cafe Dashboard</h1>
+    <h1 style="text-align: center; margin-bottom: 30px;">☕ Cafe Order Portal</h1>
 
     <div class="grid-2">
         <div class="panel">
             <h2>Place Your Order</h2>
+            <div id="banAlert" class="error-msg">🚫 Your account has been suspended. Please approach the cafe register counter for assistance.</div>
+            
             <label><strong>Your Name:</strong></label>
-            <input type="text" id="custName" placeholder="Enter your name..." style="margin-top: 5px; margin-bottom: 15px;">
+            <input type="text" id="custName" placeholder="Enter your name to order..." style="margin-top: 5px; margin-bottom: 15px;">
 
             <p><strong>Select Items:</strong></p>
-            <div class="menu-grid">
+            <div class="menu-grid" id="menuGridBox">
                 <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
-                <div class="menu-item" onclick="toggleItem(this, 'Red Velvet Cupcake', 2)">Velvet Cupcake ($2)</div>
+                <div class="menu-item" onclick="toggleItem(this, 'Red Velvet Cupcake', 2)">Cupcake ($2)</div>
                 <div class="menu-item" onclick="toggleItem(this, 'Pies Whole', 10)">Whole Pie ($10)</div>
                 <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
                 <div class="menu-item" onclick="toggleItem(this, 'Whole Cheese Cake', 11)">Cheesecake ($11)</div>
@@ -57,9 +60,9 @@
         </div>
 
         <div class="panel">
-            <h2>Live Order Status Tracking</h2>
-            <p style="font-size:12px; color:#666; font-style:italic;">Updates live automatically in background...</p>
-            <div id="customerTrackerList">Loading orders...</div>
+            <h2>My Live Orders</h2>
+            <p style="font-size:12px; color:#666; font-style:italic;">Only showing your active orders. Updates live every 5 seconds.</p>
+            <div id="customerTrackerList">No active orders tracked for your device yet. Submit an order to start tracking!</div>
         </div>
     </div>
 
@@ -68,7 +71,13 @@
         let selectedItems = [];
         let currentTotal = 0;
 
+        // Auto-fill their name if they have ordered on this device before
+        if (localStorage.getItem('cafeCustomerName')) {
+            document.getElementById('custName').value = localStorage.getItem('cafeCustomerName');
+        }
+
         function toggleItem(element, name, price) {
+            if(document.getElementById('submitBtn').disabled && document.getElementById('banAlert').style.display === 'block') return;
             element.classList.toggle('selected');
             const index = selectedItems.indexOf(name);
             if (index > -1) {
@@ -81,19 +90,33 @@
             document.getElementById('totalPrice').innerText = currentTotal;
         }
 
-        async function submitCustomerOrder() {
-            const name = document.getElementById('custName').value.trim();
-            if (!name || selectedItems.length === 0) return alert('Enter your name and pick items!');
-
+        async function checkBanStatus(name) {
             try {
                 const checkRes = await fetch(`${BASE_API_URL}/customers?search={"customer":"${name}"}`);
                 const checkData = await checkRes.json();
                 if(checkData.length > 0 && checkData[0].status === 'Banned') {
-                    return alert('Order rejected. Please approach the cafe register counter.');
+                    // Lock interface
+                    document.getElementById('banAlert').style.display = 'block';
+                    document.getElementById('submitBtn').disabled = true;
+                    document.getElementById('customerTrackerList').innerText = "Tracking disabled for suspended profiles.";
+                    return true;
                 }
             } catch(e) {}
+            document.getElementById('banAlert').style.display = 'none';
+            document.getElementById('submitBtn').disabled = false;
+            return false;
+        }
+
+        async function submitCustomerOrder() {
+            const name = document.getElementById('custName').value.trim();
+            if (!name || selectedItems.length === 0) return alert('Enter your name and pick items!');
+
+            // Enforce Ban Check on submission
+            const isBanned = await checkBanStatus(name);
+            if (isBanned) return;
 
             document.getElementById('submitBtn').disabled = true;
+            localStorage.setItem('cafeCustomerName', name); // Remember user on this device
 
             const order = {
                 id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
@@ -114,36 +137,75 @@
             });
 
             alert('Order sent to the kitchen!');
-            location.reload();
+            
+            // Reset items but keep name
+            selectedItems = [];
+            currentTotal = 0;
+            document.getElementById('totalPrice').innerText = 0;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('selected'));
+            document.getElementById('submitBtn').disabled = false;
+            
+            trackMyOrders();
         }
 
-        // BACKGROUND AUTOMATIC TRACKER ENGINE
-        async function trackLiveOrders() {
+        // TARGETED SECURE TRACKING ENGINE
+        async function trackMyOrders() {
+            const currentSavedUser = localStorage.getItem('cafeCustomerName');
+            if (!currentSavedUser) return;
+
+            // Re-verify they haven't been banned mid-session
             try {
-                const res = await fetch(`${BASE_API_URL}/Sheet1`);
+                const checkRes = await fetch(`${BASE_API_URL}/customers?search={"customer":"${currentSavedUser}"}`);
+                const checkData = await checkRes.json();
+                if(checkData.length > 0 && checkData[0].status === 'Banned') {
+                    document.getElementById('banAlert').style.display = 'block';
+                    document.getElementById('submitBtn').disabled = true;
+                    document.getElementById('customerTrackerList').innerText = "Tracking disabled for suspended profiles.";
+                    return;
+                }
+            } catch(e) {}
+
+            try {
+                // Stein filters the rows directly on the server to only send back this user's rows
+                const res = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${currentSavedUser}"}`);
                 const orders = await res.json();
                 const container = document.getElementById('customerTrackerList');
-                container.innerHTML = '';
+                
+                if(!orders || orders.length === 0 || orders.error) {
+                    container.innerText = "No current active orders found under your name.";
+                    return;
+                }
 
-                // Filter out closed/completed orders older than a few minutes if desired, or show all active
-                orders.reverse().slice(0, 10).forEach(o => {
+                container.innerHTML = '';
+                // Reverse to display newest submissions first
+                orders.reverse().slice(0, 5).forEach(o => {
                     container.innerHTML += `
                         <div class="tracker-card">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <strong>${o.customer}</strong>
+                                <strong>Order Reference: ${o.id}</strong>
                                 <span class="status-badge ${o.status.toLowerCase() === 'completed' ? 'completed' : ''}">${o.status}</span>
                             </div>
-                            <div style="font-size:13px; margin-top:5px; color:#555;">Items: ${o.items}</div>
-                            <div style="font-size:13px; font-weight:bold; color:#d32f2f; margin-top:3px;">⏱️ Kitchen ETA: ${o.eta || 'Calculating...'}</div>
+                            <div style="font-size:13px; margin-top:5px; color:#555;"><strong>Items ordered:</strong> ${o.items}</div>
+                            <div style="font-size:13px; font-weight:bold; color:#008CBA; margin-top:3px;">⏱️ Your Food ETA: ${o.eta || 'Calculating...'}</div>
                         </div>
                     `;
                 });
             } catch(e) {}
         }
 
-        // Run immediately and set loop interval to 5000ms (5 seconds)
-        trackLiveOrders();
-        setInterval(trackLiveOrders, 5000);
+        // Check ban immediately if name exists, run intervals
+        const checkExistingName = localStorage.getItem('cafeCustomerName');
+        if(checkExistingName) {
+            checkBanStatus(checkExistingName);
+        }
+        
+        trackMyOrders();
+        setInterval(trackMyOrders, 5000);
+        
+        // Listen to name changes to check ban profiles proactively
+        document.getElementById('custName').addEventListener('change', function() {
+            if(this.value.trim()) checkBanStatus(this.value.trim());
+        });
     </script>
 </body>
 </html>
