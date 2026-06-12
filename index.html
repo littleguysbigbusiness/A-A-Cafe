@@ -255,7 +255,7 @@
                 total: currentTotal,
                 status: 'Pending',
                 paid: 'No',
-                eta: 'TBD',
+                eta: '',
                 notes: '',
                 chef_notes: ''
             };
@@ -277,23 +277,33 @@
             const user = document.getElementById('custName').value.trim();
             if(!user) return;
 
-            // Live active tracking loop
+            // Live active tracking loop (Safely pulls real-time ETAs and Barista notes)
             try {
                 const activeRes = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${user}"}`);
                 const activeOrders = await activeRes.json();
                 const container = document.getElementById('customerTrackerList');
+                
                 if(!activeOrders || activeOrders.length === 0 || activeOrders.error) {
                     container.innerText = "No active orders in the current queue.";
                 } else {
                     container.innerHTML = '';
                     activeOrders.reverse().forEach(o => {
+                        const displayEta = o.eta ? o.eta : 'Calculating...';
+                        const displayChefNotes = o.chef_notes ? o.chef_notes : 'Preparing your items...';
+                        const displayStaffNotes = o.notes ? o.notes : '';
+
                         container.innerHTML += `
                             <div class="order-card">
-                                <div style="display:flex; justify-content:space-between;">
-                                    <strong>ID: ${o.id}</strong><span class="status-badge">${o.status}</span>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <strong>ID: ${o.id}</strong>
+                                    <span class="status-badge">${o.status}</span>
                                 </div>
-                                <p style="font-size:12px; margin:5px 0;">Items: ${o.items}</p>
-                                <div style="font-size:12px; font-weight:bold; color:var(--latte);">⏱️ Status Note: ${o.eta || 'Awaiting Barista...'}</div>
+                                <p style="font-size:13px; margin:8px 0; font-weight: 500;">Items: ${o.items}</p>
+                                <div style="background: #fdfaf6; padding: 10px; border-radius: 6px; border: 1px solid var(--pastry); font-size: 12px; margin-top: 5px;">
+                                    <div style="color:var(--latte); font-weight:bold; margin-bottom: 4px;">⏱️ Est. Wait Time: ${displayEta}</div>
+                                    <div style="color:#555;"><strong style="color:var(--espresso);">👨‍🍳 Barista Note:</strong> ${displayChefNotes}</div>
+                                    ${displayStaffNotes ? `<div style="color:#777; font-size:11px; margin-top:4px; font-style:italic;">Memo: ${displayStaffNotes}</div>` : ''}
+                                </div>
                             </div>`;
                     });
                 }
@@ -323,7 +333,7 @@
             checkUserBan(existingDeviceUser);
             updateCustomerData();
         }
-        setInterval(updateCustomerData, 6000);
+        setInterval(updateCustomerData, 5000);
     </script>
 </body>
 </html>
