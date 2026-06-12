@@ -1,13 +1,20 @@
-:root {
-            --dark-bg: #0b0f19; /* Deep Midnight Blue/Black */
-            --card-bg: #111827; /* Dark Charcoal */
-            --border-color: #1f2937;
-            --accent-cyan: #06b6d4; /* Neon Teal/Cyan */
-            --text-main: #f9fafb;
-            --text-muted: #9ca3af;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Cozy Beans Terminal</title>
+    <style>
+        :root {
+            --dark-bg: #0a192f; /* Deep Space/Cyber Blue */
+            --card-bg: #172a45; /* Dark Navy Slate */
+            --border-color: #30475e;
+            --accent-blue: #38bdf8; /* Bright Cyan Blue */
+            --text-main: #f4f6f9;
+            --text-muted: #8892b0;
             --pos-green: #10b981;
-            --pos-red: #ef4444;
-            --pos-blue: #3b82f6;
+            --pos-red: #f43f5e;
+            --pos-blue: #00d2ff;
         }
 
         body {
@@ -19,15 +26,15 @@
         }
 
         .topbar {
-            background-color: #030712;
+            background-color: #020c1b;
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid var(--border-color);
         }
 
-        .topbar h1 { margin: 0; font-size: 20px; font-weight: 700; color: var(--text-main); }
+        .topbar h1 { margin: 0; font-size: 20px; font-weight: 700; color: var(--accent-blue); }
         
         .tab-menu { display: flex; gap: 8px; }
         .tab-btn {
@@ -42,8 +49,8 @@
         }
         .tab-btn:hover, .tab-btn.active {
             background: var(--card-bg);
-            color: var(--accent-cyan);
-            border-color: var(--accent-cyan);
+            color: var(--accent-blue);
+            border-color: var(--accent-blue);
         }
 
         .workspace { max-width: 1600px; margin: 30px auto; padding: 0 20px; }
@@ -75,7 +82,7 @@
             transition: all 0.15s;
         }
         .pos-item:hover { border-color: var(--text-main); color: white; }
-        .pos-item.selected { background: var(--accent-cyan); color: var(--dark-bg); border-color: white; }
+        .pos-item.selected { background: var(--accent-blue); color: var(--dark-bg); border-color: white; }
 
         input, textarea {
             width: 100%;
@@ -88,10 +95,10 @@
             font-size: 14px;
             margin-bottom: 15px;
         }
-        input:focus { border-color: var(--accent-cyan); outline: none; }
+        input:focus { border-color: var(--accent-blue); outline: none; }
 
         .btn-action {
-            background: var(--text-main);
+            background: var(--accent-blue);
             color: var(--dark-bg);
             border: none;
             padding: 14px;
@@ -103,7 +110,7 @@
             transition: opacity 0.2s;
         }
         .btn-action:hover { opacity: 0.9; }
-        .btn-action:disabled { background: #374151; color: #4b5563; cursor: not-allowed; }
+        .btn-action:disabled { background: #1f3a60; color: #486581; cursor: not-allowed; }
 
         .total-display {
             background: var(--dark-bg);
@@ -112,7 +119,7 @@
             text-align: right;
             font-size: 24px;
             font-weight: 700;
-            color: var(--pos-green);
+            color: var(--accent-blue);
             border: 1px solid var(--border-color);
             margin-bottom: 15px;
         }
@@ -121,6 +128,7 @@
         .kitchen-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
+            border-top: 4px solid var(--accent-blue);
             border-radius: 12px;
             padding: 20px;
             display: flex;
@@ -130,13 +138,407 @@
         }
 
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .badge.unpaid { background: rgba(239, 68, 68, 0.1); color: var(--pos-red); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .badge.unpaid { background: rgba(244, 63, 94, 0.1); color: var(--pos-red); border: 1px solid rgba(244, 63, 94, 0.2); }
         .badge.paid { background: rgba(16, 185, 129, 0.1); color: var(--pos-green); border: 1px solid rgba(16, 185, 129, 0.2); }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 14px; border: 1px solid var(--border-color); text-align: left; font-size: 14px; }
-        th { background: #030712; color: var(--text-muted); font-weight: 600; }
-        tr:nth-child(even) { background: #131c2e; }
+        th { background: #020c1b; color: var(--accent-blue); font-weight: 600; }
+        tr:nth-child(even) { background: #112240; }
 
-        .secure-lock-box { border: 1px dashed var(--pos-red); padding: 20px; border-radius: 10px; background: rgba(239, 68, 68, 0.05); }
+        .secure-lock-box { border: 1px dashed var(--pos-red); padding: 20px; border-radius: 10px; background: rgba(244, 63, 94, 0.05); }
         .denied-alert { color: var(--pos-red); font-weight: 600; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div id="authGate" style="max-width:400px; margin: 150px auto;" class="panel">
+        <h2>System Access Gate</h2>
+        <label>Operator Initials / Name:</label>
+        <input type="text" id="staffUser" autocomplete="off">
+        <label>Console Access Pin:</label>
+        <input type="password" id="staffPass">
+        <button class="btn-action" onclick="authenticateStaff()">Mount Core System</button>
+    </div>
+
+    <div id="mainConsole" style="display:none;">
+        <div class="topbar">
+            <h1 id="operatorCallout">⚡ TERMINAL MONITOR</h1>
+            <div class="tab-menu">
+                <button class="tab-btn active" onclick="routeTo('kitchenView')">🍳 Live Kitchen Stack</button>
+                <button class="tab-btn" onclick="routeTo('archiveView')">📜 Record Keeping Logs</button>
+                <button class="tab-btn" onclick="routeTo('crmView')">🛡️ CRM Control Profile</button>
+            </div>
+            <button onclick="disconnectSession()" style="background:#4a1515; color:#ff6b6b; border:1px solid #732222; padding:8px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">Exit Terminal</button>
+        </div>
+
+        <div class="workspace">
+
+            <div id="kitchenView" class="view-panel active">
+                <div class="layout-split">
+                    <div class="panel">
+                        <h3>Counter POS Entry</h3>
+                        <label>Walk-In Customer Name:</label>
+                        <input type="text" id="manualCustName" placeholder="Enter name...">
+                        
+                        <div class="pos-grid">
+                            <div class="pos-item" onclick="selectManualItem(this, 'Muffin', 2)">Muffin ($2)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Donut', 3)">Donut ($3)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Cheesecake', 11)">Cheesecake ($11)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Coffee', 4)">Coffee ($4)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Tea', 4)">Tea ($4)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Espresso Shot', 5)">Espresso ($5)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
+                        </div>
+                        <div class="total-display">$<span id="manualTotal">0</span></div>
+                        <button class="btn-action" id="manualSubmitBtn" onclick="dispatchManualOrder()" style="background:var(--pos-green); color:white;">Post Cash/Card Ticket</button>
+                    </div>
+
+                    <div>
+                        <h3>Live Production Queue</h3>
+                        <div id="liveOrdersList" class="kitchen-stack">Syncing with kitchen lines...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="archiveView" class="view-panel">
+                <div class="panel">
+                    <h3>📜 Record Keeping Ledger</h3>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr><th>Invoice ID</th><th>Customer</th><th>Manifest Description</th><th>Revenue</th><th>Status</th><th>Payment</th></tr>
+                            </thead>
+                            <tbody id="archiveLogsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="crmView" class="view-panel">
+                <div class="layout-split">
+                    <div class="panel">
+                        <h3>Customer CRM Security Dossier</h3>
+                        <input type="text" id="crmSearchName" placeholder="Search target profile name...">
+                        <button class="btn-action" onclick="runSecurityProfileLookup()">Inspect Account Logs</button>
+                        
+                        <div id="crmResultBox" style="margin-top:20px; display:none; background:var(--dark-bg); padding:20px; border-radius:6px; border:1px solid var(--border-color);">
+                            <h4 id="crmNameHeader" style="margin:0 0 15px 0; color:var(--accent-blue);"></h4>
+                            <p>Activity Standing: <span id="crmStatusLabel" style="font-weight:bold;"></span></p>
+                            
+                            <div id="managerOnlyCrmActions" class="secure-lock-box">
+                                <label>Permanent Override Notes:</label>
+                                <textarea id="crmNotesInput" rows="3"></textarea>
+                                <button class="btn-action" onclick="commitProfileNotes()" style="margin-bottom:10px;">Commit System Notes</button>
+                                <button class="btn-action" id="crmBanBtn" onclick="triggerAccountBan()" style="background:var(--pos-red); color:white;"></button>
+                            </div>
+                            <p id="crmRankWarning" class="denied-alert" style="display:none;">🔒 Access Denied: Action requires Rank 10+ Manager token indicators.</p>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3>Authorized Personnel Roster</h3>
+                        <div id="managerStaffActions" class="secure-lock-box" style="margin-bottom:20px;">
+                            <h4>Register Employee Node</h4>
+                            <input type="text" id="newStaffName" placeholder="Full Name">
+                            <input type="text" id="newStaffCode" placeholder="Numeric Access PIN">
+                            <input type="number" id="newStaffRank" placeholder="Rank Weight (1-100)" min="1" max="100">
+                            <button class="btn-action" onclick="registerNewStaffProfile()">Authorize Employee Node</button>
+                        </div>
+                        <ul id="staffDirectoryList" style="line-height:2.2;"></ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
+        
+        let manualSelectedItems = [];
+        let manualCurrentTotal = 0;
+
+        let activeStaffName = "";
+        let activeStaffRank = 1;
+        let currentInspectedCustomer = "";
+        
+        let currentLiveOrders = [];
+
+        function routeTo(panelId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
+            
+            if(panelId === 'archiveView') fetchArchiveLogs();
+        }
+
+        async function authenticateStaff() {
+            const user = document.getElementById('staffUser').value.trim();
+            const pass = document.getElementById('staffPass').value.trim();
+            try {
+                const res = await fetch(`${BASE_API_URL}/staff`);
+                const catalog = await res.json();
+                const matched = catalog.find(s => s.name.toLowerCase() === user.toLowerCase() && String(s.code) === pass);
+                if(matched) {
+                    activeStaffName = matched.name;
+                    activeStaffRank = parseInt(matched.rank) || 1;
+                    
+                    document.getElementById('authGate').style.display = 'none';
+                    document.getElementById('mainConsole').style.display = 'block';
+                    document.getElementById('operatorCallout').innerText = `⚡ OPERATOR: ${activeStaffName.toUpperCase()} [RANK ${activeStaffRank}]`;
+                    
+                    fetchLiveKitchenOrders();
+                    setInterval(fetchLiveKitchenOrders, 5000);
+                } else { alert("Verification mismatch configuration."); }
+            } catch(e){ alert("Database baseline unresponsive."); }
+        }
+
+        function disconnectSession() {
+            location.reload();
+        }
+
+        function selectManualItem(el, name, price) {
+            el.classList.toggle('selected');
+            const idx = manualSelectedItems.indexOf(name);
+            if(idx > -1) { manualSelectedItems.splice(idx, 1); manualCurrentTotal -= price; }
+            else { manualSelectedItems.push(name); manualCurrentTotal += price; }
+            document.getElementById('manualTotal').innerText = manualCurrentTotal;
+        }
+
+        async function dispatchManualOrder() {
+            const name = document.getElementById('manualCustName').value.trim();
+            if(!name || manualSelectedItems.length === 0) return alert("Missing ticket structural fields.");
+            document.getElementById('manualSubmitBtn').disabled = true;
+
+            const ticket = {
+                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                customer: name,
+                items: manualSelectedItems.join(', '),
+                total: manualCurrentTotal,
+                status: 'Pending',
+                paid: 'No',
+                eta: '5-10m',
+                notes: `Walk-in Ticket by: ${activeStaffName}`,
+                chef_notes: ''
+            };
+
+            await fetch(`${BASE_API_URL}/Sheet1`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify([ticket])
+            });
+
+            document.getElementById('manualCustName').value = '';
+            document.querySelectorAll('.pos-item').forEach(i => i.classList.remove('selected'));
+            manualSelectedItems = []; manualCurrentTotal = 0; document.getElementById('manualTotal').innerText = 0;
+            document.getElementById('manualSubmitBtn').disabled = false;
+            fetchLiveKitchenOrders();
+        }
+
+        async function fetchLiveKitchenOrders() {
+            try {
+                const res = await fetch(`${BASE_API_URL}/Sheet1`);
+                const pipeline = await res.json();
+                
+                if(pipeline && !pipeline.error) {
+                    currentLiveOrders = pipeline;
+                }
+
+                const target = document.getElementById('liveOrdersList');
+                const currentFocus = document.activeElement ? document.activeElement.id : null;
+                const currentValue = document.activeElement ? document.activeElement.value : null;
+
+                target.innerHTML = '';
+                if(!pipeline || pipeline.length === 0 || pipeline.error) {
+                    target.innerHTML = '<p style="color:var(--text-muted);">Monitor clean. No active tickets pending.</p>'; return;
+                }
+
+                pipeline.reverse().forEach(o => {
+                    target.innerHTML += `
+                        <div class="kitchen-card">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <strong style="color:var(--accent-blue); font-size:16px;">${o.id}</strong>
+                                    <span class="badge ${o.paid==='Yes'?'paid':'unpaid'}">${o.paid==='Yes'?'Paid':'Unpaid'}</span>
+                                </div>
+                                <h3 style="border:none; margin:10px 0 5px 0; font-size:18px;">${o.customer}</h3>
+                                <p style="margin:0 0 15px 0; font-size:13px; color:var(--text-muted); line-height:1.4;">${o.items}</p>
+                            </div>
+                            
+                            <div>
+                                <label style="font-size:11px; color:var(--accent-blue); font-weight:bold;">PROD ETA NOTES:</label>
+                                <input type="text" id="eta-${o.id}" value="${o.eta||''}" onchange="updateFieldDirectly('${o.id}', 'eta', this.value)">
+                                
+                                <label style="font-size:11px; color:var(--accent-blue); font-weight:bold;">🍳 KITCHEN NOTES:</label>
+                                <input type="text" id="chef-${o.id}" value="${o.chef_notes||''}" onchange="updateFieldDirectly('${o.id}', 'chef_notes', this.value)">
+                                
+                                <label style="font-size:11px; color:var(--accent-blue); font-weight:bold;">REGISTER ARCHIVE MEMO:</label>
+                                <textarea id="note-${o.id}" rows="2" onchange="updateFieldDirectly('${o.id}', 'notes', this.value)">${o.notes||''}</textarea>
+
+                                <div style="display:flex; gap:10px; margin-top:5px;">
+                                    ${o.paid!=='Yes'?`<button style="background:var(--pos-green); color:white; padding:10px; border:none; border-radius:4px; font-weight:bold; flex:1; cursor:pointer;" onclick="processPipelineWorkflow('${o.id}', 'paid', 'Yes')">Mark Paid</button>`:''}
+                                    ${o.status!=='Completed'?`<button style="background:var(--pos-blue); color:white; padding:10px; border:none; border-radius:4px; font-weight:bold; flex:1; cursor:pointer;" onclick="processPipelineWorkflow('${o.id}', 'status', 'Completed')">Complete</button>`:''}
+                                </div>
+                            </div>
+                        </div>`;
+                });
+
+                if(currentFocus && document.getElementById(currentFocus)) {
+                    const focusEl = document.getElementById(currentFocus);
+                    focusEl.focus();
+                    if(focusEl.tagName === "INPUT" || focusEl.tagName === "TEXTAREA") focusEl.value = currentValue;
+                }
+            } catch(e){}
+        }
+
+        async function updateFieldDirectly(id, key, val) {
+            let atom = {}; atom[key] = val;
+            await fetch(`${BASE_API_URL}/Sheet1`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({condition: {id: id}, set: atom})
+            });
+        }
+
+        async function processPipelineWorkflow(id, key, val) {
+            const orderObject = currentLiveOrders.find(ord => ord.id === id);
+            
+            if(!orderObject) {
+                alert("Database mismatch. Syncing...");
+                return fetchLiveKitchenOrders();
+            }
+
+            orderObject[key] = val;
+
+            if(orderObject.status === 'Completed' && orderObject.paid === 'Yes') {
+                await fetch(`${BASE_API_URL}/record_keeping`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify([orderObject])
+                });
+                await fetch(`${BASE_API_URL}/Sheet1`, {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({condition: {id: id}})
+                });
+            } else {
+                await updateFieldDirectly(id, key, val);
+            }
+            fetchLiveKitchenOrders();
+        }
+
+        async function fetchArchiveLogs() {
+            const res = await fetch(`${BASE_API_URL}/record_keeping`);
+            const arrayData = await res.json();
+            const body = document.getElementById('archiveLogsTableBody');
+            body.innerHTML = '';
+            if(!arrayData || arrayData.length === 0 || arrayData.error) {
+                body.innerHTML = '<tr><td colspan="6" style="color:var(--text-muted);">Vault logs void.</td></tr>'; return;
+            }
+            arrayData.reverse().forEach(row => {
+                body.innerHTML += `<tr><td><strong>${row.id}</strong></td><td>${row.customer}</td><td>${row.items}</td><td>$${row.total}</td><td>${row.status}</td><td>${row.paid}</td></tr>`;
+            });
+        }
+
+        async function runSecurityProfileLookup() {
+            const targetQuery = document.getElementById('crmSearchName').value.trim();
+            if(!targetQuery) return;
+            currentInspectedCustomer = targetQuery;
+
+            const res = await fetch(`${BASE_API_URL}/customers?search={"customer":"${targetQuery}"}`);
+            const profiles = await res.json();
+            
+            document.getElementById('crmResultBox').style.display = 'block';
+            document.getElementById('crmNameHeader').innerText = `Target: ${targetQuery}`;
+            
+            let banFlag = false; let coreNotes = "";
+            if(profiles.length > 0) {
+                banFlag = profiles[0].status === 'Banned';
+                coreNotes = profiles[0].perm_notes || '';
+                document.getElementById('crmStatusLabel').innerText = profiles[0].status;
+            } else { document.getElementById('crmStatusLabel').innerText = 'Active (Fresh Node)'; }
+
+            if(activeStaffRank >= 10) {
+                document.getElementById('managerOnlyCrmActions').style.display = 'block';
+                document.getElementById('crmRankWarning').style.display = 'none';
+                document.getElementById('crmNotesInput').value = coreNotes;
+                document.getElementById('crmBanBtn').innerText = banFlag ? '😇 Release System Restraints' : '🚫 Terminate & Ban Account';
+            } else {
+                document.getElementById('managerOnlyCrmActions').style.display = 'none';
+                document.getElementById('crmRankWarning').style.display = 'block';
+            }
+            fetchStaffDirectoryRoster();
+        }
+
+        async function commitProfileNotes() {
+            const targetNotes = document.getElementById('crmNotesInput').value;
+            await fetch(`${BASE_API_URL}/customers`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({condition: {customer: currentInspectedCustomer}, set: {perm_notes: targetNotes}})
+            });
+            alert("Security log nodes synchronized.");
+        }
+
+        async function triggerAccountBan() {
+            const currentPosition = document.getElementById('crmStatusLabel').innerText;
+            const updatedPosition = currentPosition === 'Banned' ? 'Active' : 'Banned';
+            
+            const check = await fetch(`${BASE_API_URL}/customers?search={"customer":"${currentInspectedCustomer}"}`);
+            const arrayCheck = await check.json();
+
+            if(arrayCheck.length > 0) {
+                await fetch(`${BASE_API_URL}/customers`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({condition: {customer: currentInspectedCustomer}, set: {status: updatedPosition}})
+                });
+            } else {
+                await fetch(`${BASE_API_URL}/customers`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify([{customer: currentInspectedCustomer, status: updatedPosition, perm_notes: ''}])
+                });
+            }
+            runSecurityProfileLookup();
+        }
+
+        async function fetchStaffDirectoryRoster() {
+            const res = await fetch(`${BASE_API_URL}/staff`);
+            const teamNodes = await res.json();
+            const systemTarget = document.getElementById('staffDirectoryList');
+            systemTarget.innerHTML = '';
+            
+            if(activeStaffRank >= 10) {
+                document.getElementById('managerStaffActions').style.display = 'block';
+                teamNodes.forEach(t => { systemTarget.innerHTML += `<li>🛡️ <strong>${t.name}</strong> — Rank [${t.rank}] — PIN: code(${t.code})</li>`; });
+            } else {
+                document.getElementById('managerStaffActions').style.display = 'none';
+                systemTarget.innerHTML = '<li style="color:var(--pos-red)">[Rank 10 Token Authorization Clearance Deficit]</li>';
+            }
+        }
+
+        async function registerNewStaffProfile() {
+            const name = document.getElementById('newStaffName').value.trim();
+            const code = document.getElementById('newStaffCode').value.trim();
+            const rank = document.getElementById('newStaffRank').value;
+            if(!name || !code || !rank) return alert("Roster string requirements unfulfilled.");
+
+            await fetch(`${BASE_API_URL}/staff`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify([{name, code, rank}])
+            });
+            document.getElementById('newStaffName').value = '';
+            document.getElementById('newStaffCode').value = '';
+            document.getElementById('newStaffRank').value = '';
+            fetchStaffDirectoryRoster();
+        }
+    </script>
+</body>
+</html>
