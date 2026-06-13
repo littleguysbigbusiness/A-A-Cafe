@@ -32,6 +32,17 @@
             margin: 0; padding: 0;
         }
 
+        /* Login Screen Overlay */
+        #staffAuthGateOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95); display: flex; justify-content: center;
+            align-items: center; z-index: 9999; backdrop-filter: blur(8px);
+        }
+        .auth-gate-card {
+            background: var(--bg-card); padding: 35px; border-radius: var(--radius-main);
+            max-width: 400px; width: 100%; box-shadow: var(--shadow-lg); text-align: center;
+        }
+
         .topbar {
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
@@ -111,7 +122,6 @@
         .pos-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
         .pos-touch-card { background: var(--bg-main); border: 1px solid var(--border-glow); border-radius: 10px; padding: 10px 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 85px; }
         .pos-touch-card:hover { border-color: var(--accent-brand); background: var(--accent-light); }
-        .pos-item-icon { font-size: 18px; }
         .pos-item-name { font-size: 11px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; margin-top: 2px;}
         .pos-item-cost { font-size: 11px; font-weight: 800; color: var(--accent-brand); }
 
@@ -128,7 +138,6 @@
         .basket-qty-tag { background: var(--accent-light); color: var(--accent-brand); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 
         .register-pricing-summary { border-top: 2px solid var(--border-glow); padding-top: 14px; margin-bottom: 18px; }
-        .pricing-line-flex { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
         .pricing-line-flex.grand-total { font-size: 20px; font-weight: 900; color: var(--accent-brand); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-glow); }
 
         .btn-core { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 16px; font-weight: 700; font-size: 13px; border-radius: 8px; cursor: pointer; }
@@ -151,12 +160,28 @@
         .sys-toast { position: fixed; bottom: 24px; right: 24px; background: #1e293b; color: #ffffff; padding: 14px 20px; border-radius: 10px; display: flex; align-items: center; gap: 12px; z-index: 5000; font-size: 13px; font-weight: 600; transform: translateY(150%); transition: transform 0.3s ease; }
         .sys-toast.active { transform: translateY(0); }
 
-        /* CLOCK IN PANEL */
-        .clock-strip { display: flex; justify-content: space-between; align-items: center; background: #fafafa; border: 1px dashed var(--border-glow); border-radius: 8px; padding: 12px 16px; margin-bottom: 15px; }
         .log-box { background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 12px; padding: 15px; border-radius: 8px; max-height: 180px; overflow-y: auto; line-height: 1.6; }
     </style>
 </head>
 <body>
+
+    <div id="staffAuthGateOverlay">
+        <div class="auth-gate-card">
+            <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
+            <h2 style="justify-content: center; margin-bottom: 4px;">Staff Terminal Lock</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 20px 0;">Provide workspace verification credentials to proceed</p>
+            
+            <div class="form-row-block" style="text-align: left;">
+                <label>Terminal Operator Name</label>
+                <input type="text" id="authGateUsernameInput" placeholder="e.g. Alex_Staff">
+            </div>
+            <div class="form-row-block" style="text-align: left; margin-bottom: 20px;">
+                <label>Station Access PIN</label>
+                <input type="password" id="authGatePinInput" placeholder="••••">
+            </div>
+            <button class="btn-core btn-core-success" onclick="unlockStaffWorkspaceTerminal()">Authorize Terminal Session</button>
+        </div>
+    </div>
 
     <div class="topbar">
         <div class="brand-zone">
@@ -168,6 +193,7 @@
             <button id="navBtn-production" class="tab-btn active" onclick="executeViewSwitch('production')">🍳 Kitchen Queue</button>
             <button id="navBtn-register" class="tab-btn" onclick="executeViewSwitch('register')">💰 Counter POS</button>
             <button id="navBtn-ledger" class="tab-btn" onclick="executeViewSwitch('ledger')">📊 Finance Center</button>
+            <button id="navBtn-crm" class="tab-btn" onclick="executeViewSwitch('crm')">👥 CRM Center</button>
         </div>
 
         <div class="system-controls">
@@ -189,17 +215,15 @@
         <div class="panel" style="padding: 16px 24px; border-color: var(--accent-brand);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
                 <div>
-                    <h3 style="color: var(--accent-brand)">🕒 Staff Attendance Roster & Shifts</h3>
-                    <div class="panel-subtitle">Log active working duties into system session indices</div>
+                    <h3 style="color: var(--accent-brand)">🕒 Attendance Shift Roster</h3>
+                    <div class="panel-subtitle">Current session user context tracing logs</div>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="staffRosterNameField" placeholder="Staff Name Tag" style="width: 160px; padding: 8px;">
-                    <button class="btn-core btn-core-success" style="width: auto; padding: 8px 16px;" onclick="handleStaffDutyToggle('Clocked In')">Clock In</button>
-                    <button class="btn-core btn-core-danger" style="width: auto; padding: 8px 16px; color:#b91c1c;" onclick="handleStaffDutyToggle('Clocked Out')">Clock Out</button>
+                    <div id="currentActiveStaffStatusArea" style="font-size: 13px; font-weight: 700; color: var(--text-primary);">
+                        Operator Account: <span id="activeOperatorBadgeName" style="color:var(--accent-brand)">None</span>
+                    </div>
+                    <button class="btn-core btn-core-danger" style="width: auto; padding: 6px 14px; font-size:11px; color:#b91c1c;" onclick="relockStaffTerminalSession()">Lock Terminal</button>
                 </div>
-            </div>
-            <div id="currentActiveStaffStatusArea" style="font-size: 12px; margin-top: 8px; font-weight: 700; color: var(--text-secondary);">
-                Status: No staff currently clocked into active session terminal fields.
             </div>
         </div>
 
@@ -225,7 +249,6 @@
                 <div class="panel-subtitle" style="margin-bottom: 12px;">Immutable stream logging physical and automated execution pathways</div>
                 <div class="log-box" id="systemTerminalLogOutput">
                     [15:04:58] SYSTEM: Infrastructure initialization complete.<br>
-                    [15:04:58] CONFIG: Connected to channel Sheet1 master storage pipelines.<br>
                 </div>
             </div>
 
@@ -236,7 +259,6 @@
                         <div class="panel-subtitle">Historical logging trace of closed operational tickets</div>
                     </div>
                 </div>
-
                 <div class="table-responsive-wrapper">
                     <table id="productionArchiveTable">
                         <thead>
@@ -378,15 +400,15 @@
                     <div style="font-size:30px;">⚠️</div>
                     <div><label>Unpaid Accounts Receiv.</label><div style="font-size:24px; font-weight:900; color:var(--color-alert);" id="statsUnpaidRevenue">$0.00</div></div>
                 </div>
-                <div class="panel" style="margin:0; display:flex; gap:15px; align-items:center;">
-                    <div style="font-size:30px;">✅</div>
-                    <div><label>Completed Orders</label><div style="font-size:24px; font-weight:900;" id="statsCompletedCount">0</div></div>
+                <div class="panel" style="margin:0; display:flex; gap:15px; align-items:center; border-left:4px solid var(--color-danger);">
+                    <div style="font-size:30px;">🛑</div>
+                    <div><label>Loss via Cancelled Drops</label><div style="font-size:24px; font-weight:900; color:var(--color-danger);" id="statsCancelledRevenue">$0.00</div></div>
                 </div>
             </div>
 
             <div class="panel">
                 <h2>📊 Financial Ingestion Ledger Database Matrix</h2>
-                <div class="panel-subtitle" style="margin-bottom: 12px;">Complete breakdown logging of every entry row synchronized across network structures</div>
+                <div class="panel-subtitle" style="margin-bottom: 12px;">Complete logging breakdown of historical and live rows across network structures</div>
                 <div class="table-responsive-wrapper">
                     <table id="ledgerMasterDataGridTable">
                         <thead>
@@ -408,6 +430,30 @@
             </div>
         </div>
 
+        <div id="viewPanel-crm" class="view-panel">
+            <div class="panel">
+                <h2>👥 Customer Profile CRM Matrix Hub</h2>
+                <div class="panel-subtitle" style="margin-bottom: 15px;">Manage customer directory databases, view system PIN associations, and audit activity totals</div>
+                
+                <div class="table-responsive-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Registered Profile User</th>
+                                <th>Security Pass PIN Mapping</th>
+                                <th>Order Count</th>
+                                <th>Cumulative Spend Metrics</th>
+                                <th>Loyalty Classification Tier</th>
+                            </tr>
+                        </thead>
+                        <tbody id="crmMasterTableBodyTarget">
+                            <tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-secondary);">Loading registered consumer directories...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div id="systemNotificationToastBox" class="sys-toast">
@@ -420,7 +466,34 @@
         
         let localRegisterBasketArray = [];
         let globalCachedDatabaseStateRows = [];
+        let globalCachedCustomerRows = [];
         let activeInterfacePanelId = "production";
+        let activeStaffSessionUser = null;
+
+        function unlockStaffWorkspaceTerminal() {
+            const user = document.getElementById('authGateUsernameInput').value.trim();
+            const pin = document.getElementById('authGatePinInput').value.trim();
+
+            if(!user || !pin) return alert("Please supply both an operator name tag and terminal pin.");
+            
+            // Simple gate check - configure as desired
+            activeStaffSessionUser = user;
+            document.getElementById('activeOperatorBadgeName').innerText = user;
+            document.getElementById('staffAuthGateOverlay').style.display = "none";
+            
+            appendLog(`SECURITY: Workspace explicitly unlocked by operator session signature [${user}].`);
+            displaySystemToastNotification(`Welcome back, ${user}`);
+            syncDatabaseEngine();
+            syncCustomerCRMData();
+        }
+
+        function relockStaffTerminalSession() {
+            activeStaffSessionUser = null;
+            document.getElementById('authGateUsernameInput').value = '';
+            document.getElementById('authGatePinInput').value = '';
+            document.getElementById('staffAuthGateOverlay').style.display = "flex";
+            appendLog("SECURITY: Active terminal workspace session purged and locked.");
+        }
 
         function appendLog(message) {
             const container = document.getElementById('systemTerminalLogOutput');
@@ -439,14 +512,6 @@
             document.getElementById(`viewPanel-${targetPanelId}`).classList.add('active');
             document.getElementById(`navBtn-${targetPanelId}`).classList.add('active');
             appendLog(`INTERFACE: Switched view terminal module to '${targetPanelId}'.`);
-        }
-
-        function handleStaffDutyToggle(action) {
-            const name = document.getElementById('staffRosterNameField').value.trim();
-            if(!name) return alert("Please supply a valid worker signature tag name to execute rosters.");
-            document.getElementById('currentActiveStaffStatusArea').innerHTML = `Session Duty Status: 🟩 <strong>${name}</strong> registered as <strong>${action}</strong>.`;
-            appendLog(`SHIFT ROSTER: [${name}] explicitly committed status sequence [${action}].`);
-            displaySystemToastNotification(`Staff ${name}: ${action}`);
         }
 
         function evaluatePosFulfillmentScaffolding() {
@@ -535,18 +600,17 @@
                 paid: initialPaymentStatusValue,
                 eta: 'Asap',
                 notes: operationalSystemNotesAggregationString,
-                chef_notes: ''
+                chef_notes: `Processed by station operator ${activeStaffSessionUser}`
             };
 
             try {
                 setNetworkSynchronizationStatusBadge(true, "Posting POS Ticket");
-                appendLog(`NETWORK POST: Transmitting generation frame ticket payload [${payload.id}]...`);
                 const response = await fetch(`${CENTRAL_END_API_URI}/Sheet1`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([payload])
                 });
 
                 if(response.ok) {
-                    appendLog(`NETWORK SUCCESS: Ticket registration code [${payload.id}] verified by database node.`);
+                    appendLog(`NETWORK SUCCESS: POS Transaction [${payload.id}] processed and stored.`);
                     displaySystemToastNotification(`Logged ticket: ${payload.id}`);
                     localRegisterBasketArray = [];
                     document.getElementById('posFormCustomerField').value = '';
@@ -554,26 +618,38 @@
                     renderRegisterBasketDOMEngine();
                     await syncDatabaseEngine();
                 }
-            } catch(e) { appendLog("NETWORK ERROR: Outbound transactional failure."); alert("POS connection error."); }
+            } catch(e) { alert("POS connection error."); }
             finally { setNetworkSynchronizationStatusBadge(false, "Terminal Live"); }
         }
 
         async function syncDatabaseEngine() {
-            setNetworkSynchronizationStatusBadge(true, "Syncing Sheets");
+            if(!activeStaffSessionUser) return;
+            setNetworkSynchronizationStatusBadge(true, "Syncing Orders");
             try {
                 const stream = await fetch(`${CENTRAL_END_API_URI}/Sheet1`);
                 const rows = await stream.json();
                 if(!rows || rows.error) return;
 
                 globalCachedDatabaseStateRows = rows;
-                appendLog(`DATABASE SYNC: Fetched ${rows.length} total transaction row records.`);
                 evaluateLivePaymentAlertSystem(rows);
 
                 buildKitchenQueueBoardDOMInterface();
                 buildRecentArchiveTableDOMInterface();
                 buildGlobalAnalyticalLedgerEngineDOMInterface();
+                buildCrmTableDOMInterface();
             } catch (e) { appendLog("DATABASE ERROR: Synchronization cycle dropped connection."); }
             finally { setNetworkSynchronizationStatusBadge(false, "Terminal Live"); }
+        }
+
+        async function syncCustomerCRMData() {
+            if(!activeStaffSessionUser) return;
+            try {
+                const stream = await fetch(`${CENTRAL_END_API_URI}/customer`);
+                const rows = await stream.json();
+                if(!rows || rows.error) return;
+                globalCachedCustomerRows = rows;
+                buildCrmTableDOMInterface();
+            } catch(e) { appendLog("CRM ERROR: Customer sheet data collection dropout exception."); }
         }
 
         function evaluateLivePaymentAlertSystem(rows) {
@@ -664,17 +740,22 @@
             const target = document.getElementById('ledgerMasterTableBodyTarget');
             if(!target) return;
 
-            let pend = 0, comp = 0, canc = 0, rev = 0, unp = 0;
+            let pend = 0, comp = 0, rev = 0, unp = 0, loss = 0;
             target.innerHTML = '';
 
             globalCachedDatabaseStateRows.forEach(r => {
                 const total = parseInt(r.total) || 0;
                 if(r.status === 'Pending') pend++;
-                if(r.status === 'Completed') { comp++; }
-                if(r.status === 'Cancelled') canc++;
+                if(r.status === 'Completed') comp++;
                 
-                if(r.paid === 'Yes') { rev += total; }
-                else if (r.paid === 'No' && r.status !== 'Cancelled') { unp += total; }
+                // Explicit Financial Accounting Logic
+                if(r.status === 'Cancelled') {
+                    loss += total;
+                } else if(r.paid === 'Yes') { 
+                    rev += total; 
+                } else if (r.paid === 'No') { 
+                    unp += total; 
+                }
 
                 target.innerHTML += `
                     <tr>
@@ -691,26 +772,64 @@
             document.getElementById('statsActiveCount').innerText = pend;
             document.getElementById('statsGrossRevenue').innerText = `$${rev}.00`;
             document.getElementById('statsUnpaidRevenue').innerText = `$${unp}.00`;
-            document.getElementById('statsCompletedCount').innerText = `${comp} Runs`;
+            document.getElementById('statsCancelledRevenue').innerText = `$${loss}.00`;
+        }
+
+        function buildCrmTableDOMInterface() {
+            const target = document.getElementById('crmMasterTableBodyTarget');
+            if(!target || globalCachedCustomerRows.length === 0) return;
+
+            target.innerHTML = '';
+            globalCachedCustomerRows.forEach(customerProfile => {
+                const userHandle = customerProfile.customer;
+                const securePin = customerProfile.pin || '••••';
+
+                // Aggregate calculations tied to user profiles
+                const matchedUserTickets = globalCachedDatabaseStateRows.filter(ticket => 
+                    ticket.customer && ticket.customer.toString().trim().toLowerCase() === userHandle.toString().trim().toLowerCase()
+                );
+
+                let totalVolumeCount = matchedUserTickets.length;
+                let aggregateSpendValue = matchedUserTickets
+                    .filter(t => t.status === 'Completed' || t.paid === 'Yes')
+                    .reduce((sum, t) => sum + (parseInt(t.total) || 0), 0);
+
+                let tierClassification = '✨ Regular Guest';
+                if(aggregateSpendValue >= 50) tierClassification = '💎 Elite VIP Member';
+                else if(aggregateSpendValue >= 25) tierClassification = '🥇 Gold Tier Patron';
+
+                target.innerHTML += `
+                    <tr>
+                        <td><strong>${userHandle}</strong></td>
+                        <td style="font-family:monospace; font-weight:700; color:var(--text-secondary);">${securePin}</td>
+                        <td style="font-weight:800;">${totalVolumeCount} orders</td>
+                        <td style="font-weight:900; color:var(--color-success)">$${aggregateSpendValue}.00</td>
+                        <td><span style="font-weight:700; color:var(--accent-brand); font-size:12px;">${tierClassification}</span></td>
+                    </tr>`;
+            });
         }
 
         async function setOrderWorkflowState(id, nextState) {
             try {
                 setNetworkSynchronizationStatusBadge(true, "Updating Ticket Status");
-                appendLog(`NETWORK STATE CHANGE: Committing target state [${nextState}] to ticket [${id}]...`);
                 const res = await fetch(`${CENTRAL_END_API_URI}/Sheet1`, {
                     method: 'PUT', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ condition: { id: id }, set: { status: nextState } })
                 });
                 if(res.ok) {
-                    appendLog(`NETWORK SUCCESS: Ticket [${id}] updated successfully.`);
+                    appendLog(`NETWORK STATE CHANGE: Committed state [${nextState}] to ticket [${id}].`);
                     await syncDatabaseEngine();
                 }
-            } catch (e) { appendLog(`NETWORK FAILURE: Could not alter state layout for [${id}].`); alert("Status update error."); }
+            } catch (e) { alert("Status update error."); }
             finally { setNetworkSynchronizationStatusBadge(false, "Terminal Live"); }
         }
 
-        function triggerManualSync() { appendLog("OPERATOR CONTROL: Initiated manual network synchronization cascade."); syncDatabaseEngine(); }
+        function triggerManualSync() { 
+            appendLog("OPERATOR CONTROL: Triggered manual interface refresh data poll."); 
+            syncDatabaseEngine(); 
+            syncCustomerCRMData();
+        }
+        
         function setNetworkSynchronizationStatusBadge(syncing, msg) {
             const text = document.getElementById('networkStatusText');
             const b = document.getElementById('connectionStatusBadge');
@@ -726,7 +845,6 @@
         }
 
         setInterval(syncDatabaseEngine, 10000);
-        window.onload = syncDatabaseEngine;
     </script>
 </body>
 </html>
