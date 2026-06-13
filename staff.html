@@ -140,10 +140,17 @@
             justify-content: space-between;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         }
+        .kitchen-card.status-completed {
+            border-top-color: var(--pos-green);
+            background: #112631;
+        }
 
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; user-select: none; }
         .badge.unpaid { background: rgba(244, 63, 94, 0.1); color: var(--pos-red); border: 1px solid rgba(244, 63, 94, 0.2); }
         .badge.paid { background: rgba(16, 185, 129, 0.1); color: var(--pos-green); border: 1px solid rgba(16, 185, 129, 0.2); }
+        
+        .badge.status-pending { background: rgba(251, 191, 36, 0.1); color: var(--gold); border: 1px solid rgba(251, 191, 36, 0.2); }
+        .badge.status-done { background: rgba(16, 185, 129, 0.2); color: var(--pos-green); border: 1px solid var(--pos-green); }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 14px; border: 1px solid var(--border-color); text-align: left; font-size: 14px; }
@@ -151,7 +158,6 @@
         tr:nth-child(even) { background: #112240; }
 
         .secure-lock-box { border: 1px dashed var(--pos-red); padding: 20px; border-radius: 10px; background: rgba(244, 63, 94, 0.05); }
-        .denied-alert { color: var(--pos-red); font-weight: 600; font-size: 14px; }
         
         .price-tag {
             font-size: 16px;
@@ -162,19 +168,17 @@
             border-radius: 6px;
         }
 
-        /* Metrics grid */
         .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .metric-card { background: var(--dark-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; text-align: center; }
         .metric-val { font-size: 32px; font-weight: 800; color: var(--pos-green); margin-top: 10px; }
         .metric-val.blue { color: var(--pos-blue); }
         .metric-val.gold { color: var(--gold); }
 
-        /* Notification Ticker */
         .notification-tray {
             background: #020c1b;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            max-height: 200px;
+            max-height: 160px;
             overflow-y: auto;
             padding: 10px;
         }
@@ -206,9 +210,9 @@
             <h1 id="operatorCallout">⚡ TERMINAL MONITOR</h1>
             <div class="tab-menu">
                 <button class="tab-btn active" onclick="routeTo('kitchenView')">🍳 Live Kitchen Stack</button>
-                <button class="tab-btn" onclick="routeTo('archiveView')">📜 Record Keeping Logs</button>
-                <button class="tab-btn" onclick="routeTo('crmView')">🛡️ CRM Control Profile</button>
-                <button class="tab-btn" onclick="routeTo('financeView')">💰 Finances Center</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('archiveView')">📜 Record Keeping Logs</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('crmView')">🛡️ CRM Control Profile</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('financeView')">💰 Finances Center</button>
             </div>
             <button onclick="disconnectSession()" style="background:#4a1515; color:#ff6b6b; border:1px solid #732222; padding:8px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">Exit Terminal</button>
         </div>
@@ -283,7 +287,6 @@
                                 <button class="btn-action" onclick="commitProfileNotes()" style="margin-bottom:10px;">Commit System Notes</button>
                                 <button class="btn-action" id="crmBanBtn" onclick="triggerAccountBan()" style="background:var(--pos-red); color:white;"></button>
                             </div>
-                            <p id="crmRankWarning" class="denied-alert" style="display:none;">🔒 Access Denied: Action requires Rank 10+ Manager token indicators.</p>
                         </div>
                     </div>
 
@@ -325,46 +328,33 @@
                             <option value="ADD" style="color:var(--pos-green);">➕ Cash Injection / Custom Entry</option>
                             <option value="SUBTRACT" style="color:var(--pos-red);">➖ Expense Allocation / Business Bill</option>
                         </select>
-
                         <label>Amount ($):</label>
                         <input type="number" id="financeAmount" placeholder="0.00" min="0.01" step="0.01">
-
                         <label>Reference Label / Memo Description:</label>
-                        <input type="text" id="financeMemo" placeholder="e.g., Electric Bill, Catering Cash deposit">
-
+                        <input type="text" id="financeMemo" placeholder="e.g., Electric Bill">
                         <button class="btn-action" style="background:var(--pos-blue); color:var(--dark-bg);" onclick="submitFinancialAdjustment()">Post Balancing Entry</button>
                     </div>
 
                     <div class="panel">
                         <h3>Staff Payroll Payouts</h3>
                         <label>Select Target Employee:</label>
-                        <select id="financeStaffDropdown">
-                            <option value="">-- Choose Staff Target Node --</option>
-                        </select>
-
+                        <select id="financeStaffDropdown"><option value="">-- Choose Staff Target --</option></select>
                         <label>Payout Value Amount ($):</label>
                         <input type="number" id="payoutAmount" placeholder="0.00" min="0.01" step="0.01">
-
                         <label>Allocation Account Category:</label>
                         <select id="payoutType">
                             <option value="Hourly Wages">Hourly Wages / Salary</option>
                             <option value="Tips Distribution">Tips Distribution Split</option>
-                            <option value="Expense Reimbursement">Reimbursement Payout</option>
                         </select>
-
                         <button class="btn-action" style="background:var(--gold); color:var(--dark-bg);" onclick="submitStaffPayout()">Process Payroll Entry</button>
                     </div>
 
-                    <div class="panel" style="grid-column: span 1;">
+                    <div class="panel">
                         <h3>Ledger Stream</h3>
                         <div style="overflow-y: auto; max-height: 320px;">
                             <table>
-                                <thead>
-                                    <tr><th>Ref / Tag</th><th>Amount</th></tr>
-                                </thead>
-                                <tbody id="financeTableBody">
-                                    <tr><td colspan="2" style="text-align:center; color:var(--text-muted);">Syncing logs...</td></tr>
-                                </tbody>
+                                <thead><tr><th>Ref / Tag</th><th>Amount</th></tr></thead>
+                                <tbody id="financeTableBody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -379,7 +369,6 @@
         
         let manualSelectedItems = [];
         let manualCurrentTotal = 0;
-
         let activeStaffName = "";
         let activeStaffRank = 1;
         let currentInspectedCustomer = "";
@@ -389,19 +378,18 @@
         function pushInternalNotification(message) {
             const container = document.getElementById('staffNotificationFeed');
             const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            
-            const itemHTML = `<div class="notif-item"><span>⚙️ ${message}</span><small>${timestamp}</small></div>`;
-            container.innerHTML = itemHTML + container.innerHTML;
-            
-            if (container.children.length > 25) {
-                container.removeChild(container.lastChild);
-            }
+            container.innerHTML = `<div class="notif-item"><span>⚙️ ${message}</span><small>${timestamp}</small></div>` + container.innerHTML;
+            if (container.children.length > 20) container.removeChild(container.lastChild);
         }
 
         function routeTo(panelId) {
+            if(panelId !== 'kitchenView' && activeStaffRank < 10) {
+                alert("Unauthorized Access Clearance."); return;
+            }
             document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(panelId).classList.add('active');
+            event?.target?.classList?.add('active');
             
             if(panelId === 'archiveView') fetchArchiveLogs();
             if(panelId === 'crmView') fetchStaffDirectory();
@@ -424,20 +412,20 @@
                     document.getElementById('mainConsole').style.display = 'block';
                     document.getElementById('operatorCallout').innerText = `⚡ OPERATOR: ${activeStaffName.toUpperCase()} [RANK ${activeStaffRank}]`;
                     
-                    if(activeStaffRank < 10) {
+                    if(activeStaffRank >= 10) {
+                        document.querySelectorAll('.MGR-ONLY').forEach(el => el.style.display = 'block');
+                    } else {
                         document.getElementById('managerStaffActions').style.display = 'none';
                     }
                     
-                    pushInternalNotification(`Staff session established for operator: ${activeStaffName}`);
+                    pushInternalNotification(`Staff session established: ${activeStaffName}`);
                     fetchLiveKitchenOrders();
                     setInterval(fetchLiveKitchenOrders, 5000);
                 } else { alert("Verification mismatch configuration."); }
             } catch(e){ alert("Database baseline unresponsive."); }
         }
 
-        function disconnectSession() {
-            location.reload();
-        }
+        function disconnectSession() { location.reload(); }
 
         function selectManualItem(el, name, price) {
             el.classList.toggle('selected');
@@ -449,7 +437,7 @@
 
         async function dispatchManualOrder() {
             const name = document.getElementById('manualCustName').value.trim();
-            if(!name || manualSelectedItems.length === 0) return alert("Missing ticket structural fields.");
+            if(!name || manualSelectedItems.length === 0) return alert("Missing entry data.");
             document.getElementById('manualSubmitBtn').disabled = true;
 
             const ticket = {
@@ -459,8 +447,8 @@
                 total: manualCurrentTotal,
                 status: 'Pending',
                 paid: 'No',
-                eta: '5-10m',
-                notes: `Walk-in Ticket by: ${activeStaffName}`,
+                eta: 'Asap',
+                notes: `Counter Order: ${activeStaffName}`,
                 chef_notes: ''
             };
 
@@ -470,7 +458,7 @@
                 body: JSON.stringify([ticket])
             });
 
-            pushInternalNotification(`Manual ticket ${ticket.id} ($${ticket.total}) logged by ${activeStaffName}`);
+            pushInternalNotification(`Ticket ${ticket.id} placed for ${name}`);
             document.getElementById('manualCustName').value = '';
             document.querySelectorAll('.pos-item').forEach(i => i.classList.remove('selected'));
             manualSelectedItems = []; manualCurrentTotal = 0; document.getElementById('manualTotal').innerText = 0;
@@ -488,9 +476,14 @@
                         set: { [field]: value }
                     })
                 });
-                pushInternalNotification(`Ticket ${orderId} property modified: [${field} -> ${value}]`);
+                pushInternalNotification(`Ticket ${orderId}: Changed ${field} to "${value}"`);
                 fetchLiveKitchenOrders();
-            } catch(e) { alert("Failed to modify pipeline object."); }
+            } catch(e){}
+        }
+
+        async function triggerPaymentToggle(orderId, currentPaidStatus) {
+            const nextPaidStatus = currentPaidStatus === 'Yes' ? 'No' : 'Yes';
+            await updateOrderField(orderId, 'paid', nextPaidStatus);
         }
 
         async function completeKitchenOrder(orderId) {
@@ -498,6 +491,17 @@
             if(!order) return;
             
             try {
+                // First update the status in Sheet1 so it remains safely visible but marked completed
+                await fetch(`${BASE_API_URL}/Sheet1`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        condition: { id: orderId },
+                        set: { status: 'Completed', paid: 'Yes' }
+                    })
+                });
+
+                // Drop a duplicate snapshot copy straight into record_keeping archive ledger books
                 await fetch(`${BASE_API_URL}/record_keeping`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -511,64 +515,57 @@
                     }])
                 });
 
-                await fetch(`${BASE_API_URL}/Sheet1`, {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ condition: { id: orderId } })
-                });
-
-                pushInternalNotification(`Ticket ${orderId} successfully fulfilled and archived.`);
+                pushInternalNotification(`Ticket ${orderId} marked Completed & archived into systems.`);
                 fetchLiveKitchenOrders();
-            } catch(e) { alert("Archival execution failure."); }
+            } catch(e) { alert("Archival pipeline dropped connection."); }
         }
 
         async function fetchLiveKitchenOrders() {
             try {
                 const res = await fetch(`${BASE_API_URL}/Sheet1`);
                 const pipeline = await res.json();
-                
-                if(pipeline && !pipeline.error) {
-                    currentLiveOrders = pipeline;
-                }
+                if(pipeline && !pipeline.error) currentLiveOrders = pipeline;
 
                 const target = document.getElementById('liveOrdersList');
                 target.innerHTML = '';
                 
                 if(!pipeline || pipeline.length === 0 || pipeline.error) {
-                    target.innerHTML = '<p style="color:var(--text-muted);">Monitor clean. No active tickets pending.</p>'; return;
+                    target.innerHTML = '<p style="color:var(--text-muted);">Production environment clear.</p>'; return;
                 }
 
                 pipeline.reverse().forEach(o => {
+                    const isCompleted = o.status === 'Completed';
+                    
                     target.innerHTML += `
-                        <div class="kitchen-card">
+                        <div class="kitchen-card ${isCompleted ? 'status-completed' : ''}">
                             <div>
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
                                     <strong style="color:var(--accent-blue); font-size:16px;">${o.id}</strong>
                                     <span class="price-tag">$${o.total || 0}</span>
                                 </div>
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <h3 style="border:none; margin:5px 0; font-size:18px;">${o.customer}</h3>
-                                    <span class="badge ${o.paid==='Yes'?'paid':'unpaid'}" style="cursor:pointer;" onclick="updateOrderField('${o.id}', 'paid', '${o.paid==='Yes'?'No':'Yes'}')">
-                                        ${o.paid==='Yes'?'Paid':'Unpaid'}
-                                    </span>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                                    <h3 style="border:none; margin:0; font-size:18px;">${o.customer}</h3>
+                                    <div style="display:flex; gap:5px;">
+                                        <span class="badge ${isCompleted ? 'status-done' : 'status-pending'}">${o.status}</span>
+                                        <span class="badge ${o.paid === 'Yes' ? 'paid' : 'unpaid'}" style="cursor:pointer;" onclick="triggerPaymentToggle('${o.id}', '${o.paid}')">
+                                            ${o.paid === 'Yes' ? 'Paid' : 'Unpaid'}
+                                        </span>
+                                    </div>
                                 </div>
-                                <p style="margin:10px 0 15px 0; font-size:13px; color:var(--text-muted); line-height:1.4;">${o.items}</p>
+                                <p style="margin:10px 0; font-size:13px; color:var(--text-muted); line-height:1.4;">${o.items}</p>
                             </div>
                             
-                            <div>
-                                <label style="font-size:11px; color:var(--text-muted);">ETA Time:</label>
-                                <select onchange="updateOrderField('${o.id}', 'eta', this.value)">
-                                    <option value="">Choose ETA...</option>
-                                    <option value="5m" ${o.eta==='5m'?'selected':''}>5 mins</option>
-                                    <option value="10m" ${o.eta==='10m'?'selected':''}>10 mins</option>
-                                    <option value="15m" ${o.eta==='15m'?'selected':''}>15 mins</option>
-                                    <option value="Ready" ${o.eta==='Ready'?'selected':''}>Ready 🎉</option>
-                                </select>
+                            <div style="margin-top:10px;">
+                                <label style="font-size:11px; color:var(--text-muted);">Custom Wait/ETA Time:</label>
+                                <input type="text" value="${o.eta || ''}" placeholder="e.g., 7 mins, next, done" style="margin-bottom:8px; padding:8px;" onchange="updateOrderField('${o.id}', 'eta', this.value)">
 
                                 <label style="font-size:11px; color:var(--text-muted);">Barista Kitchen Note:</label>
-                                <input type="text" value="${o.chef_notes || ''}" placeholder="Add note..." onchange="updateOrderField('${o.id}', 'chef_notes', this.value)">
+                                <input type="text" value="${o.chef_notes || ''}" placeholder="Add update..." style="margin-bottom:12px; padding:8px;" onchange="updateOrderField('${o.id}', 'chef_notes', this.value)">
                                 
-                                <button class="btn-action" style="background:var(--pos-green); color:white;" onclick="completeKitchenOrder('${o.id}')">Fulfill & Archive</button>
+                                ${isCompleted ? 
+                                    `<button class="btn-action" style="background:#223e36; color:var(--pos-green);" disabled>✓ Handed Over</button>` : 
+                                    `<button class="btn-action" style="background:var(--pos-green); color:white;" onclick="completeKitchenOrder('${o.id}')">Fulfill & Archive</button>`
+                                }
                             </div>
                         </div>`;
                 });
@@ -581,22 +578,10 @@
                 const logs = await res.json();
                 const tbody = document.getElementById('archiveLogsTableBody');
                 tbody.innerHTML = '';
-                
-                if(!logs || logs.length === 0 || logs.error) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No archived logs historical entries.</td></tr>';
-                    return;
-                }
+                if(!logs || logs.length === 0 || logs.error) return;
 
                 logs.reverse().forEach(l => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${l.id}</td>
-                            <td>${l.customer}</td>
-                            <td>${l.items}</td>
-                            <td style="color:var(--pos-blue); font-weight:bold;">$${l.total || 0}</td>
-                            <td><span class="badge paid">${l.status || 'Completed'}</span></td>
-                            <td><span class="badge paid">Paid</span></td>
-                        </tr>`;
+                    tbody.innerHTML += `<tr><td>${l.id}</td><td>${l.customer}</td><td>${l.items}</td><td style="color:var(--pos-blue); font-weight:bold;">$${l.total || 0}</td><td><span class="badge paid">${l.status || 'Completed'}</span></td><td><span class="badge paid">Paid</span></td></tr>`;
                 });
             } catch(e){}
         }
@@ -605,82 +590,48 @@
             try {
                 const res = await fetch(`${BASE_API_URL}/record_keeping`);
                 const logs = await res.json();
-                
                 const tbody = document.getElementById('financeTableBody');
                 tbody.innerHTML = '';
 
-                let totalRevenue = 0;
-                let ticketCount = 0;
-
+                let totalRevenue = 0, ticketCount = 0;
                 if(logs && logs.length > 0 && !logs.error) {
                     logs.reverse().forEach(l => {
                         const amount = parseFloat(l.total) || 0;
                         totalRevenue += amount;
-                        ticketCount++;
-
-                        const colorStyle = amount < 0 ? 'color:var(--pos-red);' : 'color:var(--pos-green);';
-                        tbody.innerHTML += `
-                            <tr>
-                                <td style="font-size:12px;">${l.id} <br><small style="color:var(--text-muted);">${l.customer || 'Direct Adjustment'}</small></td>
-                                <td style="font-weight:bold; ${colorStyle}">$${amount.toFixed(2)}</td>
-                            </tr>`;
+                        if(amount > 0) ticketCount++;
+                        tbody.innerHTML += `<tr><td style="font-size:12px;">${l.id}<br><small style="color:var(--text-muted);">${l.customer}</small></td><td style="font-weight:bold; color:${amount < 0 ? 'var(--pos-red)':'var(--pos-green)'}">$${amount.toFixed(2)}</td></tr>`;
                     });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">No entries recorded.</td></tr>';
                 }
-
                 const avgTicket = ticketCount > 0 ? (totalRevenue / ticketCount) : 0;
-
                 document.getElementById('grossRevenueVal').innerText = `$${totalRevenue.toFixed(2)}`;
                 document.getElementById('totalTicketsVal').innerText = ticketCount;
                 document.getElementById('avgTicketVal').innerText = `$${avgTicket.toFixed(2)}`;
-                
-                if (totalRevenue < 0) document.getElementById('grossRevenueVal').style.color = 'var(--pos-red)';
-                else document.getElementById('grossRevenueVal').style.color = 'var(--pos-green)';
-
             } catch(e){}
         }
 
         async function submitFinancialAdjustment() {
             const type = document.getElementById('financeActionType').value;
             let amount = parseFloat(document.getElementById('financeAmount').value);
-            const memo = document.getElementById('financeMemo').value.trim() || 'Internal Financial Update';
-
-            if(!amount || amount <= 0) return alert("Please submit a valid monetary decimal.");
+            const memo = document.getElementById('financeMemo').value.trim() || 'Adjustment';
+            if(!amount || amount <= 0) return;
             if(type === 'SUBTRACT') amount = -amount;
-
-            const entry = {
-                id: type === 'ADD' ? 'REV-ADJ' : 'EXP-BILL',
-                customer: memo,
-                items: `Manual Entry by ${activeStaffName}`,
-                total: amount,
-                status: 'Completed',
-                paid: 'Yes'
-            };
 
             await fetch(`${BASE_API_URL}/record_keeping`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([entry])
+                body: JSON.stringify([{ id: type==='ADD'?'REV-ADJ':'EXP-BILL', customer: memo, items: 'Manual Ledger Modification', total: amount, status: 'Completed', paid: 'Yes' }])
             });
-
-            pushInternalNotification(`Financial record updated: ${type} $${Math.abs(amount).toFixed(2)} (${memo})`);
-            document.getElementById('financeAmount').value = '';
-            document.getElementById('financeMemo').value = '';
+            document.getElementById('financeAmount').value = ''; document.getElementById('financeMemo').value = '';
             fetchFinancialData();
         }
 
         async function populateStaffDropdown() {
             try {
                 const select = document.getElementById('financeStaffDropdown');
-                select.innerHTML = '<option value="">-- Choose Staff Target Node --</option>';
-                
+                select.innerHTML = '<option value="">-- Choose Staff Target --</option>';
                 const res = await fetch(`${BASE_API_URL}/staff`);
-                systemStaffList = await res.json();
-
-                systemStaffList.forEach(s => {
-                    select.innerHTML += `<option value="${s.name}">${s.name} (Rank ${s.rank})</option>`;
-                });
+                const catalog = await res.json();
+                catalog.forEach(s => { select.innerHTML += `<option value="${s.name}">${s.name}</option>`; });
             } catch(e){}
         }
 
@@ -688,26 +639,13 @@
             const staffName = document.getElementById('financeStaffDropdown').value;
             const amount = parseFloat(document.getElementById('payoutAmount').value);
             const type = document.getElementById('payoutType').value;
-
-            if(!staffName) return alert("Select an employee node first.");
-            if(!amount || amount <= 0) return alert("Please enter a valid monetary amount.");
-
-            const entry = {
-                id: 'PAY-DISB',
-                customer: `Staff: ${staffName}`,
-                items: `Payroll: ${type} handled by ${activeStaffName}`,
-                total: -amount,
-                status: 'Completed',
-                paid: 'Yes'
-            };
+            if(!staffName || !amount || amount <= 0) return alert("Validation inputs error.");
 
             await fetch(`${BASE_API_URL}/record_keeping`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([entry])
+                body: JSON.stringify([{ id: 'PAY-DISB', customer: `Staff: ${staffName}`, items: `Payout: ${type}`, total: -amount, status: 'Completed', paid: 'Yes' }])
             });
-
-            pushInternalNotification(`Payroll compensation posted: $${amount.toFixed(2)} sent to ${staffName} for ${type}`);
             document.getElementById('payoutAmount').value = '';
             fetchFinancialData();
         }
@@ -716,32 +654,19 @@
             const searchName = document.getElementById('crmSearchName').value.trim();
             if(!searchName) return;
             currentInspectedCustomer = searchName;
-
             try {
                 const res = await fetch(`${BASE_API_URL}/customers?search={"customer":"${searchName}"}`);
                 const data = await res.json();
-                
                 document.getElementById('crmResultBox').style.display = 'block';
                 document.getElementById('crmNameHeader').innerText = `Profile: ${searchName}`;
-                
-                if(activeStaffRank < 10) {
-                    document.getElementById('managerOnlyCrmActions').style.display = 'none';
-                    document.getElementById('crmRankWarning').style.display = 'block';
-                } else {
-                    document.getElementById('managerOnlyCrmActions').style.display = 'block';
-                    document.getElementById('crmRankWarning').style.display = 'none';
-                }
-
                 if(data.length > 0) {
                     document.getElementById('crmStatusLabel').innerText = data[0].status;
-                    document.getElementById('crmStatusLabel').style.color = data[0].status === 'Banned' ? 'var(--pos-red)' : 'var(--pos-green)';
                     document.getElementById('crmNotesInput').value = data[0].notes || '';
-                    document.getElementById('crmBanBtn').innerText = data[0].status === 'Banned' ? 'Lift Suspension Account' : 'Issue Profile Ban Restrict';
+                    document.getElementById('crmBanBtn').innerText = data[0].status === 'Banned' ? 'Lift Suspension' : 'Issue Profile Ban';
                 } else {
                     document.getElementById('crmStatusLabel').innerText = "Active / Unlisted";
-                    document.getElementById('crmStatusLabel').style.color = "var(--pos-green)";
                     document.getElementById('crmNotesInput').value = '';
-                    document.getElementById('crmBanBtn').innerText = 'Issue Profile Ban Restrict';
+                    document.getElementById('crmBanBtn').innerText = 'Issue Profile Ban';
                 }
             } catch(e){}
         }
@@ -749,57 +674,25 @@
         async function commitProfileNotes() {
             const notes = document.getElementById('crmNotesInput').value.trim();
             try {
-                const checkRes = await fetch(`${BASE_API_URL}/customers?search={"customer":"${currentInspectedCustomer}"}`);
-                const exist = await checkRes.json();
-
-                if(exist.length > 0) {
-                    await fetch(`${BASE_API_URL}/customers`, {
-                        method: 'PUT',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            condition: { customer: currentInspectedCustomer },
-                            set: { notes: notes }
-                        })
-                    });
-                } else {
-                    await fetch(`${BASE_API_URL}/customers`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify([{ customer: currentInspectedCustomer, status: 'Active', notes: notes }])
-                    });
-                }
-                pushInternalNotification(`CRM Database change: Security dossier notes updated for user: ${currentInspectedCustomer}`);
-                alert("Dossier metadata committed.");
-                runSecurityProfileLookup();
+                await fetch(`${BASE_API_URL}/customers`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify([{ customer: currentInspectedCustomer, status: 'Active', notes: notes }])
+                });
+                alert("Dossier saved.");
             } catch(e){}
         }
 
         async function triggerAccountBan() {
             const label = document.getElementById('crmStatusLabel').innerText;
             const targetStatus = label === 'Banned' ? 'Active' : 'Banned';
-            
             try {
-                const checkRes = await fetch(`${BASE_API_URL}/customers?search={"customer":"${currentInspectedCustomer}"}`);
-                const exist = await checkRes.json();
-
-                if(exist.length > 0) {
-                    await fetch(`${BASE_API_URL}/customers`, {
-                        method: 'PUT',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            condition: { customer: currentInspectedCustomer },
-                            set: { status: targetStatus }
-                        })
-                    });
-                } else {
-                    await fetch(`${BASE_API_URL}/customers`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify([{ customer: currentInspectedCustomer, status: targetStatus, notes: '' }])
-                    });
-                }
-                pushInternalNotification(`CRM Alert: Customer status for ${currentInspectedCustomer} adjusted to ${targetStatus}`);
-                alert(`Account standing updated to: ${targetStatus}`);
+                await fetch(`${BASE_API_URL}/customers`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify([{ customer: currentInspectedCustomer, status: targetStatus, notes: '' }])
+                });
+                alert(`Status flipped: ${targetStatus}`);
                 runSecurityProfileLookup();
             } catch(e){}
         }
@@ -808,12 +701,9 @@
             try {
                 const res = await fetch(`${BASE_API_URL}/staff`);
                 const staff = await res.json();
-                systemStaffList = staff;
                 const list = document.getElementById('staffDirectoryList');
                 list.innerHTML = '';
-                staff.forEach(s => {
-                    list.innerHTML += `<li>Node ID: <strong>${s.name}</strong> — Tier Rank Security level indicator [${s.rank}]</li>`;
-                });
+                staff.forEach(s => { list.innerHTML += `<li>Node ID: <strong>${s.name}</strong> — Rank [${s.rank}]</li>`; });
             } catch(e){}
         }
 
@@ -821,20 +711,14 @@
             const name = document.getElementById('newStaffName').value.trim();
             const code = document.getElementById('newStaffCode').value.trim();
             const rank = document.getElementById('newStaffRank').value.trim();
-
-            if(!name || !code || !rank) return alert("All staff roster fields required.");
-
+            if(!name || !code || !rank) return;
             try {
                 await fetch(`${BASE_API_URL}/staff`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify([{ name, code, rank }])
                 });
-                pushInternalNotification(`New employee node created: ${name} with Rank Tier: ${rank}`);
-                alert("New staff entity initialized.");
-                document.getElementById('newStaffName').value = '';
-                document.getElementById('newStaffCode').value = '';
-                document.getElementById('newStaffRank').value = '';
+                document.getElementById('newStaffName').value = ''; document.getElementById('newStaffCode').value = ''; document.getElementById('newStaffRank').value = '';
                 fetchStaffDirectory();
             } catch(e){}
         }
