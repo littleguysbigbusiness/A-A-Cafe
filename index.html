@@ -3,144 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ A&A Cafe</title>
+    <title>☕ A&A Cafe | Portal</title>
     <style>
         :root {
-            --bg-main: #f1f5f9; /* Soft light gray-blue */
-            --surface: #ffffff; /* Pure White */
-            --border: #cbd5e1;  /* Light slate border */
-            --text-main: #0f172a; /* Dark slate text */
-            --text-muted: #64748b; /* Muted gray text */
-            --accent: #2563eb; /* Vibrant Royal Blue */
+            --bg-main: #f1f5f9;
+            --surface: #ffffff;
+            --border: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #2563eb;
             --accent-hover: #1d4ed8;
             --success: #10b981;
         }
 
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: var(--bg-main); 
-            color: var(--text-main); 
-        }
-
-        header {
-            background-color: var(--accent);
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
-        }
-        header h1 { margin: 0; font-size: 22px; color: var(--surface); font-weight: 700; }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: var(--bg-main); color: var(--text-main); }
+        header { background: var(--accent); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2); }
+        header h1 { margin: 0; font-size: 22px; color: var(--surface); }
+        
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
-        .grid-2 { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px; }
+        @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } }
 
-        .panel {
-            background: var(--surface);
-            padding: 30px;
-            border-radius: 14px;
-            border: 1px solid var(--border);
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
+        .panel { background: var(--surface); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        h2, h3 { margin-top: 0; padding-bottom: 12px; border-bottom: 2px solid var(--bg-main); }
 
-        h2, h3 { margin-top: 0; padding-bottom: 12px; border-bottom: 2px solid var(--bg-main); color: var(--text-main); }
-
-        /* SECURITY GATE */
         .auth-card { max-width: 400px; margin: 100px auto; text-align: center; }
-        .auth-toggle { margin-top: 15px; font-size: 13px; color: var(--text-muted); cursor: pointer; text-decoration: underline; }
-        .auth-toggle:hover { color: var(--accent); }
-
-        input {
-            width: 100%; padding: 12px; margin: 8px 0 18px 0; box-sizing: border-box;
-            border: 1px solid var(--border); border-radius: 8px; background: var(--bg-main);
-            color: var(--text-main); font-size: 14px; transition: border 0.2s;
-        }
-        input:focus { border-color: var(--accent); outline: none; background: var(--surface); }
-
-        .btn-action {
-            background: var(--accent); color: var(--surface); padding: 14px;
-            border: none; border-radius: 8px; cursor: pointer; width: 100%;
-            font-size: 15px; font-weight: 600; transition: background 0.2s;
-        }
+        input { width: 100%; padding: 12px; margin: 8px 0 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+        input:focus { border-color: var(--accent); outline: none; }
+        
+        .btn-action { background: var(--accent); color: white; padding: 14px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
         .btn-action:hover { background: var(--accent-hover); }
 
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 20px 0; }
-        .menu-item {
-            padding: 15px 10px; border: 1px solid var(--border); border-radius: 8px;
-            cursor: pointer; text-align: center; background: var(--bg-main);
-            font-weight: 600; font-size: 13px; color: var(--text-main); transition: 0.2s;
-        }
-        .menu-item:hover { border-color: var(--accent); background: var(--surface); transform: translateY(-1px); }
-        .menu-item.selected { background-color: var(--accent); color: var(--surface); border-color: var(--accent); }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
+        .menu-item { padding: 15px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; font-size: 13px; }
+        .menu-item.selected { background: var(--accent); color: white; border-color: var(--accent); }
 
-        .total-box {
-            background: #eff6ff; color: var(--accent); padding: 15px;
-            border-radius: 8px; text-align: right; font-size: 22px; font-weight: 700;
-            margin: 15px 0; border: 1px solid #bfdbfe;
-        }
-
-        .order-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-left: 4px solid var(--accent); padding: 15px; margin-bottom: 15px; border-radius: 8px;
-        }
-        .logout-btn { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
-        .logout-btn:hover { background: #fca5a5; }
+        .total-box { background: #eff6ff; color: var(--accent); padding: 15px; border-radius: 8px; text-align: right; font-size: 22px; font-weight: bold; margin-bottom: 15px; }
+        .order-card, .notif-card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .notif-card { border-left-color: var(--success); background: #f0fdf4; }
+        .badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge.paid { background: #d1fae5; color: var(--success); }
+        .badge.unpaid { background: #fee2e2; color: #ef4444; }
     </style>
 </head>
 <body>
 
     <div id="authContainer">
         <div class="panel auth-card">
-            <h2 id="authTitle">Customer Login</h2>
-            <div style="text-align: left; margin-top: 20px;">
-                <label><strong>Account Name:</strong></label>
-                <input type="text" id="authName" placeholder="Enter your name">
-                
-                <label><strong>Password:</strong></label>
-                <input type="password" id="authPass" placeholder="••••••••">
-                
-                <button class="btn-action" id="authSubmitBtn" onclick="handleAuth()">Log In</button>
+            <h2>Portal Login</h2>
+            <div style="text-align: left;">
+                <label><strong>Roblox Username:</strong></label>
+                <input type="text" id="authName" placeholder="Player123">
+                <button class="btn-action" onclick="handleAuth()">Access Portal</button>
             </div>
-            <div class="auth-toggle" id="authSwitch" onclick="toggleAuthMode()">New customer? Create an account here</div>
         </div>
     </div>
 
     <div id="appContainer" style="display: none;">
         <header>
             <h1>☕ A&A Cafe</h1>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span id="userGreeting" style="font-size: 14px; font-weight: 600; color: white;"></span>
-                <button class="logout-btn" onclick="logOutSession()">Sign Out</button>
+            <div>
+                <span id="userGreeting" style="color: white; font-weight: bold; margin-right: 15px;"></span>
+                <button onclick="location.reload()" style="background: #fee2e2; color: #ef4444; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">Logout</button>
             </div>
         </header>
 
-        <div class="container">
-            <div class="grid-2">
-                <div class="panel">
-                    <h3>Place an Order</h3>
-                    <div class="menu-grid">
-                        <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
-                        <div class="menu-item" onclick="toggleItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
-                        <div class="menu-item" onclick="toggleItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
-                        <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
-                        <div class="menu-item" onclick="toggleItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
-                    </div>
-                    <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
-                    <button class="btn-action" onclick="submitCustomerOrder()" style="background: var(--success); color: white;">Submit Order</button>
+        <div class="container grid-3">
+            <div class="panel">
+                <h3>Kiosk Order</h3>
+                <div class="menu-grid">
+                    <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Matcha', 6)">Matcha ($6)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Muffin', 3)">Muffin ($3)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Whole Pie', 12)">Whole Pie ($12)</div>
                 </div>
+                <div class="total-box">Total: $<span id="totalPrice">0</span></div>
+                <button class="btn-action" onclick="submitOrder()">Send to Counter</button>
+            </div>
 
-                <div>
-                    <div class="panel">
-                        <h3>Active Progress</h3>
-                        <div id="customerTrackerList">No active orders processing.</div>
-                    </div>
-                    <div class="panel">
-                        <h3>📜 My Past Orders</h3>
-                        <div id="pastHistoryList">Your historical records populate here.</div>
-                    </div>
+            <div>
+                <div class="panel">
+                    <h3>Active Tickets</h3>
+                    <div id="activeList">No active orders.</div>
+                </div>
+                <div class="panel">
+                    <h3>📜 Past Orders</h3>
+                    <div id="pastList">No history.</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>🔔 Notifications</h3>
+                <div id="notifList">
+                    <p style="color: var(--text-muted); font-size: 13px;">No new alerts.</p>
                 </div>
             </div>
         </div>
@@ -148,42 +103,18 @@
 
     <script>
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
-        let isRegisterMode = false;
         let loggedInUser = null;
         let selectedItems = [];
         let currentTotal = 0;
 
-        function toggleAuthMode() {
-            isRegisterMode = !isRegisterMode;
-            document.getElementById('authTitle').innerText = isRegisterMode ? "Create Customer Account" : "Customer Login";
-            document.getElementById('authSubmitBtn').innerText = isRegisterMode ? "Register Account" : "Log In";
-            document.getElementById('authSwitch').innerText = isRegisterMode ? "Already have an account? Log in here" : "New customer? Create an account here";
-        }
-
-        async function handleAuth() {
+        function handleAuth() {
             const name = document.getElementById('authName').value.trim();
-            const pass = document.getElementById('authPass').value.trim();
-
-            if(!name || !pass) return alert("Please fill out your name and password.");
-
-            loggedInUser = name; 
-            localStorage.setItem('activeSessionUser', loggedInUser);
-            launchApplication();
-        }
-
-        function launchApplication() {
+            if(!name) return;
+            loggedInUser = name;
             document.getElementById('authContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
-            document.getElementById('userGreeting').innerText = `👤 Customer: ${loggedInUser}`;
-            updateCustomerData();
-            setInterval(updateCustomerData, 5000);
-        }
-
-        function logOutSession() {
-            localStorage.removeItem('activeSessionUser');
-            loggedInUser = null;
-            document.getElementById('authContainer').style.display = 'block';
-            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('userGreeting').innerText = `👤 ${loggedInUser}`;
+            fetchData(); setInterval(fetchData, 5000);
         }
 
         function toggleItem(el, name, price) {
@@ -194,62 +125,33 @@
             document.getElementById('totalPrice').innerText = currentTotal;
         }
 
-        async function submitCustomerOrder() {
-            if(selectedItems.length === 0) return alert("Select menu items before ordering.");
-
-            const payload = {
-                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                customer: loggedInUser,
-                items: selectedItems.join(', '),
-                total: currentTotal,
-                status: 'Pending',
-                paid: 'No',
-                eta: '',
-                notes: '',
-                chef_notes: ''
-            };
-
+        async function submitOrder() {
+            if(selectedItems.length === 0) return;
             await fetch(`${BASE_API_URL}/Sheet1`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([payload])
+                body: JSON.stringify([{ id: 'ORD-'+Math.floor(Math.random()*9000), customer: loggedInUser, items: selectedItems.join(', '), total: currentTotal, status: 'Pending', paid: 'No' }])
             });
-
-            alert("Order sent straight to the kitchen!");
-            selectedItems = []; currentTotal = 0;
-            document.getElementById('totalPrice').innerText = 0;
+            alert("Sent! Pay at counter.");
+            selectedItems = []; currentTotal = 0; document.getElementById('totalPrice').innerText = '0';
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
-            updateCustomerData();
+            fetchData();
         }
 
-        async function updateCustomerData() {
-            if(!loggedInUser) return;
+        async function fetchData() {
             try {
-                const activeRes = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${loggedInUser}"}`);
-                const activeOrders = await activeRes.json();
-                const container = document.getElementById('customerTrackerList');
+                // Fetch Orders
+                const res = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${loggedInUser}"}`);
+                const data = await res.json();
+                document.getElementById('activeList').innerHTML = data.length ? data.reverse().map(o => `<div class="order-card"><strong>${o.id}</strong> <span class="badge ${o.paid==='Yes'?'paid':'unpaid'}">${o.paid==='Yes'?'Paid':'Unpaid'}</span><br><small>${o.items} - $${o.total}</small></div>`).join('') : 'No active orders.';
                 
-                if(!activeOrders || activeOrders.length === 0 || activeOrders.error) {
-                    container.innerText = "No active orders in the current queue.";
-                } else {
-                    container.innerHTML = '';
-                    activeOrders.reverse().forEach(o => {
-                        container.innerHTML += `
-                            <div class="order-card">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <strong>ID: ${o.id}</strong>
-                                    <span style="font-size:12px; color:var(--accent); font-weight:bold;">${o.status}</span>
-                                </div>
-                                <p style="font-size:13px; margin:8px 0;">Items: ${o.items}</p>
-                            </div>`;
-                    });
+                // Fetch Notifications (Mocks a check in an alerts sheet)
+                const notifRes = await fetch(`${BASE_API_URL}/alerts?search={"target":"${loggedInUser}"}`);
+                const notifs = await notifRes.json();
+                if(notifs && notifs.length > 0 && !notifs.error) {
+                    document.getElementById('notifList').innerHTML = notifs.reverse().map(n => `<div class="notif-card"><strong>📬 ${n.title}</strong><p style="margin:5px 0 0; font-size:12px;">${n.message}</p></div>`).join('');
                 }
-            } catch(e){}
-        }
-
-        if(localStorage.getItem('activeSessionUser')) {
-            loggedInUser = localStorage.getItem('activeSessionUser');
-            launchApplication();
+            } catch(e) {}
         }
     </script>
 </body>
