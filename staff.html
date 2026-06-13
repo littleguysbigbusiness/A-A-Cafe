@@ -350,11 +350,12 @@
                         <h3>Counter POS Entry</h3>
                         <label>Walk-In Customer Name:</label>
                         <input type="text" id="manualCustName" placeholder="Enter name...">
-                            <div class="menu-grid" id="menuGridBox">
-                    <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-style: italic; padding: 20px;">
-                        🔄 Fetching current menu directly from Google Docs list...
-                    </div>
-                </div>
+                        
+                        <div id="menuGridBox" class="pos-grid">
+                            <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); font-style: italic; padding: 20px;">
+                                🔄 Fetching current menu directly from Google Docs list...
+                            </div>
+                        </div>
 
                         <div class="total-display">$<span id="manualTotal">0</span></div>
                         <button class="btn-action" id="manualSubmitBtn" onclick="dispatchManualOrder()" style="background:var(--color-success); color:white;">Post Cash/Card Ticket</button>
@@ -439,7 +440,6 @@
                         <input type="number" id="financeAmount" placeholder="0.00" min="0.01" step="0.01">
                         <label>Reference Label / Memo Description:</label>
                         <input type="text" id="financeMemo" placeholder="e.g., Electric Bill">
-                        <input type="text" id="financeMemo" placeholder="e.g., Electric Bill">
                         <button class="btn-action" style="background:var(--accent-brand); color:var(--bg-darker);" onclick="submitFinancialAdjustment()">Post Balancing Entry</button>
                     </div>
 
@@ -473,7 +473,7 @@
     </div>
 
     <script>
-        // PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL HERE:
+        // URL 1: Main Backend Database Core System
         const BASE_API_URL = "https://script.google.com/macros/s/AKfycbxuT5QyTj2kSnLOHdvdYSyzUZrILN3gn9jBVxpbEj0n-kzSxZlpiRFyAv9v34x-QM2T/exec";
         
         let manualSelectedItems = [];
@@ -618,7 +618,7 @@
             });
         }, 1000);
 
-        setInterval(fetchLiveRosterData, 15000); // Optimized roster poll
+        setInterval(fetchLiveRosterData, 15000);
 
         function routeTo(panelId) {
             if(panelId !== 'kitchenView' && activeStaffRank < 10) {
@@ -661,9 +661,13 @@
                     }
                     
                     pushInternalNotification(`Staff session established: ${activeStaffName}`);
+                    
+                    // Bootstrapping Core Interface Elements
                     fetchLiveKitchenOrders();
+                    fetchStaffMenuReference(); 
+                    
                     await fetchLiveRosterData();
-                    setInterval(fetchLiveKitchenOrders, 10000); // Efficient production loop
+                    setInterval(fetchLiveKitchenOrders, 10000);
                 } else { alert("Verification mismatch configuration."); }
             } catch(e){ alert("Database baseline unresponsive."); }
         }
@@ -675,7 +679,7 @@
             const idx = manualSelectedItems.indexOf(name);
             if(idx > -1) { manualSelectedItems.splice(idx, 1); manualCurrentTotal -= price; }
             else { manualSelectedItems.push(name); manualCurrentTotal += price; }
-            document.getElementById('manualTotal').innerText = manualCurrentTotal;
+            document.getElementById('manualTotal').innerText = manualCurrentTotal.toFixed(2);
         }
 
         async function dispatchManualOrder() {
@@ -804,15 +808,59 @@
             } catch(e) { alert("Archival pipeline dropped connection."); }
         }
 
-      // ... existing authentication logic inside authenticateStaff() ...
-pushInternalNotification(`Staff session established: ${activeStaffName}`);
+        async function fetchLiveKitchenOrders() {
+            try {
+                const res = await fetch(`${BASE_API_URL}?sheet=Sheet1`);
+                const pipeline = await res.json();
+                if(pipeline && !pipeline.error) currentLiveOrders = pipeline;
 
-fetchLiveKitchenOrders();
-fetchStaffMenuReference(); // <-- ADD THIS LINE HERE TO TRIGGER THE RUN
+                const target = document.getElementById('liveOrdersList');
+                target.innerHTML = '';
+                
+                if(!pipeline || pipeline.length === 0 || pipeline.error) {
+                    target.innerHTML = '<p style="color:var(--text-secondary); font-style:italic;">Production environment clear.</p>'; return;
+                }
 
-await fetchLiveRosterData();
-setInterval(fetchLiveKitchenOrders, 10000);
-// ... remaining authentication code ...
+                pipeline.reverse().forEach(o => {
+                    const isCompleted = o.status === 'Completed';
+                    const isUnpaidCompleted = isCompleted && o.paid === 'No';
+                    
+                    target.innerHTML += `
+                        <div class="kitchen-card ${isUnpaidCompleted ? 'status-unpaid-completed' : ''}">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                                    <strong style="color:var(--accent-brand); font-size:16px;">${o.id}</strong>
+                                    <span class="price-tag">$${o.total || 0}</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                                    <h3 style="border:none; margin:0; font-size:18px;">${o.customer}</h3>
+                                    <div style="display:flex; gap:6px;">
+                                        <span class="badge ${isCompleted ? 'status-done' : 'status-pending'}">${o.status}</span>
+                                        <span class="badge ${o.paid === 'Yes' ? 'paid' : 'unpaid'}" style="cursor:pointer;" onclick="triggerPaymentToggle('${o.id}', '${o.paid}')">
+                                            ${o.paid === 'Yes' ? 'Paid' : 'Unpaid'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p style="margin:12px 0; font-size:14px; color:var(--text-secondary); line-height:1.5;">${o.items}</p>
+                            </div>
+                            
+                            <div style="margin-top:14px;">
+                                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Custom Wait/ETA Time:</label>
+                                <input type="text" value="${o.eta || ''}" placeholder="e.g., 7 mins, next, done" style="margin-bottom:10px; padding:10px;" onchange="updateOrderField('${o.id}', 'eta', this.value)">
+
+                                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Barista Kitchen Note:</label>
+                                <input type="text" value="${o.chef_notes || ''}" placeholder="Add update..." style="margin-bottom:14px; padding:10px;" onchange="updateOrderField('${o.id}', 'chef_notes', this.value)">
+                                
+                                ${isCompleted ? 
+                                    `<div style="text-align:center; color:var(--color-alert); font-size:12px; font-weight:bold; padding:12px; border:1px dashed var(--color-alert); border-radius:8px; background:rgba(251,191,36,0.02)">⚠️ Collect Payment to Clear Ticket</div>` : 
+                                    `<button class="btn-action" style="background:var(--color-success); color:white;" onclick="completeKitchenOrder('${o.id}')">Fulfill & Archive</button>`
+                                }
+                            </div>
+                        </div>`;
+                });
+            } catch(e){}
+        }
+
         async function fetchArchiveLogs() {
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=record_keeping`);
@@ -991,46 +1039,45 @@ setInterval(fetchLiveKitchenOrders, 10000);
                 staff.forEach(s => { list.innerHTML += `<li>Node ID: <strong>${s.name}</strong> — Rank [${s.rank}]</li>`; });
             } catch(e){}
         }
-async function fetchStaffMenuReference() {
-    // FIXED: Target 'menuGridBox' to match the actual HTML container on line 211
-    const staffGridBox = document.getElementById('menuGridBox');
-    if (!staffGridBox) return; 
-    
-    try {
-        const targetUrl = "https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec?sheet=menu&type=menu&_=" + Date.now();
-        
-        const response = await fetch(targetUrl);
-        const rawText = await response.text();
-        const menuItems = JSON.parse(rawText);
-        
-        if (!menuItems || menuItems.length === 0 || menuItems.error) {
-            staffGridBox.innerHTML = `<div style="color: red; font-size: 12px; padding: 10px;">⚠️ Error: ${menuItems ? menuItems.error : 'Empty.'}</div>`;
-            return;
-        }
-        
-        // CSS matching your dark grid design language
-        staffGridBox.style.cssText = "display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 20px 0;";
-        staffGridBox.innerHTML = '';
-        
-        menuItems.forEach(m => {
-            const itemName = m.item;
-            const itemPrice = parseFloat(m.price) || 0;
+
+        // URL 2: Dedicated Menu Rendering Engine (Google Docs Document API)
+        async function fetchStaffMenuReference() {
+            const staffGridBox = document.getElementById('menuGridBox');
+            if (!staffGridBox) return; 
             
-            const el = document.createElement('div');
-            // Styled as a terminal POS selector item matching .pos-item class mechanics
-            el.className = "pos-item";
-            el.setAttribute("onclick", `selectManualItem(this, "${itemName.replace(/"/g, '&quot;')}", ${itemPrice})`);
-            el.innerHTML = `
-                <span>${itemName}</span>
-                <span class="item-price">$${itemPrice.toFixed(2)}</span>
-            `;
-            staffGridBox.appendChild(el);
-        });
-    } catch(e) {
-        console.error("Staff menu load error:", e);
-        staffGridBox.innerHTML = '<div style="color: #f43f5e; font-size: 12px; padding: 10px;">⚠️ Connection Failed</div>';
-    }
-}
+            try {
+                const targetUrl = "https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec?sheet=menu&type=menu&_=" + Date.now();
+                
+                const response = await fetch(targetUrl);
+                const rawText = await response.text();
+                const menuItems = JSON.parse(rawText);
+                
+                if (!menuItems || menuItems.length === 0 || menuItems.error) {
+                    staffGridBox.innerHTML = `<div style="color: #f43f5e; font-size: 13px; padding: 20px; text-align: center;">⚠️ Error rendering layout layout profile: ${menuItems ? menuItems.error : 'Empty.'}</div>`;
+                    return;
+                }
+                
+                staffGridBox.innerHTML = '';
+                
+                menuItems.forEach(m => {
+                    const itemName = m.item;
+                    const itemPrice = parseFloat(m.price) || 0;
+                    
+                    const el = document.createElement('div');
+                    el.className = "pos-item";
+                    el.setAttribute("onclick", `selectManualItem(this, "${itemName.replace(/"/g, '&quot;')}", ${itemPrice})`);
+                    el.innerHTML = `
+                        <span>${itemName}</span>
+                        <span class="item-price">$${itemPrice.toFixed(2)}</span>
+                    `;
+                    staffGridBox.appendChild(el);
+                });
+            } catch(e) {
+                console.error("Staff menu load error:", e);
+                staffGridBox.innerHTML = '<div style="color: #f43f5e; font-size: 13px; padding: 20px; text-align: center;">⚠️ System Menu Pipeline Disconnected</div>';
+            }
+        }
+
         async function registerNewStaffProfile() {
             const name = document.getElementById('newStaffName').value.trim();
             const code = document.getElementById('newStaffCode').value.trim();
