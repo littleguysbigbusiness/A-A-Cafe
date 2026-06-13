@@ -3,350 +3,454 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ Cozy Beans Cafe</title>
+    <title>A&A Cafe — Interactive Kiosk</title>
     <style>
         :root {
-            --bg-main: #f0f4f8;
-            --surface: #ffffff;
-            --border: #d9e2ec;
-            --text-main: #102a43;
-            --text-muted: #486581;
-            --accent: #0066cc; /* Electric Tech Blue */
-            --accent-hover: #004b99;
-            --badge-bg: #f59e0b;
+            --bg-main: #0b0f19;
+            --bg-card: #131c2e;
+            --bg-darker: #070a12;
+            --border-glow: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-brand: #38bdf8;
+            --accent-brand-glow: rgba(56, 189, 248, 0.15);
+            --color-success: #10b981;
+            --radius-main: 16px;
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
         }
 
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: var(--bg-main); 
-            color: var(--text-main); 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
         }
 
-        header {
-            background-color: var(--accent);
-            color: var(--surface);
-            padding: 20px;
+        .hero-banner {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            padding: 60px 20px;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 102, 204, 0.2);
+            border-bottom: 1px solid var(--border-glow);
         }
-        
-        header h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
 
-        .container {
-            max-width: 1140px;
+        .hero-banner h1 {
+            margin: 0;
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(to right, #fff, var(--accent-brand));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-banner p {
+            color: var(--text-secondary);
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .kiosk-container {
+            max-width: 1400px;
             margin: 40px auto;
             padding: 0 20px;
-        }
-
-        .grid-2 {
             display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 30px;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 40px;
         }
 
-        .panel {
-            background: var(--surface);
-            padding: 30px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        h2 {
-            margin-top: 0;
+        .menu-section-title {
             font-size: 20px;
-            font-weight: 600;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--bg-main);
-            color: var(--text-main);
+            font-weight: 700;
+            margin: 30px 0 15px 0;
+            color: #fff;
+            border-left: 4px solid var(--accent-brand);
+            padding-left: 12px;
         }
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 12px;
-            margin: 24px 0;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
         }
 
-        .menu-item {
-            padding: 16px 10px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
+        .menu-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--radius-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--shadow-lg);
             cursor: pointer;
-            text-align: center;
-            background: var(--bg-main);
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--text-main);
-            transition: all 0.2s ease;
+            transition: all 0.2s ease-in-out;
         }
 
-        .menu-item:hover { 
-            background: var(--surface);
-            border-color: var(--accent);
-            transform: translateY(-2px); 
-            box-shadow: 0 4px 12px rgba(0,102,204,0.1);
+        .menu-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-brand);
+            box-shadow: 0 12px 20px rgba(56, 189, 248, 0.1);
         }
-        
-        .menu-item.selected {
-            background-color: var(--accent);
-            color: var(--surface);
-            border-color: var(--accent);
+
+        .menu-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .menu-card .price {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent-brand);
+            margin-top: auto;
+        }
+
+        .checkout-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--radius-main);
+            padding: 30px;
+            position: sticky;
+            top: 40px;
+            box-shadow: var(--shadow-lg);
+            height: fit-content;
+        }
+
+        .checkout-panel h2 {
+            margin-top: 0;
+            font-size: 22px;
+            font-weight: 800;
+            border-bottom: 1px solid var(--border-glow);
+            padding-bottom: 15px;
         }
 
         input {
             width: 100%;
             padding: 14px;
-            margin: 8px 0 20px 0;
-            box-sizing: border-box;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--bg-main);
-            font-size: 14px;
-            color: var(--text-main);
-            transition: border 0.2s;
-        }
-        input:focus { border-color: var(--accent); outline: none; background: var(--surface); }
-
-        .action-btn {
-            background: var(--accent);
-            color: white;
-            padding: 16px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 15px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .action-btn:hover { background: var(--accent-hover); }
-        .action-btn:disabled { background: #e9ecef; color: #adb5bd; cursor: not-allowed; }
-
-        .total-box {
-            background: #e1f0ff;
-            color: var(--accent);
-            padding: 18px;
-            border-radius: 10px;
-            text-align: right;
-            font-size: 22px;
-            font-weight: 700;
-            margin: 20px 0;
-            border: 1px solid #b3d7ff;
-        }
-
-        .order-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--accent);
-            padding: 20px;
-            margin-bottom: 15px;
+            background: var(--bg-darker);
+            border: 1px solid var(--border-glow);
+            color: #fff;
             border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 14px;
+            margin-bottom: 20px;
         }
 
-        .status-badge {
-            background: var(--badge-bg);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 8px;
+        input:focus {
+            border-color: var(--accent-brand);
+            outline: none;
+        }
+
+        .cart-list {
+            background: var(--bg-darker);
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 240px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-glow);
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-remove {
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
             font-size: 11px;
             font-weight: 700;
         }
 
-        .error-msg {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            display: none;
+        .total-box {
+            display: flex;
+            justify-content: space-between;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-brand);
+            margin: 20px 0;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-glow);
+        }
+
+        .btn-order {
+            background: var(--color-success);
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-order:hover {
+            opacity: 0.9;
+        }
+
+        .btn-order:disabled {
+            background: #1e293b;
+            color: #475569;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>☕ Cozy Beans Cafe</h1>
-    </header>
+    <div class="hero-banner">
+        <h1>A&A CAFE KIOSK</h1>
+        <p>Select your items, customize your order, and beam it directly to the kitchen line</p>
+    </div>
 
-    <div class="container">
-        <div class="grid-2">
-            <div class="panel">
-                <h2>Fresh Daily Menu</h2>
-                <div id="banAlert" class="error-msg">🚫 Order Blocked: Profile suspended. Please see the barista counter.</div>
-                
-                <label><strong>Your Name:</strong></label>
-                <input type="text" id="custName" placeholder="Type your name to link orders..." oninput="onNameChange()">
-
-                <div class="menu-grid" id="menuGridBox">
-                    <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Cheesecake', 11)">Cheesecake ($11)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Tea', 4)">Tea ($4)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Espresso Shot', 5)">Espresso ($5)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
+    <div class="kiosk-container">
+        <div>
+            <div class="menu-section-title">🍰 Fresh Bakery & Desserts</div>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="addToCart('Muffin', 2)">
+                    <h3>Muffin</h3>
+                    <div class="price">$2</div>
                 </div>
-
-                <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
-                <button class="action-btn" id="submitBtn" onclick="submitCustomerOrder()">Send to Kitchen Barista</button>
+                <div class="menu-card" onclick="addToCart('Red Velvet Cupcake', 2)">
+                    <h3>Red Velvet Cupcake</h3>
+                    <div class="price">$2</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Pies Whole', 10)">
+                    <h3>Pies Whole</h3>
+                    <div class="price">$10</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Donut', 3)">
+                    <h3>Donut</h3>
+                    <div class="price">$3</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Whole Cheesecake', 11)">
+                    <h3>Whole Cheesecake</h3>
+                    <div class="price">$11</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Whole Cake', 11)">
+                    <h3>Whole Cake</h3>
+                    <div class="price">$11</div>
+                </div>
             </div>
 
-            <div>
-                <div class="panel">
-                    <h2>Live Order Status</h2>
-                    <div id="customerTrackerList">Enter your name to see active live track updates.</div>
+            <div class="menu-section-title">☕ Hot Brew Bar</div>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="addToCart('Coffee', 4)">
+                    <h3>Coffee</h3>
+                    <div class="price">$4</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Tea', 4)">
+                    <h3>Tea</h3>
+                    <div class="price">$4</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Espresso', 5)">
+                    <h3>Espresso</h3>
+                    <div class="price">$5</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Cappuccino', 5)">
+                    <h3>Cappuccino</h3>
+                    <div class="price">$5</div>
+                </div>
+            </div>
+
+            <div class="menu-section-title">🥤 Ice Blends & Specialty Drinks</div>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="addToCart('Matcha', 9)">
+                    <h3>Matcha</h3>
+                    <div class="price">$9</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Ice Matcha', 10)">
+                    <h3>Ice Matcha</h3>
+                    <div class="price">$10</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Milkshakes', 6)">
+                    <h3>Milkshakes</h3>
+                    <div class="price">$6</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Fruit Smoothie', 5)">
+                    <h3>Fruit Smoothie</h3>
+                    <div class="price">$5</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Smoothie Super Edition', 8)">
+                    <h3>Smoothie Super Edition</h3>
+                    <div class="price">$8</div>
+                </div>
+            </div>
+
+            <div class="menu-section-title">🍳 Kitchen Specialties</div>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="addToCart('Pancakes', 9)">
+                    <h3>Pancakes</h3>
+                    <div class="price">$9</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Fairy Bread', 8)">
+                    <h3>Fairy Bread</h3>
+                    <div class="price">$8</div>
+                </div>
+            </div>
+
+            <div class="menu-section-title">🍊 Cold Refreshments</div>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="addToCart('Orange Juice', 0)">
+                    <h3>Orange Juice</h3>
+                    <div class="price">$0</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Water', 0)">
+                    <h3>Water</h3>
+                    <div class="price">$0</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Grape Juice', 1)">
+                    <h3>Grape Juice</h3>
+                    <div class="price">$1</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Ice Tea', 1)">
+                    <h3>Ice Tea</h3>
+                    <div class="price">$1</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Milk', 1)">
+                    <h3>Milk</h3>
+                    <div class="price">$1</div>
+                </div>
+                <div class="menu-card" onclick="addToCart('Lemonade', 1)">
+                    <h3>Lemonade</h3>
+                    <div class="price">$1</div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="checkout-panel">
+                <h2>Your Order Manifest</h2>
+                
+                <label style="font-size:12px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; display:block; margin-bottom:8px;">Customer Checkout Name:</label>
+                <input type="text" id="custNameInput" placeholder="Enter your name here..." autocomplete="off">
+
+                <label style="font-size:12px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; display:block; margin-bottom:8px;">Selected Trays:</label>
+                <div class="cart-list" id="cartContainer">
+                    <div style="color:var(--text-secondary); text-align:center; font-style:italic; padding-top:20px; font-size:13px;">Your tray is currently empty.</div>
                 </div>
 
-                <div class="panel">
-                    <h2>📜 My Past Order History Logs</h2>
-                    <div id="pastHistoryList">History records will load here once a name is entered.</div>
+                <div class="total-box">
+                    <span>Total Bill Amount:</span>
+                    <span>$<span id="cartTotalDisplay">0</span></span>
                 </div>
+
+                <button class="btn-order" id="submitOrderBtn" onclick="sendTrayToKitchen()" disabled>Transmit Ticket to Kitchen</button>
             </div>
         </div>
     </div>
 
     <script>
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
-        let selectedItems = [];
-        let currentTotal = 0;
+        let shoppingCart = [];
+        let totalBillValue = 0;
 
-        if(localStorage.getItem('cafeCustomerName')) {
-            document.getElementById('custName').value = localStorage.getItem('cafeCustomerName');
+        function addToCart(itemName, price) {
+            shoppingCart.push({ name: itemName, price: price });
+            totalBillValue += price;
+            renderCartUI();
         }
 
-        function toggleItem(el, name, price) {
-            if(document.getElementById('submitBtn').disabled) return;
-            el.classList.toggle('selected');
-            const idx = selectedItems.indexOf(name);
-            if(idx > -1) { selectedItems.splice(idx, 1); currentTotal -= price; }
-            else { selectedItems.push(name); currentTotal += price; }
-            document.getElementById('totalPrice').innerText = currentTotal;
+        function removeFromCart(index) {
+            totalBillValue -= shoppingCart[index].price;
+            shoppingCart.splice(index, 1);
+            renderCartUI();
         }
 
-        function onNameChange() {
-            const name = document.getElementById('custName').value.trim();
-            if(name) {
-                localStorage.setItem('cafeCustomerName', name);
-                checkUserBan(name);
-                updateCustomerData();
+        function renderCartUI() {
+            const container = document.getElementById('cartContainer');
+            const submitBtn = document.getElementById('submitOrderBtn');
+            document.getElementById('cartTotalDisplay').innerText = totalBillValue;
+
+            if (shoppingCart.length === 0) {
+                container.innerHTML = `<div style="color:var(--text-secondary); text-align:center; font-style:italic; padding-top:20px; font-size:13px;">Your tray is currently empty.</div>`;
+                submitBtn.disabled = true;
+                return;
             }
+
+            submitBtn.disabled = false;
+            container.innerHTML = '';
+            shoppingCart.forEach((item, idx) => {
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight:600;">${item.name}</span>
+                            <span style="color:var(--accent-brand); margin-left:8px;">$${item.price}</span>
+                        </div>
+                        <button class="cart-item-remove" onclick="removeFromCart(${idx})">Remove</button>
+                    </div>`;
+            });
         }
 
-        async function checkUserBan(name) {
-            try {
-                const res = await fetch(`${BASE_API_URL}/customers?search={"customer":"${name}"}`);
-                const data = await res.json();
-                if(data.length > 0 && data[0].status === 'Banned') {
-                    document.getElementById('banAlert').style.display = 'block';
-                    document.getElementById('submitBtn').disabled = true;
-                    document.getElementById('customerTrackerList').innerText = "Suspended profiles cannot pull tracking telemetry.";
-                    return true;
-                }
-            } catch(e){}
-            document.getElementById('banAlert').style.display = 'none';
-            document.getElementById('submitBtn').disabled = false;
-            return false;
-        }
+        async function sendTrayToKitchen() {
+            const nameInput = document.getElementById('custNameInput').value.trim();
+            if (!nameInput) {
+                alert("Please enter a customer profile name to trace the order ticket.");
+                return;
+            }
 
-        async function submitCustomerOrder() {
-            const name = document.getElementById('custName').value.trim();
-            if(!name || selectedItems.length === 0) return alert("Please type your name and pick your treats first!");
+            const submitBtn = document.getElementById('submitOrderBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Transmitting Packet...";
 
-            if(await checkUserBan(name)) return;
+            // Groups duplicated array elements to print cleaner summaries (e.g. "2x Coffee, 1x Muffin")
+            const itemCounts = {};
+            shoppingCart.forEach(item => {
+                itemCounts[item.name] = (itemCounts[item.name] || 0) + 1;
+            });
+            const formattedSummary = Object.entries(itemCounts).map(([item, count]) => `${count}x ${item}`).join(', ');
 
-            const payload = {
+            const orderPayload = {
                 id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                customer: name,
-                items: selectedItems.join(', '),
-                total: currentTotal,
+                customer: nameInput,
+                items: formattedSummary,
+                total: totalBillValue,
                 status: 'Pending',
                 paid: 'No',
-                eta: '',
-                notes: '',
+                eta: 'Asap',
+                notes: 'Self-Serve Kiosk Order',
                 chef_notes: ''
             };
 
-            await fetch(`${BASE_API_URL}/Sheet1`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([payload])
-            });
-
-            alert("Order sent straight to the barista station!");
-            selectedItems = []; currentTotal = 0;
-            document.getElementById('totalPrice').innerText = 0;
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
-            updateCustomerData();
-        }
-
-        async function updateCustomerData() {
-            const user = document.getElementById('custName').value.trim();
-            if(!user) return;
-
             try {
-                const activeRes = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${user}"}`);
-                const activeOrders = await activeRes.json();
-                const container = document.getElementById('customerTrackerList');
-                
-                if(!activeOrders || activeOrders.length === 0 || activeOrders.error) {
-                    container.innerText = "No active orders in the current queue.";
+                const response = await fetch(`${BASE_API_URL}/Sheet1`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([orderPayload])
+                });
+
+                if (response.ok) {
+                    alert(`Success! Ticket ${orderPayload.id} has been transmitted to the production floor.`);
+                    shoppingCart = [];
+                    totalBillValue = 0;
+                    document.getElementById('custNameInput').value = '';
+                    renderCartUI();
                 } else {
-                    container.innerHTML = '';
-                    activeOrders.reverse().forEach(o => {
-                        const displayEta = o.eta ? o.eta : 'Calculating...';
-                        const displayChefNotes = o.chef_notes ? o.chef_notes : 'Preparing your items...';
-                        const displayStaffNotes = o.notes ? o.notes : '';
-
-                        container.innerHTML += `
-                            <div class="order-card">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <strong>ID: ${o.id}</strong>
-                                    <span class="status-badge">${o.status}</span>
-                                </div>
-                                <p style="font-size:13px; margin:8px 0; font-weight: 500;">Items: ${o.items}</p>
-                                <div style="background: var(--bg-main); padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; margin-top: 5px;">
-                                    <div style="color:var(--accent); font-weight:bold; margin-bottom: 4px;">⏱️ Est. Wait Time: ${displayEta}</div>
-                                    <div style="color:#555;"><strong style="color:var(--text-main);">👨‍🍳 Barista Note:</strong> ${displayChefNotes}</div>
-                                    ${displayStaffNotes ? `<div style="color:#777; font-size:11px; margin-top:4px; font-style:italic;">Memo: ${displayStaffNotes}</div>` : ''}
-                                </div>
-                            </div>`;
-                    });
+                    alert("Database baseline rejected the endpoint configuration payload.");
                 }
-            } catch(e){}
-
-            try {
-                const archiveRes = await fetch(`${BASE_API_URL}/record_keeping?search={"customer":"${user}"}`);
-                const passedData = await archiveRes.json();
-                const historyBox = document.getElementById('pastHistoryList');
-                if(!passedData || passedData.length === 0 || passedData.error) {
-                    historyBox.innerText = "No archived receipts found under this profile identity.";
-                } else {
-                    historyBox.innerHTML = '';
-                    passedData.reverse().forEach(h => {
-                        historyBox.innerHTML += `
-                            <div style="padding:10px 0; border-bottom:1px solid var(--border); font-size:13px;">
-                                ✅ Order <strong>${h.id}</strong> — ${h.items} <span style="color:var(--accent); font-weight:bold;">($${h.total})</span>
-                            </div>`;
-                    });
-                }
-            } catch(e){}
+            } catch (error) {
+                alert("Fatal link disconnection. Could not complete data pipeline post.");
+            } finally {
+                submitBtn.innerText = "Transmit Ticket to Kitchen";
+                submitBtn.disabled = shoppingCart.length === 0;
+            }
         }
-
-        const existingDeviceUser = document.getElementById('custName').value.trim();
-        if(existingDeviceUser) {
-            checkUserBan(existingDeviceUser);
-            updateCustomerData();
-        }
-        setInterval(updateCustomerData, 5000);
     </script>
 </body>
 </html>
