@@ -69,14 +69,16 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--text-muted);
-            margin-top: 20px;
-            margin-bottom: 8px;
+            margin-top: 22px;
+            margin-bottom: 10px;
             font-weight: 700;
+            border-left: 3px solid var(--accent);
+            padding-left: 8px;
         }
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
             gap: 12px;
             margin-bottom: 24px;
         }
@@ -199,33 +201,42 @@
                 <label><strong>Your Name:</strong></label>
                 <input type="text" id="custName" placeholder="Type your name to link orders..." oninput="onNameChange()">
 
-                <div class="menu-category-title">☕ Espresso & Coffee</div>
+                <div class="menu-category-title">☕ Hot & Iced Caffeine</div>
                 <div class="menu-grid">
-                    <div class="menu-item" onclick="toggleItem(this, 'Espresso Shot', 5)">Espresso ($5)</div>
                     <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Capuccino', 7)">Capuccino ($7)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Latte', 8)">Latte ($8)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Caramel Macchiato', 9)">Macchiato ($9)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Espresso', 5)">Espresso ($5)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Cappuccino', 5)">Cappuccino ($5)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Matcha', 9)">Matcha ($9)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Ice Matcha', 10)">Ice Matcha ($10)</div>
                 </div>
 
-                <div class="menu-category-title">🍵 Teas & Specialty</div>
+                <div class="menu-category-title">🥤 Cold Refreshments</div>
                 <div class="menu-grid">
+                    <div class="menu-item" onclick="toggleItem(this, 'Orange Water', 0)">Orange Water ($0)</div>
                     <div class="menu-item" onclick="toggleItem(this, 'Tea', 4)">Tea ($4)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Chai Latte', 8)">Chai Latte ($8)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Hot Chocolate', 6)">Hot Chocolate ($6)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Grape Drink', 1)">Grape ($1)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Ice Tea', 1)">Ice Tea ($1)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Milk', 1)">Milk ($1)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Lemonade', 1)">Lemonade ($1)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Milkshakes', 6)">Milkshakes ($6)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Fruit Smoothie', 5)">Fruit Smoothie ($5)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Smoothie Super Edition', 8)">Smoothie Super Ed. ($8)</div>
                 </div>
 
-                <div class="menu-category-title">🍰 Fresh Bakery treats</div>
+                <div class="menu-category-title">🍰 Fresh Bakery & Dessert Treats</div>
                 <div class="menu-grid">
                     <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Red Velvet Cupcake', 2)">Red Velvet Cupcake ($2)</div>
                     <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Croissant', 5)">Croissant ($5)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Cookie', 3)">Cookie ($3)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Cheesecake', 11)">Cheesecake ($11)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Whole Cheese Cake', 11)">Whole Cheese Cake ($11)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Whole Cake', 11)">Whole Cake ($11)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Pies Whole', 10)">Pies Whole ($10)</div>
+                </div>
+
+                <div class="menu-category-title">🥞 Kitchen Plates</div>
+                <div class="menu-grid">
+                    <div class="menu-item" onclick="toggleItem(this, 'Pancakes', 9)">Pancakes ($9)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Fairy Bread', 8)">Fairy Bread ($8)</div>
                 </div>
 
                 <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
