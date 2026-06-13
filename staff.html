@@ -1040,12 +1040,17 @@ async function fetchStaffMenuReference() {
     if (!staffGridBox) return; 
     
     try {
-        // Hardcoded straight to the deployment link with zero external variables
-        const response = await fetch("https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec?sheet=menu&type=menu");
-        const menuItems = await response.json();
+        // Added a dynamic timestamp parameter (?_=${Date.now()}) to bypass browser cache freezes
+        const targetUrl = "https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec?sheet=menu&type=menu&_=" + Date.now();
         
-        if(!menuItems || menuItems.length === 0 || menuItems.error) {
-            staffGridBox.innerHTML = `<div style="color: red; font-size: 12px; padding: 10px;">⚠️ Error: ${menuItems.error || 'Empty.'}</div>`;
+        const response = await fetch(targetUrl);
+        
+        // Read as plain text first to break through Google's deployment redirect wrapper safely
+        const rawText = await response.text();
+        const menuItems = JSON.parse(rawText);
+        
+        if (!menuItems || menuItems.length === 0 || menuItems.error) {
+            staffGridBox.innerHTML = `<div style="color: red; font-size: 12px; padding: 10px;">⚠️ Error: ${menuItems ? menuItems.error : 'Empty.'}</div>`;
             return;
         }
         
@@ -1057,10 +1062,11 @@ async function fetchStaffMenuReference() {
             
             const el = document.createElement('div');
             el.style.cssText = "background: #f0f4f8; padding: 10px; border: 1px solid #d9e2ec; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; color: #102a43;";
-            el.innerText = `${itemName} ($${itemPrice})`;
+            el.innerText = itemName + " ($" + itemPrice + ")";
             staffGridBox.appendChild(el);
         });
     } catch(e) {
+        console.error("Staff menu load error:", e);
         staffGridBox.innerHTML = '<div style="color: red; font-size: 12px; padding: 10px;">⚠️ Connection Failed</div>';
     }
 }
