@@ -201,12 +201,11 @@
                 <label><strong>Your Name:</strong></label>
                 <input type="text" id="custName" placeholder="Type your name to link orders..." oninput="onNameChange()">
 
-<div class="menu-grid" id="menuGridBox">
-    <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-style: italic; padding: 20px;">
-        🔄 Fetching current menu directly from Google Docs list...
-    </div>
-</div>
-               
+                <div class="menu-grid" id="menuGridBox">
+                    <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-style: italic; padding: 20px;">
+                        🔄 Fetching current menu directly from Google Docs list...
+                    </div>
+                </div>
 
                 <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
 
@@ -231,7 +230,7 @@
     </div>
 
     <script>
-        const BASE_API_URL = "https://script.google.com/macros/s/AKfycbxuT5QyTj2kSnLOHdvdYSyzUZrILN3gn9jBVxpbEj0n-kzSxZlpiRFyAv9v34x-QM2T/exec";
+        const BASE_API_URL = "https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec";
         
         let selectedItems = [];
         let selectedPrices = {}; 
@@ -239,11 +238,15 @@
         let updateInterval = null;
         let isBanned = false;
 
-        // Restore saved name on load
-        const savedName = localStorage.getItem('cafeCustomerName');
-        if (savedName) {
-            document.getElementById('custName').value = savedName;
-        }
+        // Restore saved name on initialization load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('cafeCustomerName');
+            if (savedName) {
+                document.getElementById('custName').value = savedName;
+                onNameChange();
+            }
+            fetchGoogleDocMenu();
+        });
 
         function toggleItem(el, name, price) {
             if (isBanned) return;
@@ -302,7 +305,9 @@
                     document.getElementById('customerTrackerList').innerText = "Suspended profiles cannot pull tracking updates.";
                     return true;
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error("Error checking ban profile state:", e);
+            }
             isBanned = false;
             document.getElementById('banAlert').style.display = 'none';
             document.getElementById('submitBtn').disabled = false;
@@ -354,7 +359,7 @@
 
                 alert("Order sent straight to the barista station!");
 
-                // Reset order state
+                // Reset order dynamic window selections
                 selectedItems = [];
                 selectedPrices = {};
                 currentTotal = 0;
@@ -374,7 +379,7 @@
             const user = document.getElementById('custName').value.trim();
             if (!user) return;
 
-            // Active orders
+            // Active Queue Tracker fetch request loop
             try {
                 const activeRes = await fetch(`${BASE_API_URL}?sheet=Sheet1&customer=${encodeURIComponent(user)}`);
                 const activeOrders = await activeRes.json();
@@ -404,11 +409,13 @@
                             </div>`;
                     });
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error("Error fetching engine queue updates:", e);
+            }
 
-            // Past history
+            // Historical Receipt database fetch logs loop
             try {
-                const archiveRes = await fetch(`${"https://script.google.com/macros/s/AKfycbyEbjfim-8mlrncnDH_qp-12107bwfVJW1WCc6vHZiZw1N60cyZvALLn_48RIwNuiLq/exec"}?sheet=record_keeping&customer=${encodeURIComponent(user)}`);
+                const archiveRes = await fetch(`${BASE_API_URL}?sheet=record_keeping&customer=${encodeURIComponent(user)}`);
                 const passedData = await archiveRes.json();
                 const historyBox = document.getElementById('pastHistoryList');
 
@@ -423,47 +430,42 @@
                             </div>`;
                     });
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error("Error fetching historical logs database:", e);
+            }
         }
 
-        // Kick off on load if name was saved
-     // === PASTE THIS ENGINE AT THE BOTTOM OF YOUR SCRIPT TAG ===
-async function fetchGoogleDocMenu() {
-    const gridBox = document.getElementById('menuGridBox');
-    try {
-// Replace the fetch line inside index.html with this new URL:
-const response = await fetch("https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec?sheet=menu&type=menu");
-        const menuItems = await response.json();
-        
-        if(!menuItems || menuItems.length === 0 || menuItems.error) {
-            gridBox.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: red; font-style: italic; padding: 20px;">⚠️ Error: ${menuItems.error || 'Menu empty.'}</div>`;
-            return;
+        async function fetchGoogleDocMenu() {
+            const gridBox = document.getElementById('menuGridBox');
+            try {
+                const response = await fetch(`${BASE_API_URL}?sheet=menu&type=menu`);
+                const menuItems = await response.json();
+                
+                if(!menuItems || menuItems.length === 0 || menuItems.error) {
+                    gridBox.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: red; font-style: italic; padding: 20px;">⚠️ Error: ${menuItems.error || 'Menu empty.'}</div>`;
+                    return;
+                }
+                
+                gridBox.innerHTML = '';
+                
+                menuItems.forEach(m => {
+                    const itemName = m.item;
+                    const itemPrice = parseFloat(m.price) || 0;
+                    
+                    const el = document.createElement('div');
+                    el.className = 'menu-item';
+                    el.innerText = `${itemName} ($${itemPrice})`;
+                    el.onclick = function() { toggleItem(this, itemName, itemPrice); };
+                    
+                    if(typeof selectedItems !== 'undefined' && selectedItems.includes(itemName)) el.classList.add('selected');
+                    if(typeof isBanned !== 'undefined' && isBanned) el.classList.add('disabled');
+                    
+                    gridBox.appendChild(el);
+                });
+            } catch(e) {
+                gridBox.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: red; font-style: italic; padding: 20px;">⚠️ Failed connection to live inventory database.</div>';
+            }
         }
-        
-        gridBox.innerHTML = '';
-        
-        menuItems.forEach(m => {
-            const itemName = m.item;
-            const itemPrice = parseFloat(m.price) || 0;
-            
-            const el = document.createElement('div');
-            el.className = 'menu-item';
-            el.innerText = `${itemName} ($${itemPrice})`;
-            el.onclick = function() { toggleItem(this, itemName, itemPrice); };
-            
-            if(typeof selectedItems !== 'undefined' && selectedItems.includes(itemName)) el.classList.add('selected');
-            if(typeof isBanned !== 'undefined' && isBanned) el.classList.add('disabled');
-            
-            gridBox.appendChild(el);
-        });
-    } catch(e) {
-        gridBox.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: red; font-style: italic; padding: 20px;">⚠️ Failed connection to live inventory database.</div>';
-    }
-}
-
-// Automatically load the menu layout elements on boot initialization
-fetchGoogleDocMenu();
-// ===============================================================
     </script>
 </body>
 </html>
