@@ -81,7 +81,7 @@
         .view-panel { display: none; }
         .view-panel.active { display: block; }
 
-        .layout-split { display: grid; grid-template-columns: 1.12fr 1.5fr; gap: 40px; }
+        .layout-split { display: grid; grid-template-columns: 1.25fr 1.5fr; gap: 40px; }
         .layout-three-way { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; }
 
         .panel {
@@ -102,11 +102,11 @@
             font-size: 18px;
         }
 
-        .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin: 20px 0; }
+        .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
         .pos-item {
             background: var(--bg-darker);
             border: 1px solid var(--border-glow);
-            padding: 20px 12px;
+            padding: 18px 10px;
             border-radius: 12px;
             text-align: center;
             font-size: 13px;
@@ -114,6 +114,14 @@
             cursor: pointer;
             color: var(--text-secondary);
             transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+        }
+        .pos-item .item-price {
+            font-size: 11px;
+            color: var(--accent-brand);
         }
         .pos-item:hover { 
             border-color: rgba(255,255,255,0.15); 
@@ -124,6 +132,9 @@
             background: var(--accent-brand-glow); 
             color: var(--accent-brand); 
             border-color: var(--accent-brand); 
+        }
+        .pos-item.selected .item-price {
+            color: #fff;
         }
 
         input, textarea, select {
@@ -341,16 +352,33 @@
                         <input type="text" id="manualCustName" placeholder="Enter name...">
                         
                         <div class="pos-grid">
-                            <div class="pos-item" onclick="selectManualItem(this, 'Muffin', 2)">Muffin ($2)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Donut', 3)">Donut ($3)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Cheesecake', 11)">Cheesecake ($11)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Coffee', 4)">Coffee ($4)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Tea', 4)">Tea ($4)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Espresso Shot', 5)">Espresso ($5)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Muffin', 2)"><span>Muffin</span><span class="item-price">$2</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Red Velvet Cupcake', 2)"><span>Red Velvet Cupcake</span><span class="item-price">$2</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Pies Whole', 10)"><span>Pies Whole</span><span class="item-price">$10</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Donut', 3)"><span>Donut</span><span class="item-price">$3</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Cheesecake', 11)"><span>Whole Cheesecake</span><span class="item-price">$11</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Cake', 11)"><span>Whole Cake</span><span class="item-price">$11</span></div>
+                            
+                            <div class="pos-item" onclick="selectManualItem(this, 'Coffee', 4)"><span>Coffee</span><span class="item-price">$4</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Tea', 4)"><span>Tea</span><span class="item-price">$4</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Espresso', 5)"><span>Espresso</span><span class="item-price">$5</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Cappuccino', 5)"><span>Cappuccino</span><span class="item-price">$5</span></div>
+                            
+                            <div class="pos-item" onclick="selectManualItem(this, 'Matcha', 9)"><span>Matcha</span><span class="item-price">$9</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Ice Matcha', 10)"><span>Ice Matcha</span><span class="item-price">$10</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Milkshakes', 6)"><span>Milkshakes</span><span class="item-price">$6</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Fruit Smoothie', 5)"><span>Fruit Smoothie</span><span class="item-price">$5</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Smoothie Super Edition', 8)"><span>Smoothie Super Ed.</span><span class="item-price">$8</span></div>
+                            
+                            <div class="pos-item" onclick="selectManualItem(this, 'Pancakes', 9)"><span>Pancakes</span><span class="item-price">$9</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Fairy Bread', 8)"><span>Fairy Bread</span><span class="item-price">$8</span></div>
+
+                            <div class="pos-item" onclick="selectManualItem(this, 'Orange Juice', 0)"><span>Orange Juice</span><span class="item-price">$0</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Water', 0)"><span>Water</span><span class="item-price">$0</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Grape Juice', 1)"><span>Grape Juice</span><span class="item-price">$1</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Ice Tea', 1)"><span>Ice Tea</span><span class="item-price">$1</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Milk Tier 1', 1)"><span>Milk</span><span class="item-price">$1</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Lemonade', 1)"><span>Lemonade</span><span class="item-price">$1</span></div>
                         </div>
                         <div class="total-display">$<span id="manualTotal">0</span></div>
                         <button class="btn-action" id="manualSubmitBtn" onclick="dispatchManualOrder()" style="background:var(--color-success); color:white;">Post Cash/Card Ticket</button>
@@ -493,7 +521,6 @@
                 const parts = dateStr.split(',');
                 const dateParts = parts[0].trim().split('/');
                 if (dateParts.length === 3 && parseInt(dateParts[0]) > 12) {
-                    // Rearranges DD/MM/YYYY to MM/DD/YYYY to avoid invalid cross-browser conversions
                     formattedStr = `${dateParts[1]}/${dateParts[0]}/${dateParts[2]}`;
                     if (parts[1]) formattedStr += `, ${parts[1].trim()}`;
                 }
@@ -562,7 +589,6 @@
                 const container = document.getElementById('activeDutyRosterBox');
                 container.innerHTML = '';
 
-                // Workers are active if clocked_in is full and clocked_out is completely empty
                 let activeWorkers = catalog.filter(s => s.clocked_in && (!s.clocked_out || s.clocked_out.trim() === ""));
 
                 if(activeWorkers.length === 0) {
@@ -597,7 +623,6 @@
             return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // Live ticks time offsets locally on screen to remove calculating layout lag
         setInterval(() => {
             document.querySelectorAll('.roster-time').forEach(el => {
                 const rawStartStr = el.getAttribute('data-start');
@@ -613,7 +638,6 @@
             });
         }, 1000);
 
-        // Periodically verify roster alignment updates via sheets endpoint every 10s
         setInterval(fetchLiveRosterData, 10000);
 
         function routeTo(panelId) {
@@ -642,7 +666,6 @@
                     activeStaffName = matched.name;
                     activeStaffRank = parseInt(matched.rank) || 1;
                     
-                    // Derives true status directly from existing time pillars
                     isClockedIn = !!(matched.clocked_in && (!matched.clocked_out || matched.clocked_out.trim() === ""));
                     
                     updateLocalShiftUI();
