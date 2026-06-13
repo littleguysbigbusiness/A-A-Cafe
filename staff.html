@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ A&A Cafe — Advanced Management Terminal</title>
+    <title>⚡ A&A Cafe Terminal</title>
     <style>
         :root {
-            --bg-main: #f0f7ff;
-            --bg-card: #ffffff;
-            --bg-darker: #e1effe;
-            --border-glow: #b4d6fa;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --accent-brand: #0284c7;
-            --accent-light: #e0f2fe;
-            --color-success: #0ea5e9;
-            --color-danger: #ef4444;
-            --color-alert: #f59e0b;
-            --radius-main: 12px;
-            --shadow-lg: 0 10px 25px -5px rgba(2, 132, 199, 0.1);
+            --bg-main: #0b0f19;
+            --bg-card: #131c2e;
+            --bg-darker: #070a12;
+            --border-glow: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-brand: #38bdf8;
+            --accent-brand-glow: rgba(56, 189, 248, 0.15);
+            --color-success: #10b981;
+            --color-danger: #f43f5e;
+            --color-alert: #fbbf24;
+            --radius-main: 16px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             background-color: var(--bg-main);
             color: var(--text-primary);
             margin: 0;
@@ -31,513 +32,975 @@
         }
 
         .topbar {
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(11, 15, 25, 0.8);
             backdrop-filter: blur(12px);
-            padding: 15px 30px;
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--border-glow);
+            border-bottom: 1px solid var(--border-glow);
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
 
         .topbar h1 { 
             margin: 0; 
-            font-size: 18px; 
+            font-size: 22px; 
             font-weight: 800; 
-            color: var(--accent-brand);
-            letter-spacing: 0.02em;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .tab-menu { display: flex; gap: 8px; }
+        .tab-menu { display: flex; gap: 10px; }
         .tab-btn {
             background: transparent;
             border: 1px solid transparent;
             color: var(--text-secondary);
-            padding: 10px 18px;
-            border-radius: 8px;
+            padding: 12px 22px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 700;
-            font-size: 13px;
+            font-weight: 600;
+            font-size: 14px;
             transition: all 0.2s ease;
         }
         .tab-btn:hover {
-            color: var(--accent-brand);
-            background: var(--accent-light);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
         }
         .tab-btn.active {
-            background: var(--accent-brand);
-            color: #ffffff;
+            background: var(--bg-card);
+            color: var(--accent-brand);
+            border-color: var(--border-glow);
+            box-shadow: var(--shadow-sm);
         }
 
-        .workspace { max-width: 1600px; margin: 30px auto; padding: 0 20px; }
+        .workspace { max-width: 1600px; margin: 40px auto; padding: 0 30px; }
         .view-panel { display: none; }
         .view-panel.active { display: block; }
 
-        .layout-split { display: grid; grid-template-columns: 1fr 1.4fr; gap: 30px; }
-        .layout-three-way { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+        .layout-split { display: grid; grid-template-columns: 1.25fr 1.5fr; gap: 40px; }
+        .layout-three-way { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; }
 
         .panel {
             background: var(--bg-card);
             border: 1px solid var(--border-glow);
             border-radius: var(--radius-main);
-            padding: 24px;
-            margin-bottom: 24px;
+            padding: 30px;
+            margin-bottom: 30px;
             box-shadow: var(--shadow-lg);
         }
 
         h2, h3, h4 { 
             margin-top: 0; 
-            font-weight: 800; 
-            color: var(--text-primary); 
-            border-bottom: 2px solid var(--border-glow); 
-            padding-bottom: 12px; 
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-weight: 700; 
+            color: #fff; 
+            border-bottom: 1px solid var(--border-glow); 
+            padding-bottom: 16px; 
+            font-size: 18px;
         }
 
-        /* Live Queue Ticket System */
-        .ticket-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
+        .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+        .pos-item {
+            background: var(--bg-darker);
+            border: 1px solid var(--border-glow);
+            padding: 18px 10px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
         }
-        .ticket-card {
-            background: var(--bg-card);
-            border: 2px solid var(--border-glow);
-            border-radius: var(--radius-main);
+        .pos-item .item-price {
+            font-size: 11px;
+            color: var(--accent-brand);
+        }
+        .pos-item:hover { 
+            border-color: rgba(255,255,255,0.15); 
+            color: white; 
+            transform: translateY(-2px);
+        }
+        .pos-item.selected { 
+            background: var(--accent-brand-glow); 
+            color: var(--accent-brand); 
+            border-color: var(--accent-brand); 
+        }
+        .pos-item.selected .item-price {
+            color: #fff;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg-darker);
+            border: 1px solid var(--border-glow);
+            color: white;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 14px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus, textarea:focus { 
+            border-color: var(--accent-brand); 
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+            outline: none; 
+        }
+
+        .btn-action {
+            background: var(--accent-brand);
+            color: var(--bg-darker);
+            border: none;
             padding: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn-action:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn-action:disabled { background: #1e293b; color: #475569; cursor: not-allowed; transform: none; }
+
+        .total-display {
+            background: var(--bg-darker);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: right;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--accent-brand);
+            border: 1px solid var(--border-glow);
+            margin-bottom: 20px;
+        }
+
+        .kitchen-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 24px; }
+        .kitchen-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--radius-main);
+            padding: 24px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            box-shadow: var(--shadow-lg);
+            transition: border-color 0.2s;
         }
-        .ticket-card.delivery-priority {
+        .kitchen-card.status-unpaid-completed {
             border-color: var(--color-alert);
+            background: rgba(251, 191, 36, 0.03);
         }
-        .ticket-header {
+
+        .badge { padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; user-select: none; }
+        .badge.unpaid { background: rgba(244, 63, 94, 0.1); color: var(--color-danger); border: 1px solid rgba(244, 63, 94, 0.15); }
+        .badge.paid { background: rgba(16, 185, 129, 0.1); color: var(--color-success); border: 1px solid rgba(16, 185, 129, 0.15); }
+        
+        .badge.status-pending { background: rgba(251, 191, 36, 0.1); color: var(--color-alert); border: 1px solid rgba(251, 191, 36, 0.15); }
+        .badge.status-done { background: rgba(16, 185, 129, 0.15); color: var(--color-success); border: 1px solid var(--color-success); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 16px; border: 1px solid var(--border-glow); text-align: left; font-size: 14px; }
+        th { background: var(--bg-darker); color: var(--text-primary); font-weight: 600; }
+        tr:nth-child(even) { background: rgba(255,255,255,0.01); }
+
+        .secure-lock-box { border: 1px dashed var(--color-danger); padding: 24px; border-radius: 12px; background: rgba(244, 63, 94, 0.02); }
+        
+        .price-tag {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            background: rgba(255,255,255,0.06);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-glow);
+        }
+
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 35px; }
+        .metric-card { background: var(--bg-card); border: 1px solid var(--border-glow); padding: 24px; border-radius: var(--radius-main); text-align: center; box-shadow: var(--shadow-lg); }
+        .metric-val { font-size: 36px; font-weight: 800; color: var(--color-success); margin-top: 12px; }
+        .metric-val.blue { color: var(--accent-brand); }
+
+        .notification-tray {
+            background: var(--bg-darker);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            max-height: 140px;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .notif-item {
+            padding: 10px 14px;
+            border-left: 3px solid var(--accent-brand);
+            background: var(--bg-card);
+            margin-bottom: 8px;
+            font-size: 13px;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .shift-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-darker);
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-glow);
+            margin-bottom: 20px;
+        }
+        .shift-status-pill {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .shift-status-pill.off { background: rgba(244, 63, 94, 0.15); color: var(--color-danger); }
+        .shift-status-pill.on { background: rgba(16, 185, 129, 0.15); color: var(--color-success); }
+
+        .roster-list {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .roster-card {
+            background: var(--bg-darker);
+            border: 1px solid var(--border-glow);
+            padding: 12px 16px;
+            border-radius: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            font-size: 13px;
         }
-        .ticket-id { font-weight: 800; color: var(--accent-brand); }
-        .type-badge {
-            font-size: 11px;
+        .roster-time {
+            font-family: monospace;
+            color: var(--accent-brand);
             font-weight: 700;
-            padding: 3px 6px;
+            background: var(--accent-brand-glow);
+            padding: 2px 6px;
             border-radius: 4px;
         }
-        .badge-pickup { background: var(--accent-light); color: var(--accent-brand); }
-        .badge-delivery { background: #fef3c7; color: #d97706; }
-
-        .ticket-items {
-            background: var(--bg-main);
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            margin: 8px 0;
-            border: 1px solid var(--border-glow);
-        }
-
-        /* POS Custom Grid Elements */
-        .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
-        .pos-btn {
-            background: var(--bg-main);
-            border: 1px solid var(--border-glow);
-            padding: 12px 8px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-        }
-        .pos-btn:hover {
-            border-color: var(--accent-brand);
-            background: var(--accent-light);
-        }
-
-        /* Generic Forms and Tables */
-        label { display: block; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; }
-        input, select, textarea {
-            width: 100%; padding: 10px; background: #ffffff; border: 1px solid var(--border-glow); color: var(--text-primary); border-radius: 8px; box-sizing: border-box; margin-bottom: 14px; font-size: 13px;
-        }
-        input:focus, select:focus { border-color: var(--accent-brand); outline: none; }
-        
-        button.action-btn {
-            width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; transition: opacity 0.2s;
-        }
-        .btn-primary { background: var(--accent-brand); color: #fff; }
-        .btn-success { background: var(--color-success); color: #fff; }
-        .btn-danger { background: #fee2e2; color: var(--color-danger); }
-
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { text-align: left; padding: 10px; color: var(--text-secondary); border-bottom: 2px solid var(--border-glow); font-size: 11px; text-transform: uppercase; }
-        td { padding: 10px; border-bottom: 1px solid var(--border-glow); }
-
-        .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
-        .metric-card { background: var(--bg-main); border: 1px solid var(--border-glow); padding: 16px; border-radius: 10px; }
-        .metric-val { font-size: 20px; font-weight: 800; color: var(--accent-brand); margin-top: 4px; }
     </style>
 </head>
 <body>
 
-    <div class="topbar">
-        <h1>A&A TERMINAL ENGINE</h1>
-        <div class="tab-menu">
-            <button class="tab-btn active" onclick="switchView('production')">🍳 Kitchen Queue</button>
-            <button class="tab-btn" onclick="switchView('register')">💰 Terminal Register</button>
-            <button class="tab-btn" onclick="switchView('ledger')">📊 Live Ledgers</button>
-        </div>
-        <button class="refresh-btn tab-btn" style="color:var(--accent-brand)" onclick="syncDatabaseEngine()">🔄 Sync Board</button>
+    <div id="authGate" style="max-width:400px; margin: 150px auto;" class="panel">
+        <h2>A&A Cafe Access Gate</h2>
+        <label>Operator Initials / Name:</label>
+        <input type="text" id="staffUser" autocomplete="off" placeholder="e.g. Aiden">
+        <label>Console Access Pin:</label>
+        <input type="password" id="staffPass" placeholder="••••">
+        <button class="btn-action" onclick="authenticateStaff()">Mount Core System</button>
     </div>
 
-    <div class="workspace">
-        
-        <div id="view-production" class="view-panel active">
-            <div class="panel">
-                <h2>Active Live Line Tickets</h2>
-                <div class="ticket-grid" id="liveTicketsContainer">
-                    <div style="color:var(--text-secondary); text-align:center; padding:40px; width:100%;">Connecting to Stein API link...</div>
-                </div>
+    <div id="mainConsole" style="display:none;">
+        <div class="topbar">
+            <h1 id="operatorCallout">⚡ A&A CAFE MONITOR</h1>
+            <div class="tab-menu">
+                <button class="tab-btn active" onclick="routeTo('kitchenView')">🍳 Live Kitchen Stack</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('archiveView')">📜 Record Keeping Logs</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('crmView')">🛡️ CRM Control Profile</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('financeView')">💰 Finances Center</button>
             </div>
-
-            <div class="panel">
-                <h2>Past Settled Orders History (Last 10 Row Subsets)</h2>
-                <div style="overflow-x: auto;">
-                    <table id="historyLogTable">
-                        <thead>
-                            <tr>
-                                <th>Ticket ID</th>
-                                <th>Profile Customer</th>
-                                <th>Purchased Lines</th>
-                                <th>Total Cost</th>
-                                <th>Workflow State</th>
-                                <th>Routing Directives / Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="6" style="color:var(--text-secondary); text-align:center;">No history cache pulled.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <button onclick="disconnectSession()" style="background:rgba(244,63,94,0.1); color:var(--color-danger); border:1px solid rgba(244,63,94,0.2); padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer; font-size:13px; transition:all 0.2s;">Exit Terminal</button>
         </div>
 
-        <div id="view-register" class="view-panel">
-            <div class="layout-split">
-                <div>
-                    <div class="panel">
-                        <h2>Counter Registry Entry</h2>
-                        <label>Customer Ticket Name</label>
-                        <input type="text" id="regCustomer" placeholder="Walk-in Customer ID...">
+        <div class="workspace">
 
-                        <div style="display: flex; gap: 10px; margin-bottom: 14px;">
-                            <div style="flex:1;">
-                                <label>Order Mode</label>
-                                <select id="regType" onchange="toggleRegDeliveryFields()">
-                                    <option value="Pickup">Pickup</option>
-                                    <option value="Delivery">Delivery</option>
-                                </select>
+            <div class="panel" style="padding: 25px 30px; border-left: 4px solid var(--accent-brand);">
+                <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:35px;">
+                    <div>
+                        <h4 style="margin-bottom:15px; padding-bottom:5px; font-size:14px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">🕒 Duty Station Control</h4>
+                        <div class="shift-panel">
+                            <div>
+                                <span style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:4px;">Your Session Status</span>
+                                <span id="timeclockPill" class="shift-status-pill off">Off Shift</span>
                             </div>
-                            <div style="flex:1;">
-                                <label>Payment Confirmation State</label>
-                                <select id="regPaid">
-                                    <option value="No">Unpaid / Collect at Counter</option>
-                                    <option value="Yes">Paid Instantly</option>
-                                </select>
-                            </div>
+                            <button id="timeclockBtn" onclick="toggleStaffShift()" style="background:var(--accent-brand); color:var(--bg-darker); border:none; padding:10px 18px; font-weight:700; border-radius:8px; cursor:pointer; font-size:12px; transition:all 0.2s;">Clock In</button>
                         </div>
-
-                        <div id="regDeliveryFields" style="display:none; background: var(--bg-main); padding:12px; border-radius:8px; margin-bottom:14px; border:1px solid var(--border-glow)">
-                            <label>Delivery Address</label>
-                            <input type="text" id="regAddress" placeholder="Street, Suburb">
-                            <label>Phone Number</label>
-                            <input type="text" id="regPhone" placeholder="Contact number">
+                        
+                        <span style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">👥 Active Duty Roster</span>
+                        <div class="roster-list" id="activeDutyRosterBox">
+                            <div style="color:var(--text-secondary); font-size:13px; font-style:italic;">Loading live floor tracking data...</div>
                         </div>
-
-                        <label>Custom Operator System Notes</label>
-                        <textarea id="regNotes" rows="2" placeholder="Allergies, table assignments..."></textarea>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom:15px; padding-bottom:5px; font-size:14px; color:var(--accent-brand); text-transform:uppercase; letter-spacing:0.05em;">🔔 Internal Activity Feed</h4>
+                        <div class="notification-tray" id="staffNotificationFeed">
+                            <div class="notif-item"><span>System initialized successfully. Monitoring active channels...</span><small>Just Now</small></div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div>
+            <div id="kitchenView" class="view-panel active">
+                <div class="layout-split">
                     <div class="panel">
-                        <h2>POS Quick Tap Grid Selector</h2>
+                        <h3>Counter POS Entry</h3>
+                        <label>Walk-In Customer Name:</label>
+                        <input type="text" id="manualCustName" placeholder="Enter name...">
+                        
                         <div class="pos-grid">
-                            <div class="pos-btn" onclick="appendRegisterItem('Muffin', 2)">🍰 Muffin ($2)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Red Velvet Cupcake', 2)">🧁 Cupcake ($2)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Donut', 3)">🍩 Donut ($3)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Pies Whole', 10)">🥧 Whole Pie ($10)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Coffee', 4)">☕ Coffee ($4)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Tea', 4)">🍵 Tea ($4)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Espresso', 5)">⚡ Espresso ($5)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Cappuccino', 5)">🥛 Cappuccino ($5)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Matcha', 9)">🍃 Matcha ($9)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Ice Matcha', 10)">🧊 Ice Matcha ($10)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Milkshakes', 6)">🥤 Milkshake ($6)</div>
-                            <div class="pos-btn" onclick="appendRegisterItem('Pancakes', 9)">🥞 Pancakes ($9)</div>
-                        </div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Muffin', 2)"><span>Muffin</span><span class="item-price">$2</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Red Velvet Cupcake', 2)"><span>Red Velvet Cupcake</span><span class="item-price">$2</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Pies Whole', 10)"><span>Pies Whole</span><span class="item-price">$10</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Donut', 3)"><span>Donut</span><span class="item-price">$3</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Cheesecake', 11)"><span>Whole Cheesecake</span><span class="item-price">$11</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Cake', 11)"><span>Whole Cake</span><span class="item-price">$11</span></div>
+                            
+                            <div class="pos-item" onclick="selectManualItem(this, 'Coffee', 4)"><span>Coffee</span><span class="item-price">$4</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Tea', 4)"><span>Tea</span><span class="item-price">$4</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Espresso', 5)"><span>Espresso</span><span class="item-price">$5</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Cappuccino', 5)"><span>Cappuccino</span><span class="item-price">$5</span></div>
+                            
+                            <div class="pos-item" onclick="selectManualItem(this, 'Matcha', 9)"><span>Matcha</span><span class="item-price">$9</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Ice Matcha', 10)"><span>Ice Matcha</span><span class="item-price">$10</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Milkshakes', 6)"><span>Milkshakes</span><span class="item-price">$6</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Fruit Smoothie', 5)"><span>Fruit Smoothie</span><span class="item-price">$5</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Smoothie Super Edition', 8)"><span>Smoothie Super Ed.</span><span class="item-price">$8</span></div>
+                            
+                            <div class="pos-item" onclick="selectManualItem(this, 'Pancakes', 9)"><span>Pancakes</span><span class="item-price">$9</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Fairy Bread', 8)"><span>Fairy Bread</span><span class="item-price">$8</span></div>
 
-                        <h3 style="margin-top:20px;">Current Basket Line Build</h3>
-                        <div id="registerBasketTray" style="background:var(--bg-main); padding:12px; border-radius:8px; font-size:13px; font-weight:600; min-height:40px; border:1px solid var(--border-glow); margin-bottom:14px;">
-                            Empty Register Selection Basket.
+                            <div class="pos-item" onclick="selectManualItem(this, 'Orange Juice', 0)"><span>Orange Juice</span><span class="item-price">$0</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Water', 0)"><span>Water</span><span class="item-price">$0</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Grape Juice', 1)"><span>Grape Juice</span><span class="item-price">$1</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Ice Tea', 1)"><span>Ice Tea</span><span class="item-price">$1</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Milk Tier 1', 1)"><span>Milk</span><span class="item-price">$1</span></div>
+                            <div class="pos-item" onclick="selectManualItem(this, 'Lemonade', 1)"><span>Lemonade</span><span class="item-price">$1</span></div>
                         </div>
-                        <div style="display:flex; justify-content:space-between; font-weight:800; font-size:16px; margin-bottom:14px; color:var(--accent-brand);">
-                            <span>Total Bill:</span><span>$<span id="registerTotalDisplay">0</span></span>
-                        </div>
-                        <button class="action-btn btn-success" onclick="submitRegisterTicket()">Commit POS Order Ticket</button>
+                        <div class="total-display">$<span id="manualTotal">0</span></div>
+                        <button class="btn-action" id="manualSubmitBtn" onclick="dispatchManualOrder()" style="background:var(--color-success); color:white;">Post Cash/Card Ticket</button>
+                    </div>
+
+                    <div>
+                        <h3>Live Production Queue</h3>
+                        <div id="liveOrdersList" class="kitchen-stack">Syncing with kitchen lines...</div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div id="view-ledger" class="view-panel">
-            <div class="metrics-row">
-                <div class="metric-card">
-                    <label>Active Production Load</label>
-                    <div class="metric-val" id="metricActiveCount">0 Pending</div>
-                </div>
-                <div class="metric-card">
-                    <label>Gross Pipeline Valuation</label>
-                    <div class="metric-val" id="metricGrossRevenue">$0.00</div>
-                </div>
-                <div class="metric-card">
-                    <label>Completed Orders Count</label>
-                    <div class="metric-val" id="metricCompletedCount">0 Tickets</div>
-                </div>
-                <div class="metric-card">
-                    <label>Cancelled Scrap Rate</label>
-                    <div class="metric-val" id="metricCancelledCount">0 Dropped</div>
+            <div id="archiveView" class="view-panel">
+                <div class="panel">
+                    <h3>📜 Record Keeping Ledger</h3>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr><th>Invoice ID</th><th>Customer</th><th>Manifest Description</th><th>Revenue</th><th>Status</th><th>Payment</th></tr>
+                            </thead>
+                            <tbody id="archiveLogsTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <div class="panel">
-                <h2>Raw Master Row Registry Monitor</h2>
-                <div style="overflow-x:auto;">
-                    <table id="ledgerMasterTable">
-                        <thead>
-                            <tr>
-                                <th>System ID</th>
-                                <th>Customer Account Name</th>
-                                <th>Line Purchase Breakdown</th>
-                                <th>Bill Total</th>
-                                <th>Production Status</th>
-                                <th>Paid State</th>
-                                <th>Logistics Memo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="7" style="text-align:center; color:var(--text-secondary);">Sync database to load raw datastream logs.</td></tr>
-                        </tbody>
-                    </table>
+            <div id="crmView" class="view-panel">
+                <div class="layout-split">
+                    <div class="panel">
+                        <h3>Customer CRM Security Dossier</h3>
+                        <input type="text" id="crmSearchName" placeholder="Search target profile name...">
+                        <button class="btn-action" onclick="runSecurityProfileLookup()">Inspect Account Logs</button>
+                        
+                        <div id="crmResultBox" style="margin-top:20px; display:none; background:var(--bg-darker); padding:20px; border-radius:6px; border:1px solid var(--border-glow);">
+                            <h4 id="crmNameHeader" style="margin:0 0 15px 0; color:var(--accent-brand);"></h4>
+                            <p>Activity Standing: <span id="crmStatusLabel" style="font-weight:bold;"></span></p>
+                            
+                            <div id="managerOnlyCrmActions" class="secure-lock-box">
+                                <label>Permanent Override Notes:</label>
+                                <textarea id="crmNotesInput" rows="3"></textarea>
+                                <button class="btn-action" onclick="commitProfileNotes()" style="margin-bottom:10px;">Commit System Notes</button>
+                                <button class="btn-action" id="crmBanBtn" onclick="triggerAccountBan()" style="background:var(--color-danger); color:white;"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3>Authorized Personnel Roster</h3>
+                        <div id="managerStaffActions" class="secure-lock-box" style="margin-bottom:20px;">
+                            <h4>Register Employee Node</h4>
+                            <input type="text" id="newStaffName" placeholder="Full Name">
+                            <input type="text" id="newStaffCode" placeholder="Numeric Access PIN">
+                            <input type="number" id="newStaffRank" placeholder="Rank Weight (1-100)" min="1" max="100">
+                            <button class="btn-action" onclick="registerNewStaffProfile()">Authorize Employee Node</button>
+                        </div>
+                        <ul id="staffDirectoryList" style="line-height:2.2; color:var(--text-secondary);"></ul>
+                    </div>
                 </div>
             </div>
-        </div>
 
+            <div id="financeView" class="view-panel">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div style="color:var(--text-secondary); font-weight:600; font-size:14px; text-transform:uppercase; letter-spacing:0.05em;">Net Fused Revenue</div>
+                        <div class="metric-val" id="grossRevenueVal">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div style="color:var(--text-secondary); font-weight:600; font-size:14px; text-transform:uppercase; letter-spacing:0.05em;">Settled Tickets Count</div>
+                        <div class="metric-val blue" id="totalTicketsVal">0</div>
+                    </div>
+                </div>
+
+                <div class="layout-three-way">
+                    <div class="panel">
+                        <h3>Adjust Revenue Books</h3>
+                        <label>Transaction Type:</label>
+                        <select id="financeActionType">
+                            <option value="ADD" style="color:var(--color-success);">➕ Cash Injection / Custom Entry</option>
+                            <option value="SUBTRACT" style="color:var(--color-danger);">➖ Expense Allocation / Business Bill</option>
+                        </select>
+                        <label>Amount ($):</label>
+                        <input type="number" id="financeAmount" placeholder="0.00" min="0.01" step="0.01">
+                        <label>Reference Label / Memo Description:</label>
+                        <input type="text" id="financeMemo" placeholder="e.g., Electric Bill">
+                        <button class="btn-action" style="background:var(--accent-brand); color:var(--bg-darker);" onclick="submitFinancialAdjustment()">Post Balancing Entry</button>
+                    </div>
+
+                    <div class="panel">
+                        <h3>Staff Payroll Payouts</h3>
+                        <label>Select Target Employee:</label>
+                        <select id="financeStaffDropdown"><option value="">-- Choose Staff Target --</option></select>
+                        <label>Payout Value Amount ($):</label>
+                        <input type="number" id="payoutAmount" placeholder="0.00" min="0.01" step="0.01">
+                        <label>Allocation Account Category:</label>
+                        <select id="payoutType">
+                            <option value="Hourly Wages">Hourly Wages / Salary</option>
+                            <option value="Tips Distribution">Tips Distribution Split</option>
+                        </select>
+                        <button class="btn-action" style="background:var(--color-alert); color:var(--bg-darker);" onclick="submitStaffPayout()">Process Payroll Entry</button>
+                    </div>
+
+                    <div class="panel">
+                        <h3>Ledger Stream</h3>
+                        <div style="overflow-y: auto; max-height: 320px;">
+                            <table>
+                                <thead><tr><th>Ref / Tag</th><th>Amount</th></tr></thead>
+                                <tbody id="financeTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <script>
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
-        let localRegisterBasket = [];
-        let localRegisterTotal = 0;
+        
+        let manualSelectedItems = [];
+        let manualCurrentTotal = 0;
+        let activeStaffName = "";
+        let activeStaffRank = 1;
+        let isClockedIn = false;
+        let currentInspectedCustomer = "";
+        let currentLiveOrders = [];
+        let systemStaffList = [];
 
-        function switchView(viewId) {
-            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                if(!b.classList.contains('refresh-btn')) b.classList.remove('active');
-            });
+        function pushInternalNotification(message) {
+            const container = document.getElementById('staffNotificationFeed');
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            container.innerHTML = `<div class="notif-item"><span>⚙️ ${message}</span><small>${timestamp}</small></div>` + container.innerHTML;
+            if (container.children.length > 20) container.removeChild(container.lastChild);
+        }
+
+        function safeParseSpreadsheetDate(dateStr) {
+            if (!dateStr) return null;
+            let formattedStr = dateStr;
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split(',');
+                const dateParts = parts[0].trim().split('/');
+                if (dateParts.length === 3 && parseInt(dateParts[0]) > 12) {
+                    formattedStr = `${dateParts[1]}/${dateParts[0]}/${dateParts[2]}`;
+                    if (parts[1]) formattedStr += `, ${parts[1].trim()}`;
+                }
+            }
+            return formattedStr;
+        }
+
+        async function toggleStaffShift() {
+            const btn = document.getElementById('timeclockBtn');
+            btn.disabled = true;
             
-            document.getElementById(`view-${viewId}`).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function toggleRegDeliveryFields() {
-            const type = document.getElementById('regType').value;
-            document.getElementById('regDeliveryFields').style.display = (type === 'Delivery') ? 'block' : 'none';
-        }
-
-        function appendRegisterItem(name, price) {
-            localRegisterBasket.push({name, price});
-            localRegisterTotal += price;
-            renderRegisterBasketUI();
-        }
-
-        function renderRegisterBasketUI() {
-            const tray = document.getElementById('registerBasketTray');
-            document.getElementById('registerTotalDisplay').innerText = localRegisterTotal;
-            if(localRegisterBasket.length === 0) {
-                tray.innerText = "Empty Register Selection Basket.";
-                return;
-            }
-            const counts = {};
-            localRegisterBasket.forEach(i => counts[i.name] = (counts[i.name] || 0) + 1);
-            tray.innerText = Object.entries(counts).map(([item, qty]) => `${qty}x ${item}`).join(', ');
-        }
-
-        async function submitRegisterTicket() {
-            const customer = document.getElementById('regCustomer').value.trim();
-            if(!customer) return alert("Assign a customer name profile first.");
-            if(localRegisterBasket.length === 0) return alert("Basket must hold at least 1 menu item profile.");
-
-            let finalNotes = `POS Operator (${document.getElementById('regType').value})`;
-            if(document.getElementById('regType').value === 'Delivery') {
-                const addr = document.getElementById('regAddress').value.trim();
-                const ph = document.getElementById('regPhone').value.trim();
-                if(!addr || !ph) return alert("Delivery requires endpoint address and phone contact information.");
-                finalNotes = `DELIVERY -> Addr: ${addr} | Phone: ${ph}`;
-            }
-            if(document.getElementById('regNotes').value.trim()) {
-                finalNotes += ` | Info: ${document.getElementById('regNotes').value.trim()}`;
-            }
-
-            const itemSummary = document.getElementById('registerBasketTray').innerText;
+            const nowString = new Date().toLocaleString();
+            isClockedIn = !isClockedIn;
+            
             const payload = {
-                id: 'POS-' + Math.floor(1000 + Math.random()*9000),
-                customer: customer,
-                items: itemSummary,
-                total: localRegisterTotal,
-                status: 'Pending',
-                paid: document.getElementById('regPaid').value,
-                eta: 'Asap',
-                notes: finalNotes,
-                chef_notes: ''
+                condition: { name: activeStaffName },
+                set: {
+                    clocked_in: isClockedIn ? nowString : "",
+                    clocked_out: isClockedIn ? "" : nowString
+                }
             };
 
             try {
-                const res = await fetch(`${BASE_API_URL}/Sheet1`, {
-                    method: 'POST',
+                await fetch(`${BASE_API_URL}/staff`, {
+                    method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify([payload])
+                    body: JSON.stringify(payload)
                 });
-                if(res.ok) {
-                    alert("Ticket committed into main workspace loop database.");
-                    localRegisterBasket = []; localRegisterTotal = 0;
-                    document.getElementById('regCustomer').value = '';
-                    document.getElementById('regNotes').value = '';
-                    document.getElementById('regAddress').value = '';
-                    document.getElementById('regPhone').value = '';
-                    renderRegisterBasketUI();
-                    syncDatabaseEngine();
-                }
-            } catch(e) { alert("POS transmission pipeline link error."); }
-        }
-
-        async function syncDatabaseEngine() {
-            try {
-                const res = await fetch(`${BASE_API_URL}/Sheet1`);
-                const data = await res.json();
-                if(!data || data.error) return;
-
-                // 1. UPDATE KITCHEN TICKETS QUEUE
-                const liveTicketsTray = document.getElementById('liveTicketsContainer');
-                const pending = data.filter(o => o.status === 'Pending');
                 
-                if(pending.length === 0) {
-                    liveTicketsTray.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding:40px; width:100%; font-style:italic;">Production board clear. No pending tickets.</div>';
-                } else {
-                    liveTicketsTray.innerHTML = '';
-                    pending.forEach(o => {
-                        const isDelivery = o.notes && o.notes.includes('DELIVERY');
-                        const badgeClass = isDelivery ? 'badge-delivery' : 'badge-pickup';
-                        const badgeText = isDelivery ? '🚗 Delivery' : '🚶 Pickup';
-                        const priorityClass = isDelivery ? 'ticket-card delivery-priority' : 'ticket-card';
-
-                        liveTicketsTray.innerHTML += `
-                            <div class="${priorityClass}">
-                                <div>
-                                    <div class="ticket-header">
-                                        <span class="ticket-id">${o.id}</span>
-                                        <span class="type-badge ${badgeClass}">${badgeText}</span>
-                                    </div>
-                                    <div style="font-weight:800; font-size:16px; margin-bottom:4px;">${o.customer}</div>
-                                    <div class="ticket-items">${o.items}</div>
-                                    <div style="font-size:11px; color:var(--text-secondary); margin-bottom:12px;"><strong>Memo:</strong> ${o.notes || 'None'}</div>
-                                </div>
-                                <div style="display:flex; gap:6px; margin-top:10px;">
-                                    <button class="action-btn btn-success" style="padding:6px; font-size:11px;" onclick="setTicketState('${o.id}', 'Completed')">Clear</button>
-                                    <button class="action-btn btn-danger" style="padding:6px; font-size:11px;" onclick="setTicketState('${o.id}', 'Cancelled')">Drop</button>
-                                </div>
-                            </div>`;
-                    });
-                }
-
-                // 2. UPDATE HISTORICAL ARCHIVES TABLE
-                const historyTableBody = document.querySelector('#historyLogTable tbody');
-                historyTableBody.innerHTML = '';
-                const pastOrders = data.filter(o => o.status !== 'Pending').reverse().slice(0, 10);
-                if(pastOrders.length === 0) {
-                    historyTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-secondary);">No resolved history items.</td></tr>';
-                } else {
-                    pastOrders.forEach(o => {
-                        historyTableBody.innerHTML += `
-                            <tr>
-                                <td style="font-weight:700; color:var(--accent-brand);">${o.id}</td>
-                                <td><strong>${o.customer}</strong></td>
-                                <td>${o.items}</td>
-                                <td style="font-weight:700;">$${o.total}</td>
-                                <td><span style="color:${o.status === 'Completed' ? 'var(--color-success)' : 'var(--color-danger)'}; font-weight:700;">${o.status}</span></td>
-                                <td>${o.notes || ''}</td>
-                            </tr>`;
-                    });
-                }
-
-                // 3. COMPUTE ADVANCED FINANCIAL METRICS & MASTER REGISTRY
-                let activeCount = pending.length;
-                let completedCount = 0;
-                let cancelledCount = 0;
-                let grossValuation = 0;
-
-                const ledgerBody = document.querySelector('#ledgerMasterTable tbody');
-                ledgerBody.innerHTML = '';
-
-                data.forEach(o => {
-                    const parsedTotal = parseFloat(o.total) || 0;
-                    if(o.status === 'Completed') { completedCount++; grossValuation += parsedTotal; }
-                    if(o.status === 'Cancelled') { cancelledCount++; }
-
-                    ledgerBody.innerHTML += `
-                        <tr>
-                            <td>${o.id}</td>
-                            <td><strong>${o.customer}</strong></td>
-                            <td>${o.items}</td>
-                            <td>$${parsedTotal}</td>
-                            <td style="font-weight:700;">${o.status}</td>
-                            <td>${o.paid}</td>
-                            <td style="color:var(--text-secondary); font-size:12px;">${o.notes || ''}</td>
-                        </tr>`;
-                });
-
-                document.getElementById('metricActiveCount').innerText = `${activeCount} Pending`;
-                document.getElementById('metricGrossRevenue').innerText = `$${grossValuation.toFixed(2)}`;
-                document.getElementById('metricCompletedCount').innerText = `${completedCount} Tickets`;
-                document.getElementById('metricCancelledCount').innerText = `${cancelledCount} Dropped`;
-
-            } catch(e) {}
+                updateLocalShiftUI();
+                pushInternalNotification(`ATTENDANCE: ${activeStaffName} logged ${isClockedIn ? 'IN' : 'OUT'} to database.`);
+                await fetchLiveRosterData();
+            } catch(e) {
+                alert("Attendance sync failed.");
+                isClockedIn = !isClockedIn;
+            } finally {
+                btn.disabled = false;
+            }
         }
 
-        async function setTicketState(id, targetState) {
+        function updateLocalShiftUI() {
+            const pill = document.getElementById('timeclockPill');
+            const btn = document.getElementById('timeclockBtn');
+            if(isClockedIn) {
+                pill.innerText = "On Shift";
+                pill.className = "shift-status-pill on";
+                btn.innerText = "Clock Out";
+                btn.style.background = "var(--color-danger)";
+                btn.style.color = "white";
+            } else {
+                pill.innerText = "Off Shift";
+                pill.className = "shift-status-pill off";
+                btn.innerText = "Clock In";
+                btn.style.background = "var(--accent-brand)";
+                btn.style.color = "var(--bg-darker)";
+            }
+        }
+
+        async function fetchLiveRosterData() {
             try {
-                const res = await fetch(`${BASE_API_URL}/Sheet1`, {
+                const res = await fetch(`${BASE_API_URL}/staff`);
+                const catalog = await res.json();
+                if(!catalog || catalog.error) return;
+                
+                systemStaffList = catalog;
+                const container = document.getElementById('activeDutyRosterBox');
+                container.innerHTML = '';
+
+                let activeWorkers = catalog.filter(s => s.clocked_in && (!s.clocked_out || s.clocked_out.trim() === ""));
+
+                if(activeWorkers.length === 0) {
+                    container.innerHTML = `<div style="color:var(--text-secondary); font-size:13px; font-style:italic;">No operators currently on floor.</div>`;
+                    return;
+                }
+
+                activeWorkers.forEach(worker => {
+                    let durationText = "Calculating...";
+                    const safeDateStr = safeParseSpreadsheetDate(worker.clocked_in);
+                    const startTime = new Date(safeDateStr).getTime();
+                    
+                    if(!isNaN(startTime)) {
+                        const diffMs = Date.now() - startTime;
+                        durationText = formatElapsed(diffMs);
+                    }
+                    container.innerHTML += `
+                        <div class="roster-card">
+                            <div style="font-weight:600;">🟢 ${worker.name}</div>
+                            <div>Shift Time: <span class="roster-time" data-start="${worker.clocked_in}">${durationText}</span></div>
+                        </div>`;
+                });
+            } catch(e){}
+        }
+
+        function formatElapsed(ms) {
+            if(ms < 0) ms = 0;
+            const totalSecs = Math.floor(ms / 1000);
+            const hrs = Math.floor(totalSecs / 3600);
+            const mins = Math.floor((totalSecs % 3600) / 60);
+            const secs = totalSecs % 60;
+            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        setInterval(() => {
+            document.querySelectorAll('.roster-time').forEach(el => {
+                const rawStartStr = el.getAttribute('data-start');
+                if(rawStartStr) {
+                    const safeDateStr = safeParseSpreadsheetDate(rawStartStr);
+                    const start = new Date(safeDateStr).getTime();
+                    if(!isNaN(start)) {
+                        el.innerText = formatElapsed(Date.now() - start);
+                    } else {
+                        el.innerText = "00:00:00";
+                    }
+                }
+            });
+        }, 1000);
+
+        setInterval(fetchLiveRosterData, 10000);
+
+        function routeTo(panelId) {
+            if(panelId !== 'kitchenView' && activeStaffRank < 10) {
+                alert("Unauthorized Access Clearance."); return;
+            }
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-menu .tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            event?.target?.classList?.add('active');
+            
+            if(panelId === 'archiveView') fetchArchiveLogs();
+            if(panelId === 'crmView') fetchStaffDirectory();
+            if(panelId === 'financeView') { fetchFinancialData(); populateStaffDropdown(); }
+        }
+
+        async function authenticateStaff() {
+            const user = document.getElementById('staffUser').value.trim();
+            const pass = document.getElementById('staffPass').value.trim();
+            try {
+                const res = await fetch(`${BASE_API_URL}/staff`);
+                const catalog = await res.json();
+                systemStaffList = catalog;
+                const matched = catalog.find(s => s.name.toLowerCase() === user.toLowerCase() && String(s.code) === pass);
+                if(matched) {
+                    activeStaffName = matched.name;
+                    activeStaffRank = parseInt(matched.rank) || 1;
+                    
+                    isClockedIn = !!(matched.clocked_in && (!matched.clocked_out || matched.clocked_out.trim() === ""));
+                    
+                    updateLocalShiftUI();
+                    
+                    document.getElementById('authGate').style.display = 'none';
+                    document.getElementById('mainConsole').style.display = 'block';
+                    document.getElementById('operatorCallout').innerText = `⚡ OPERATOR: ${activeStaffName.toUpperCase()} [RANK ${activeStaffRank}]`;
+                    
+                    if(activeStaffRank >= 10) {
+                        document.querySelectorAll('.MGR-ONLY').forEach(el => el.style.display = 'block');
+                    } else {
+                        document.getElementById('managerStaffActions').style.display = 'none';
+                    }
+                    
+                    pushInternalNotification(`Staff session established: ${activeStaffName}`);
+                    fetchLiveKitchenOrders();
+                    await fetchLiveRosterData();
+                    setInterval(fetchLiveKitchenOrders, 5000);
+                } else { alert("Verification mismatch configuration."); }
+            } catch(e){ alert("Database baseline unresponsive."); }
+        }
+
+        function disconnectSession() { location.reload(); }
+
+        function selectManualItem(el, name, price) {
+            el.classList.toggle('selected');
+            const idx = manualSelectedItems.indexOf(name);
+            if(idx > -1) { manualSelectedItems.splice(idx, 1); manualCurrentTotal -= price; }
+            else { manualSelectedItems.push(name); manualCurrentTotal += price; }
+            document.getElementById('manualTotal').innerText = manualCurrentTotal;
+        }
+
+        async function dispatchManualOrder() {
+            const name = document.getElementById('manualCustName').value.trim();
+            if(!name || manualSelectedItems.length === 0) return alert("Missing entry data.");
+            document.getElementById('manualSubmitBtn').disabled = true;
+
+            const ticket = {
+                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                customer: name,
+                items: manualSelectedItems.join(', '),
+                total: manualCurrentTotal,
+                status: 'Pending',
+                paid: 'No',
+                eta: 'Asap',
+                notes: `Counter Order: ${activeStaffName}`,
+                chef_notes: ''
+            };
+
+            await fetch(`${BASE_API_URL}/Sheet1`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify([ticket])
+            });
+
+            pushInternalNotification(`Ticket ${ticket.id} placed for ${name}`);
+            document.getElementById('manualCustName').value = '';
+            document.querySelectorAll('.pos-item').forEach(i => i.classList.remove('selected'));
+            manualSelectedItems = []; manualCurrentTotal = 0; document.getElementById('manualTotal').innerText = 0;
+            document.getElementById('manualSubmitBtn').disabled = false;
+            fetchLiveKitchenOrders();
+        }
+
+        async function updateOrderField(orderId, field, value) {
+            try {
+                await fetch(`${BASE_API_URL}/Sheet1`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        condition: { id: id },
-                        set: { status: targetState }
+                        condition: { id: orderId },
+                        set: { [field]: value }
                     })
                 });
-                if(res.ok) syncDatabaseEngine();
-            } catch(e) { alert("Fulfillment action failed network update."); }
+                pushInternalNotification(`Ticket ${orderId}: Changed ${field} to "${value}"`);
+                fetchLiveKitchenOrders();
+            } catch(e){}
         }
 
-        // Initialize board loop updates automatically
-        setInterval(syncDatabaseEngine, 15000);
-        window.onload = syncDatabaseEngine;
+        async function triggerPaymentToggle(orderId, currentPaidStatus) {
+            const nextPaidStatus = currentPaidStatus === 'Yes' ? 'No' : 'Yes';
+            const order = currentLiveOrders.find(o => o.id === orderId);
+            if (order && order.status === 'Completed' && nextPaidStatus === 'Yes') {
+                await fetch(`${BASE_API_URL}/Sheet1`, {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ condition: { id: orderId } })
+                });
+                pushInternalNotification(`Ticket ${orderId} fully cleared off screen (Paid & Completed).`);
+                fetchLiveKitchenOrders();
+            } else {
+                await updateOrderField(orderId, 'paid', nextPaidStatus);
+            }
+        }
+
+        async function completeKitchenOrder(orderId) {
+            const order = currentLiveOrders.find(o => o.id === orderId);
+            if(!order) return;
+            
+            try {
+                await fetch(`${BASE_API_URL}/record_keeping`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify([{
+                        id: order.id,
+                        customer: order.customer,
+                        items: order.items,
+                        total: order.total,
+                        status: 'Completed',
+                        paid: order.paid === 'Yes' ? 'Yes' : 'No'
+                    }])
+                });
+
+                if (order.paid === 'Yes') {
+                    await fetch(`${BASE_API_URL}/Sheet1`, {
+                        method: 'DELETE',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ condition: { id: orderId } })
+                    });
+                    pushInternalNotification(`Ticket ${orderId} completely processed & archived.`);
+                } else {
+                    await fetch(`${BASE_API_URL}/Sheet1`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            condition: { id: orderId },
+                            set: { status: 'Completed' }
+                        })
+                    });
+                    pushInternalNotification(`Ticket ${orderId} marked Completed but held on queue for pending payment.`);
+                }
+                fetchLiveKitchenOrders();
+            } catch(e) { alert("Archival pipeline dropped connection."); }
+        }
+
+        async function fetchLiveKitchenOrders() {
+            try {
+                const res = await fetch(`${BASE_API_URL}/Sheet1`);
+                const pipeline = await res.json();
+                if(pipeline && !pipeline.error) currentLiveOrders = pipeline;
+
+                const target = document.getElementById('liveOrdersList');
+                target.innerHTML = '';
+                
+                if(!pipeline || pipeline.length === 0 || pipeline.error) {
+                    target.innerHTML = '<p style="color:var(--text-secondary); font-style:italic;">Production environment clear.</p>'; return;
+                }
+
+                pipeline.reverse().forEach(o => {
+                    const isCompleted = o.status === 'Completed';
+                    const isUnpaidCompleted = isCompleted && o.paid === 'No';
+                    
+                    target.innerHTML += `
+                        <div class="kitchen-card ${isUnpaidCompleted ? 'status-unpaid-completed' : ''}">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                                    <strong style="color:var(--accent-brand); font-size:16px;">${o.id}</strong>
+                                    <span class="price-tag">$${o.total || 0}</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                                    <h3 style="border:none; margin:0; font-size:18px;">${o.customer}</h3>
+                                    <div style="display:flex; gap:6px;">
+                                        <span class="badge ${isCompleted ? 'status-done' : 'status-pending'}">${o.status}</span>
+                                        <span class="badge ${o.paid === 'Yes' ? 'paid' : 'unpaid'}" style="cursor:pointer;" onclick="triggerPaymentToggle('${o.id}', '${o.paid}')">
+                                            ${o.paid === 'Yes' ? 'Paid' : 'Unpaid'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p style="margin:12px 0; font-size:14px; color:var(--text-secondary); line-height:1.5;">${o.items}</p>
+                            </div>
+                            
+                            <div style="margin-top:14px;">
+                                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Custom Wait/ETA Time:</label>
+                                <input type="text" value="${o.eta || ''}" placeholder="e.g., 7 mins, next, done" style="margin-bottom:10px; padding:10px;" onchange="updateOrderField('${o.id}', 'eta', this.value)">
+
+                                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Barista Kitchen Note:</label>
+                                <input type="text" value="${o.chef_notes || ''}" placeholder="Add update..." style="margin-bottom:14px; padding:10px;" onchange="updateOrderField('${o.id}', 'chef_notes', this.value)">
+                                
+                                ${isCompleted ? 
+                                    `<div style="text-align:center; color:var(--color-alert); font-size:12px; font-weight:bold; padding:12px; border:1px dashed var(--color-alert); border-radius:8px; background:rgba(251,191,36,0.02)">⚠️ Collect Payment to Clear Ticket</div>` : 
+                                    `<button class="btn-action" style="background:var(--color-success); color:white;" onclick="completeKitchenOrder('${o.id}')">Fulfill & Archive</button>`
+                                }
+                            </div>
+                        </div>`;
+                });
+            } catch(e){}
+        }
+
+        async function fetchArchiveLogs() {
+            try {
+                const res = await fetch(`${BASE_API_URL}/record_keeping`);
+                const logs = await res.json();
+                const tbody = document.getElementById('archiveLogsTableBody');
+                tbody.innerHTML = '';
+                if(!logs || logs.length === 0 || logs.error) return;
+
+                logs.reverse().forEach(l => {
+                    tbody.innerHTML += `<tr><td>${l.id}</td><td>${l.customer}</td><td>${l.items}</td><td style="color:var(--accent-brand); font-weight:bold;">$${l.total || 0}</td><td><span class="badge paid">${l.status || 'Completed'}</span></td><td><span class="badge paid">Paid</span></td></tr>`;
+                });
+            } catch(e){}
+        }
+
+        async function fetchFinancialData() {
+            try {
+                const res = await fetch(`${BASE_API_URL}/record_keeping`);
+                const logs = await res.json();
+                const tbody = document.getElementById('financeTableBody');
+                tbody.innerHTML = '';
+
+                let totalRevenue = 0, ticketCount = 0;
+                if(logs && logs.length > 0 && !logs.error) {
+                    logs.reverse().forEach(l => {
+                        const amount = parseFloat(l.total) || 0;
+                        totalRevenue += amount;
+                        if(amount > 0) ticketCount++;
+                        tbody.innerHTML += `<tr><td style="font-size:12px;">${l.id}<br><small style="color:var(--text-secondary);">${l.customer}</small></td><td style="font-weight:bold; color:${amount < 0 ? 'var(--color-danger)':'var(--color-success)'}">$${amount.toFixed(2)}</td></tr>`;
+                    });
+                }
+                document.getElementById('grossRevenueVal').innerText = `$${totalRevenue.toFixed(2)}`;
+                document.getElementById('totalTicketsVal').innerText = ticketCount;
+            } catch(e){}
+        }
+
+        async function submitFinancialAdjustment() {
+            const type = document.getElementById('financeActionType').value;
+            let amount = parseFloat(document.getElementById('financeAmount').value);
+            const memo = document.getElementById('financeMemo').value.trim() || 'Adjustment';
+            if(!amount || amount <= 0) return;
+            if(type === 'SUBTRACT') amount = -amount;
+
+            await fetch(`${BASE_API_URL}/record_keeping`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify([{ id: type==='ADD'?'REV-ADJ':'EXP-BILL', customer: memo, items: 'Manual Ledger Modification', total: amount, status: 'Completed', paid: 'Yes' }])
+            });
+            document.getElementById('financeAmount').value = ''; document.getElementById('financeMemo').value = '';
+            fetchFinancialData();
+        }
+
+        async function populateStaffDropdown() {
+            try {
+                const select = document.getElementById('financeStaffDropdown');
+                select.innerHTML = '<option value="">-- Choose Staff Target --</option>';
+                const res = await fetch(`${BASE_API_URL}/staff`);
+                const catalog = await res.json();
+                catalog.forEach(s => { select.innerHTML += `<option value="${s.name}">${s.name}</option>`; });
+            } catch(e){}
+        }
+
+        async function submitStaffPayout() {
+            const staffName = document.getElementById('financeStaffDropdown').value;
+            const amount = parseFloat(document.getElementById('payoutAmount').value);
+            const type = document.getElementById('payoutType').value;
+            if(!staffName || !amount || amount <= 0) return alert("Validation inputs error.");
+
+            await fetch(`${BASE_API_URL}/record_keeping`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify([{ id: 'PAY-DISB', customer: `Staff: ${staffName}`, items: `Payout: ${type}`, total: -amount, status: 'Completed', paid: 'Yes' }])
+            });
+            document.getElementById('payoutAmount').value = '';
+            fetchFinancialData();
+        }
+
+        async function runSecurityProfileLookup() {
+            const searchName = document.getElementById('crmSearchName').value.trim();
+            if(!searchName) return;
+            currentInspectedCustomer = searchName;
+            try {
+                const res = await fetch(`${BASE_API_URL}/customers?search={"customer":"${searchName}"}`);
+                const data = await res.json();
+                document.getElementById('crmResultBox').style.display = 'block';
+                document.getElementById('crmNameHeader').innerText = `Profile: ${searchName}`;
+                if(data.length > 0) {
+                    document.getElementById('crmStatusLabel').innerText = data[0].status;
+                    document.getElementById('crmNotesInput').value = data[0].notes || '';
+                    document.getElementById('crmBanBtn').innerText = data[0].status === 'Banned' ? 'Lift Suspension' : 'Issue Profile Ban';
+                } else {
+                    document.getElementById('crmStatusLabel').innerText = "Active / Unlisted";
+                    document.getElementById('crmNotesInput').value = '';
+                    document.getElementById('crmBanBtn').innerText = 'Issue Profile Ban';
+                }
+            } catch(e){}
+        }
+
+        async function commitProfileNotes() {
+            const notes = document.getElementById('crmNotesInput').value.trim();
+            try {
+                await fetch(`${BASE_API_URL}/customers`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify([{ customer: currentInspectedCustomer, status: 'Active', notes: notes }])
+                });
+                alert("Dossier saved.");
+            } catch(e){}
+        }
+
+        async function triggerAccountBan() {
+            const label = document.getElementById('crmStatusLabel').innerText;
+            const targetStatus = label === 'Banned' ? 'Active' : 'Banned';
+            try {
+                await fetch(`${BASE_API_URL}/customers`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify([{ customer: currentInspectedCustomer, status: targetStatus, notes: '' }])
+                });
+                alert(`Status flipped: ${targetStatus}`);
+                runSecurityProfileLookup();
+            } catch(e){}
+        }
+
+        async function fetchStaffDirectory() {
+            try {
+                const res = await fetch(`${BASE_API_URL}/staff`);
+                const staff = await res.json();
+                const list = document.getElementById('staffDirectoryList');
+                list.innerHTML = '';
+                staff.forEach(s => { list.innerHTML += `<li>Node ID: <strong>${s.name}</strong> — Rank [${s.rank}]</li>`; });
+            } catch(e){}
+        }
+
+        async function registerNewStaffProfile() {
+            const name = document.getElementById('newStaffName').value.trim();
+            const code = document.getElementById('newStaffCode').value.trim();
+            const rank = document.getElementById('newStaffRank').value.trim();
+            if(!name || !code || !rank) return;
+            try {
+                await fetch(`${BASE_API_URL}/staff`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify([{ name, code, rank, clocked_in: '', clocked_out: '' }])
+                });
+                document.getElementById('newStaffName').value = ''; document.getElementById('newStaffCode').value = ''; document.getElementById('newStaffRank').value = '';
+                fetchStaffDirectory();
+            } catch(e){}
+        }
     </script>
 </body>
 </html>
