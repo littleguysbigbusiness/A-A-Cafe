@@ -3,495 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ A&A Cafe Terminal</title>
+    <title>⚡ A&A Cafe | Terminal</title>
     <style>
         :root {
-            --bg-main: #f1f5f9;
-            --surface: #ffffff;
-            --border: #cbd5e1;
-            --accent: #2563eb;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --pos-green: #10b981;
-            --pos-red: #ef4444;
+            --bg-main: #f1f5f9; --surface: #ffffff; --border: #cbd5e1;
+            --accent: #2563eb; --text-main: #0f172a; --text-muted: #64748b;
+            --pos-green: #10b981; --pos-red: #ef4444;
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-        }
-
-        .topbar {
-            background-color: var(--accent);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .topbar h1 { margin: 0; font-size: 20px; font-weight: 700; color: white; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; }
+        .topbar { background: var(--accent); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .topbar h1 { margin: 0; font-size: 20px; }
+        .tab-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 5px; }
+        .tab-btn.active, .tab-btn:hover { background: white; color: var(--accent); }
         
-        .tab-menu { display: flex; gap: 8px; }
-        .tab-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 10px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .tab-btn:hover, .tab-btn.active {
-            background: white;
-            color: var(--accent);
-        }
-
-        .workspace { max-width: 1600px; margin: 30px auto; padding: 0 20px; }
+        .workspace { padding: 30px; max-width: 1400px; margin: auto; }
         .view-panel { display: none; }
         .view-panel.active { display: block; }
+        .panel { background: var(--surface); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
+        h2, h3 { margin-top: 0; border-bottom: 2px solid var(--bg-main); padding-bottom: 10px; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+        .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        
+        /* Kitchen Cards */
+        .kitchen-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--accent); padding: 15px; border-radius: 8px; }
+        .btn-paid { background: var(--pos-green); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 5px; }
+        .btn-override { background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11px; width: 100%; }
 
-        .layout-split { display: grid; grid-template-columns: 1fr 1.6fr; gap: 30px; }
-
-        .panel {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 25px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        h2, h3 { margin-top: 0; font-weight: 600; color: var(--text-main); border-bottom: 2px solid var(--bg-main); padding-bottom: 12px; }
-
-        .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin: 15px 0; }
-        .pos-item {
-            background: var(--bg-main);
-            border: 1px solid var(--border);
-            padding: 16px 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text-main);
-            transition: all 0.15s;
-        }
-        .pos-item:hover { border-color: var(--accent); }
-        .pos-item.selected { background: var(--accent); color: white; border-color: var(--accent); }
-
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-main);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-        input:focus { border-color: var(--accent); outline: none; background: white; }
-
-        .btn-action {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .total-display {
-            background: #eff6ff;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: right;
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--accent);
-            border: 1px solid #bfdbfe;
-            margin-bottom: 15px;
-        }
-
-        .kitchen-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
-        .kitchen-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-top: 4px solid var(--accent);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .badge.unpaid { background: #fee2e2; color: var(--pos-red); }
-        .badge.paid { background: #d1fae5; color: var(--pos-green); }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 14px; border: 1px solid var(--border); text-align: left; font-size: 14px; color: var(--text-main); }
-        th { background: #f8fafc; color: var(--accent); font-weight: 600; }
-        tr:nth-child(even) { background: #f8fafc; }
-
-        .secure-lock-box { border: 1px dashed var(--pos-red); padding: 20px; border-radius: 10px; background: #fff5f5; }
+        /* Dashboard Stats */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .stat-box { background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 8px; text-align: center; }
+        .stat-box h4 { margin: 0 0 10px 0; color: var(--text-muted); }
+        .stat-box .num { font-size: 28px; font-weight: bold; color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <div id="authGate" style="max-width:400px; margin: 150px auto;" class="panel">
-        <h2>A&A Terminal Access</h2>
-        <label>Operator Initials:</label>
-        <input type="text" id="staffUser" autocomplete="off">
-        <label>Access Pin:</label>
-        <input type="password" id="staffPass">
-        <button class="btn-action" onclick="authenticateStaff()">Verify Identity</button>
+    <div id="authGate" style="max-width: 350px; margin: 100px auto;" class="panel">
+        <h2>Terminal Login</h2>
+        <input type="text" id="staffName" placeholder="Staff Name">
+        <input type="password" id="staffPin" placeholder="PIN">
+        <button class="btn" onclick="login()">Enter Terminal</button>
     </div>
 
-    <div id="mainConsole" style="display:none;">
+    <div id="mainConsole" style="display: none;">
         <div class="topbar">
-            <h1 id="operatorCallout">⚡ A&A CAFE MONITOR</h1>
-            <div class="tab-menu">
-                <button class="tab-btn active" onclick="routeTo('kitchenView')">🍳 Production Stack</button>
-                <button class="tab-btn" onclick="routeTo('archiveView')">📜 History Logs</button>
-                <button class="tab-btn" onclick="routeTo('crmView')">🛡️ CRM Security</button>
+            <h1>⚡ A&A CAFE TERMINAL</h1>
+            <div>
+                <button class="tab-btn active" onclick="nav('kitchen')">🍳 Kitchen</button>
+                <button class="tab-btn" onclick="nav('manager')">📊 Manager</button>
             </div>
-            <button onclick="disconnectSession()" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer;">Logout</button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span id="shiftStatus" style="font-size: 12px; font-weight: bold;">🔴 Clocked Out</span>
+                <button onclick="toggleShift()" id="shiftBtn" style="background: white; color: var(--accent); border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">Clock In</button>
+            </div>
         </div>
 
         <div class="workspace">
+            <div id="kitchen" class="view-panel active">
+                <h3>Live Queue</h3>
+                <div class="kitchen-stack" id="liveQueue">Loading...</div>
+            </div>
 
-            <div id="kitchenView" class="view-panel active">
-                <div class="layout-split">
+            <div id="manager" class="view-panel">
+                <div class="stat-grid">
+                    <div class="stat-box"><h4>Gross Revenue</h4><div class="num" id="statGross">$0</div></div>
+                    <div class="stat-box"><h4>Staff Payouts</h4><div class="num" id="statPayouts" style="color: var(--pos-red);">-$0</div></div>
+                    <div class="stat-box"><h4>Net Balance</h4><div class="num" id="statNet">$0</div></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="panel">
-                        <h3>Counter POS Entry</h3>
-                        <label>Walk-In Customer Name:</label>
-                        <input type="text" id="manualCustName" placeholder="Enter name...">
-                        
-                        <div class="pos-grid">
-                            <div class="pos-item" onclick="selectManualItem(this, 'Muffin', 2)">Muffin ($2)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Coffee', 4)">Coffee ($4)</div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
-                        </div>
-                        <div class="total-display">$<span id="manualTotal">0</span></div>
-                        <button class="btn-action" id="manualSubmitBtn" onclick="dispatchManualOrder()" style="background:var(--pos-green); color:white;">Post Ticket</button>
+                        <h3>🛡️ Log Staff Payout</h3>
+                        <input type="text" id="payName" placeholder="Employee Username">
+                        <input type="number" id="payAmount" placeholder="Total Paid ($)">
+                        <button class="btn" onclick="logPayout()">Submit Payout & Notify</button>
                     </div>
-
-                    <div>
-                        <h3>Live Production Queue</h3>
-                        <div id="liveOrdersList" class="kitchen-stack">Syncing pipeline...</div>
+                    <div class="panel">
+                        <h3>💰 Vault Overrides</h3>
+                        <input type="number" id="overrideAmount" placeholder="Amount ($)">
+                        <input type="text" id="overrideReason" placeholder="Reason (e.g. Bills, Ingredients)">
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" style="background: var(--pos-green);" onclick="vaultOverride('add')">Add Funds (+)</button>
+                            <button class="btn" style="background: var(--pos-red);" onclick="vaultOverride('remove')">Remove Funds (-)</button>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div id="archiveView" class="view-panel">
-                <div class="panel">
-                    <h3>📜 Ledger Records</h3>
-                    <div style="overflow-x: auto;">
-                        <table>
-                            <thead>
-                                <tr><th>Invoice ID</th><th>Customer</th><th>Manifest</th><th>Revenue</th><th>Status</th><th>Payment</th></tr>
-                            </thead>
-                            <tbody id="archiveLogsTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="crmView" class="view-panel">
-                <div class="layout-split">
-                    <div class="panel">
-                        <h3>Customer CRM Security Dossier</h3>
-                        <input type="text" id="crmSearchName" placeholder="Search profile name...">
-                        <button class="btn-action" onclick="runSecurityProfileLookup()">Inspect Account</button>
-                        
-                        <div id="crmResultBox" style="margin-top:20px; display:none; background:var(--bg-main); padding:20px; border-radius:6px; border:1px solid var(--border);">
-                            <h4 id="crmNameHeader" style="margin:0 0 15px 0; color:var(--accent);"></h4>
-                            <p>Activity Standing: <span id="crmStatusLabel" style="font-weight:bold;"></span></p>
-                            
-                            <div id="managerOnlyCrmActions" class="secure-lock-box">
-                                <label>Permanent Override Notes:</label>
-                                <textarea id="crmNotesInput" rows="3"></textarea>
-                                <button class="btn-action" onclick="commitProfileNotes()" style="margin-bottom:10px;">Commit System Notes</button>
-                                <button class="btn-action" id="crmBanBtn" onclick="triggerAccountBan()" style="background:var(--pos-red); color:white;"></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="panel">
-                        <h3>Authorized Personnel Roster</h3>
-                        <div id="managerStaffActions" class="secure-lock-box" style="margin-bottom:20px;">
-                            <h4>Register Employee Node</h4>
-                            <input type="text" id="newStaffName" placeholder="Full Name">
-                            <input type="text" id="newStaffCode" placeholder="PIN Code">
-                            <input type="number" id="newStaffRank" placeholder="Rank (1-100)" min="1" max="100">
-                            <button class="btn-action" onclick="registerNewStaffProfile()">Authorize Employee Node</button>
-                        </div>
-                        <ul id="staffDirectoryList" style="line-height:2.2;"></ul>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 
     <script>
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
+        let staffUser = "";
+        let isClockedIn = false;
+        let shiftStart = 0;
         
-        let manualSelectedItems = [];
-        let manualCurrentTotal = 0;
-        let activeStaffName = "";
-        let activeStaffRank = 1;
-        let currentInspectedCustomer = "";
-        let currentLiveOrders = [];
+        // Finances Local Simulation (Bind to DB in production)
+        let f_gross = 0; let f_payouts = 0; let f_net = 0;
 
-        function routeTo(panelId) {
+        function nav(id) {
             document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(panelId).classList.add('active');
-            if (event && event.target) event.target.classList.add('active');
-            if(panelId === 'archiveView') fetchArchiveLogs();
+            document.getElementById(id).classList.add('active');
         }
 
-        async function authenticateStaff() {
-            const user = document.getElementById('staffUser').value.trim();
-            const pass = document.getElementById('staffPass').value.trim();
-            try {
-                const res = await fetch(`${BASE_API_URL}/staff`);
-                const catalog = await res.json();
-                const matched = catalog.find(s => s.name.toLowerCase() === user.toLowerCase() && String(s.code) === pass);
-                if(matched) {
-                    activeStaffName = matched.name;
-                    activeStaffRank = parseInt(matched.rank) || 1;
-                    
-                    document.getElementById('authGate').style.display = 'none';
-                    document.getElementById('mainConsole').style.display = 'block';
-                    document.getElementById('operatorCallout').innerText = `⚡ OPERATOR: ${activeStaffName.toUpperCase()} [RANK ${activeStaffRank}]`;
-                    
-                    fetchLiveKitchenOrders();
-                    setInterval(fetchLiveKitchenOrders, 5000);
-                } else { alert("Verification mismatch configuration."); }
-            } catch(e){ alert("Database baseline unresponsive."); }
+        function login() {
+            staffUser = document.getElementById('staffName').value;
+            if(!staffUser) return;
+            document.getElementById('authGate').style.display = 'none';
+            document.getElementById('mainConsole').style.display = 'block';
+            fetchQueue(); setInterval(fetchQueue, 5000);
+            updateDashboard();
         }
 
-        function disconnectSession() { location.reload(); }
-
-        function selectManualItem(el, name, price) {
-            el.classList.toggle('selected');
-            const idx = manualSelectedItems.indexOf(name);
-            if(idx > -1) { manualSelectedItems.splice(idx, 1); manualCurrentTotal -= price; }
-            else { manualSelectedItems.push(name); manualCurrentTotal += price; }
-            document.getElementById('manualTotal').innerText = manualCurrentTotal;
+        function toggleShift() {
+            isClockedIn = !isClockedIn;
+            const btn = document.getElementById('shiftBtn');
+            const stat = document.getElementById('shiftStatus');
+            if(isClockedIn) {
+                shiftStart = Date.now();
+                btn.innerText = "Clock Out";
+                btn.style.color = "var(--pos-red)";
+                stat.innerText = "🟢 Clocked In";
+            } else {
+                let workedMin = Math.round((Date.now() - shiftStart) / 60000);
+                alert(`Shift ended. You worked ${workedMin} minutes.`);
+                btn.innerText = "Clock In";
+                btn.style.color = "var(--accent)";
+                stat.innerText = "🔴 Clocked Out";
+            }
         }
 
-        async function dispatchManualOrder() {
-            const name = document.getElementById('manualCustName').value.trim();
-            if(!name || manualSelectedItems.length === 0) return alert("Missing structural fields.");
-
-            const ticket = {
-                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                customer: name,
-                items: manualSelectedItems.join(', '),
-                total: manualCurrentTotal,
-                status: 'Pending',
-                paid: 'No',
-                eta: '5-10m',
-                notes: `Counter ticket by: ${activeStaffName}`,
-                chef_notes: ''
-            };
-
-            await fetch(`${BASE_API_URL}/Sheet1`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([ticket])
-            });
-
-            document.getElementById('manualCustName').value = '';
-            document.querySelectorAll('.pos-item').forEach(i => i.classList.remove('selected'));
-            manualSelectedItems = []; manualCurrentTotal = 0; document.getElementById('manualTotal').innerText = 0;
-            fetchLiveKitchenOrders();
-        }
-
-        async function fetchLiveKitchenOrders() {
+        async function fetchQueue() {
             try {
                 const res = await fetch(`${BASE_API_URL}/Sheet1`);
-                const pipeline = await res.json();
-                if(pipeline && !pipeline.error) currentLiveOrders = pipeline;
-
-                const target = document.getElementById('liveOrdersList');
-                target.innerHTML = '';
-
-                if(!pipeline || pipeline.length === 0 || pipeline.error) {
-                    target.innerHTML = '<p style="color:var(--text-muted);">Queue clear.</p>'; return;
-                }
-
-                pipeline.reverse().forEach(o => {
-                    target.innerHTML += `
-                        <div class="kitchen-card">
-                            <div>
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <strong style="color:var(--accent); font-size:16px;">${o.id}</strong>
-                                    <span class="badge ${o.paid==='Yes'?'paid':'unpaid'}">${o.paid==='Yes'?'Paid':'Unpaid'}</span>
-                                </div>
-                                <h3 style="border:none; margin:10px 0 5px 0; font-size:18px;">${o.customer}</h3>
-                                <p style="margin:0 0 10px 0; font-size:14px; font-weight:bold; color:var(--accent);">Order Total: $${o.total || '0'}</p>
-                                <p style="margin:0 0 15px 0; font-size:13px; color:var(--text-muted); line-height:1.4;">${o.items}</p>
-                            </div>
-                            
-                            <div>
-                                <label style="font-size:11px; color:var(--accent); font-weight:bold;">ETA:</label>
-                                <input type="text" value="${o.eta||''}" onchange="updateFieldDirectly('${o.id}', 'eta', this.value)">
-                                
-                                <label style="font-size:11px; color:var(--accent); font-weight:bold;">BARISTA NOTES:</label>
-                                <input type="text" value="${o.chef_notes||''}" onchange="updateFieldDirectly('${o.id}', 'chef_notes', this.value)">
-                                
-                                <div style="display:flex; gap:10px; margin-top:5px;">
-                                    ${o.paid!=='Yes'?`<button style="background:var(--pos-green); color:white; padding:10px; border:none; border-radius:4px; font-weight:bold; flex:1; cursor:pointer;" onclick="processPipelineWorkflow('${o.id}', 'paid', 'Yes')">Mark Paid</button>`:''}
-                                    ${o.status!=='Completed'?`<button style="background:var(--accent); color:white; padding:10px; border:none; border-radius:4px; font-weight:bold; flex:1; cursor:pointer;" onclick="processPipelineWorkflow('${o.id}', 'status', 'Completed')">Complete</button>`:''}
-                                </div>
-                            </div>
-                        </div>`;
-                });
+                const data = await res.json();
+                const q = document.getElementById('liveQueue');
+                if(!data || data.length === 0 || data.error) return q.innerHTML = "Queue clear.";
+                
+                q.innerHTML = data.reverse().map(o => `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <strong>${o.id}</strong> <span>${o.customer}</span>
+                        </div>
+                        <p style="margin:0 0 10px; font-size:13px; color:var(--text-muted);">${o.items}</p>
+                        
+                        ${o.paid !== 'Yes' ? `
+                            <button class="btn-paid" onclick="processCheckout('${o.id}', ${o.total})">Mark Paid ($${o.total})</button>
+                            <button class="btn-override" onclick="processOverride('${o.id}', ${o.total})">Custom / Tip Override</button>
+                        ` : `
+                            <button class="btn" onclick="clearTicket('${o.id}')">Complete Order</button>
+                        `}
+                    </div>
+                `).join('');
             } catch(e){}
         }
 
-        async function updateFieldDirectly(id, key, val) {
-            let atom = {}; atom[key] = val;
-            await fetch(`${BASE_API_URL}/Sheet1`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({condition: {id: id}, set: atom})
-            });
+        async function processCheckout(id, total) {
+            logFinance(total, 0); // Add to gross
+            await fetch(`${BASE_API_URL}/Sheet1`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({condition:{id:id}, set:{paid:'Yes'}}) });
+            fetchQueue();
         }
 
-        async function processPipelineWorkflow(id, key, val) {
-            const orderObject = currentLiveOrders.find(ord => ord.id === id);
-            if(!orderObject) return fetchLiveKitchenOrders();
-            orderObject[key] = val;
-
-            if(orderObject.status === 'Completed' && orderObject.paid === 'Yes') {
-                await fetch(`${BASE_API_URL}/record_keeping`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify([orderObject])
-                });
-                await fetch(`${BASE_API_URL}/Sheet1`, {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({condition: {id: id}})
-                });
-            } else {
-                await updateFieldDirectly(id, key, val);
-            }
-            fetchLiveKitchenOrders();
+        async function processOverride(id, baseTotal) {
+            const custom = prompt(`Enter exact $ amount received (Base was $${baseTotal}):`);
+            if(!custom || isNaN(custom)) return;
+            logFinance(parseFloat(custom), 0);
+            await fetch(`${BASE_API_URL}/Sheet1`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({condition:{id:id}, set:{paid:'Yes', notes:`Override: $${custom}`}}) });
+            fetchQueue();
         }
 
-        async function fetchArchiveLogs() {
-            const res = await fetch(`${BASE_API_URL}/record_keeping`);
-            const arrayData = await res.json();
-            const body = document.getElementById('archiveLogsTableBody');
-            body.innerHTML = '';
-            arrayData.reverse().forEach(row => {
-                body.innerHTML += `<tr><td><strong>${row.id}</strong></td><td>${row.customer}</td><td>${row.items}</td><td>$${row.total}</td><td>${row.status}</td><td>${row.paid}</td></tr>`;
-            });
+        async function clearTicket(id) {
+            await fetch(`${BASE_API_URL}/Sheet1`, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({condition:{id:id}}) });
+            fetchQueue();
         }
 
-        async function runSecurityProfileLookup() {
-            const targetQuery = document.getElementById('crmSearchName').value.trim();
-            if(!targetQuery) return;
-            currentInspectedCustomer = targetQuery;
-
-            const res = await fetch(`${BASE_API_URL}/customers?search={"customer":"${targetQuery}"}`);
-            const profiles = await res.json();
+        async function logPayout() {
+            const name = document.getElementById('payName').value;
+            const amt = parseFloat(document.getElementById('payAmount').value);
+            if(!name || !amt) return;
+            logFinance(0, amt);
             
-            document.getElementById('crmResultBox').style.display = 'block';
-            document.getElementById('crmNameHeader').innerText = `Target: ${targetQuery}`;
-            
-            let banFlag = false; let coreNotes = "";
-            if(profiles.length > 0) {
-                banFlag = profiles[0].status === 'Banned';
-                coreNotes = profiles[0].perm_notes || '';
-                document.getElementById('crmStatusLabel').innerText = profiles[0].status;
-            } else { document.getElementById('crmStatusLabel').innerText = 'Active'; }
-
-            if(activeStaffRank >= 10) {
-                document.getElementById('managerOnlyCrmActions').style.display = 'block';
-                document.getElementById('crmNotesInput').value = coreNotes;
-                document.getElementById('crmBanBtn').innerText = banFlag ? 'Release Restraints' : 'Ban Account';
-            }
-            fetchStaffDirectoryRoster();
-        }
-
-        async function commitProfileNotes() {
-            const targetNotes = document.getElementById('crmNotesInput').value;
-            await fetch(`${BASE_API_URL}/customers`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({condition: {customer: currentInspectedCustomer}, set: {perm_notes: targetNotes}})
-            });
-            alert("Notes synchronized.");
-        }
-
-        async function triggerAccountBan() {
-            const currentPosition = document.getElementById('crmStatusLabel').innerText;
-            const updatedPosition = currentPosition === 'Banned' ? 'Active' : 'Banned';
-            
-            const check = await fetch(`${BASE_API_URL}/customers?search={"customer":"${currentInspectedCustomer}"}`);
-            const arrayCheck = await check.json();
-
-            if(arrayCheck.length > 0) {
-                await fetch(`${BASE_API_URL}/customers`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({condition: {customer: currentInspectedCustomer}, set: {status: updatedPosition}})
-                });
-            } else {
-                await fetch(`${BASE_API_URL}/customers`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify([{customer: currentInspectedCustomer, status: updatedPosition, perm_notes: ''}])
-                });
-            }
-            runSecurityProfileLookup();
-        }
-
-        async function fetchStaffDirectoryRoster() {
-            const res = await fetch(`${BASE_API_URL}/staff`);
-            const teamNodes = await res.json();
-            const systemTarget = document.getElementById('staffDirectoryList');
-            systemTarget.innerHTML = '';
-            
-            if(activeStaffRank >= 10) {
-                document.getElementById('managerStaffActions').style.display = 'block';
-                teamNodes.forEach(t => { systemTarget.innerHTML += `<li>🛡️ <strong>${t.name}</strong> — Rank [${t.rank}]</li>`; });
-            }
-        }
-
-        async function registerNewStaffProfile() {
-            const name = document.getElementById('newStaffName').value.trim();
-            const code = document.getElementById('newStaffCode').value.trim();
-            const rank = document.getElementById('newStaffRank').value;
-            if(!name || !code || !rank) return alert("Fields unfulfilled.");
-
-            await fetch(`${BASE_API_URL}/staff`, {
+            // Send to notification sheet
+            await fetch(`${BASE_API_URL}/alerts`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([{name, code, rank}])
+                body: JSON.stringify([{target: name, title: 'Payroll Dispatched', message: `Management has authorized a payout of $${amt}. Please collect at counter.`}])
             });
-            document.getElementById('newStaffName').value = '';
-            document.getElementById('newStaffCode').value = '';
-            document.getElementById('newStaffRank').value = '';
-            fetchStaffDirectoryRoster();
+            
+            document.getElementById('payName').value = '';
+            document.getElementById('payAmount').value = '';
+            alert("Payout logged and staff notified!");
+        }
+
+        function vaultOverride(type) {
+            const amt = parseFloat(document.getElementById('overrideAmount').value);
+            if(!amt) return;
+            if(type === 'add') logFinance(amt, 0);
+            if(type === 'remove') logFinance(0, amt);
+            document.getElementById('overrideAmount').value = '';
+            document.getElementById('overrideReason').value = '';
+        }
+
+        function logFinance(addGross, addPayout) {
+            f_gross += addGross;
+            f_payouts += addPayout;
+            f_net = f_gross - f_payouts;
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            document.getElementById('statGross').innerText = `$${f_gross}`;
+            document.getElementById('statPayouts').innerText = `-$${f_payouts}`;
+            document.getElementById('statNet').innerText = `$${f_net}`;
+            document.getElementById('statNet').style.color = f_net < 0 ? 'var(--pos-red)' : 'var(--accent)';
         }
     </script>
 </body>
