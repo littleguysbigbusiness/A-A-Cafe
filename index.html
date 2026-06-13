@@ -82,6 +82,7 @@
             font-size: 13px;
             color: var(--text-main);
             transition: all 0.2s ease;
+            user-select: none;
         }
 
         .menu-item:hover { 
@@ -95,6 +96,12 @@
             background-color: var(--accent);
             color: var(--surface);
             border-color: var(--accent);
+        }
+
+        /* Prevent hover transform on disabled items */
+        .menu-item.disabled {
+            pointer-events: none;
+            opacity: 0.5;
         }
 
         input {
@@ -219,38 +226,57 @@
     </div>
 
     <script>
-        // PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL HERE:
         const BASE_API_URL = "https://script.google.com/macros/s/AKfycbxuT5QyTj2kSnLOHdvdYSyzUZrILN3gn9jBVxpbEj0n-kzSxZlpiRFyAv9v34x-QM2T/exec";
         
         let selectedItems = [];
+        let selectedPrices = {}; // FIX: track price per item name to avoid mismatch on deselect
         let currentTotal = 0;
         let updateInterval = null;
+        let isBanned = false;
 
-        if(localStorage.getItem('cafeCustomerName')) {
-            document.getElementById('custName').value = localStorage.getItem('cafeCustomerName');
+        // Restore saved name on load
+        const savedName = localStorage.getItem('cafeCustomerName');
+        if (savedName) {
+            document.getElementById('custName').value = savedName;
         }
 
         function toggleItem(el, name, price) {
-            if(document.getElementById('submitBtn').disabled) return;
+            // FIX: guard via isBanned flag instead of checking disabled attribute
+            if (isBanned) return;
+
             el.classList.toggle('selected');
             const idx = selectedItems.indexOf(name);
-            if(idx > -1) { selectedItems.splice(idx, 1); currentTotal -= price; }
-            else { selectedItems.push(name); currentTotal += price; }
+            if (idx > -1) {
+                selectedItems.splice(idx, 1);
+                currentTotal -= selectedPrices[name] || price;
+                delete selectedPrices[name];
+            } else {
+                selectedItems.push(name);
+                selectedPrices[name] = price;
+                currentTotal += price;
+            }
             document.getElementById('totalPrice').innerText = currentTotal;
         }
 
         function onNameChange() {
             const name = document.getElementById('custName').value.trim();
-            if(name) {
+            if (name) {
                 localStorage.setItem('cafeCustomerName', name);
                 checkUserBan(name);
                 updateCustomerData();
-                if(!updateInterval) {
-                    updateInterval = setInterval(updateCustomerData, 15000); // Efficient 15s refresh
+                if (!updateInterval) {
+                    updateInterval = setInterval(updateCustomerData, 15000);
                 }
             } else {
+                // FIX: clear ban state when name is cleared
+                isBanned = false;
+                document.getElementById('banAlert').style.display = 'none';
+                document.getElementById('submitBtn').disabled = false;
+                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('disabled'));
                 clearInterval(updateInterval);
                 updateInterval = null;
+                document.getElementById('customerTrackerList').innerText = "Enter your name to see active live track updates.";
+                document.getElementById('pastHistoryList').innerText = "History records will load here once a name is entered.";
             }
         }
 
@@ -258,24 +284,46 @@
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=customers&customer=${encodeURIComponent(name)}`);
                 const data = await res.json();
-                if(data.length > 0 && data[0].status === 'Banned') {
+                if (data && data.length > 0 && data[0].status === 'Banned') {
+                    isBanned = true;
                     document.getElementById('banAlert').style.display = 'block';
                     document.getElementById('submitBtn').disabled = true;
-                    document.getElementById('customerTrackerList').innerText = "Suspended profiles cannot pull tracking telemetry.";
+                    // FIX: visually disable menu items and deselect any chosen
+                    document.querySelectorAll('.menu-item').forEach(m => {
+                        m.classList.add('disabled');
+                        m.classList.remove('selected');
+                    });
+                    selectedItems = [];
+                    selectedPrices = {};
+                    currentTotal = 0;
+                    document.getElementById('totalPrice').innerText = 0;
+                    document.getElementById('customerTrackerList').innerText = "Suspended profiles cannot pull tracking updates.";
                     return true;
                 }
-            } catch(e){}
+            } catch (e) {
+                // Network failure — don't block the user
+            }
+            // Not banned
+            isBanned = false;
             document.getElementById('banAlert').style.display = 'none';
             document.getElementById('submitBtn').disabled = false;
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('disabled'));
             return false;
         }
 
         async function submitCustomerOrder() {
             const name = document.getElementById('custName').value.trim();
             const orderNotes = document.getElementById('chefNotesInput').value.trim();
-            if(!name || selectedItems.length === 0) return alert("Please type your name and pick your treats first!");
 
-            if(await checkUserBan(name)) return;
+            if (!name || selectedItems.length === 0) {
+                return alert("Please type your name and pick your treats first!");
+            }
+
+            // FIX: disable button during submission to prevent double-posting
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+
+            if (await checkUserBan(name)) return;
 
             const payload = {
                 action: 'submitOrder',
@@ -290,33 +338,46 @@
                 chef_notes: ''
             };
 
-            await fetch(BASE_API_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
+            try {
+                await fetch(BASE_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
 
-            alert("Order sent straight to the barista station!");
-            selectedItems = []; currentTotal = 0;
-            document.getElementById('totalPrice').innerText = 0;
-            document.getElementById('chefNotesInput').value = '';
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
-            updateCustomerData();
+                alert("Order sent straight to the barista station!");
+
+                // Reset order state
+                selectedItems = [];
+                selectedPrices = {};
+                currentTotal = 0;
+                document.getElementById('totalPrice').innerText = 0;
+                document.getElementById('chefNotesInput').value = '';
+                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
+
+                updateCustomerData();
+            } catch (e) {
+                alert("Failed to send order. Please try again.");
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         async function updateCustomerData() {
             const user = document.getElementById('custName').value.trim();
-            if(!user) return;
+            if (!user) return;
 
+            // Active orders
             try {
                 const activeRes = await fetch(`${BASE_API_URL}?sheet=Sheet1&customer=${encodeURIComponent(user)}`);
                 const activeOrders = await activeRes.json();
                 const container = document.getElementById('customerTrackerList');
                 
-                if(!activeOrders || activeOrders.length === 0 || activeOrders.error) {
+                if (!activeOrders || activeOrders.length === 0 || activeOrders.error) {
                     container.innerText = "No active orders in the current queue.";
                 } else {
                     container.innerHTML = '';
-                    activeOrders.reverse().forEach(o => {
+                    // FIX: copy before reversing to avoid mutating the original array
+                    [...activeOrders].reverse().forEach(o => {
                         const displayEta = o.eta ? o.eta : 'Calculating...';
                         const displayChefNotes = o.chef_notes ? o.chef_notes : 'Preparing your items...';
                         const displayStaffNotes = o.notes ? o.notes : '';
@@ -336,29 +397,31 @@
                             </div>`;
                     });
                 }
-            } catch(e){}
+            } catch (e) {}
 
+            // Past history
             try {
                 const archiveRes = await fetch(`${BASE_API_URL}?sheet=record_keeping&customer=${encodeURIComponent(user)}`);
                 const passedData = await archiveRes.json();
                 const historyBox = document.getElementById('pastHistoryList');
-                if(!passedData || passedData.length === 0 || passedData.error) {
-                    historyBox.innerText = "No archived receipts found under this profile identity.";
+
+                if (!passedData || passedData.length === 0 || passedData.error) {
+                    historyBox.innerText = "No archived receipts found under this profile.";
                 } else {
                     historyBox.innerHTML = '';
-                    passedData.reverse().forEach(h => {
+                    [...passedData].reverse().forEach(h => {
                         historyBox.innerHTML += `
                             <div style="padding:10px 0; border-bottom:1px solid var(--border); font-size:13px;">
                                 ✅ Order <strong>${h.id}</strong> — ${h.items} <span style="color:var(--accent); font-weight:bold;">($${h.total})</span>
                             </div>`;
                     });
                 }
-            } catch(e){}
+            } catch (e) {}
         }
 
-        const existingDeviceUser = document.getElementById('custName').value.trim();
-        if(existingDeviceUser) {
-            checkUserBan(existingDeviceUser);
+        // Kick off on load if name was saved
+        if (savedName) {
+            checkUserBan(savedName);
             updateCustomerData();
             updateInterval = setInterval(updateCustomerData, 15000);
         }
