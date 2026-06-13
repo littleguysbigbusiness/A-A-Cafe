@@ -113,7 +113,7 @@
                 <h2>🔐 Customer Portal Account Hub</h2>
                 <div id="loggedOutSection">
                     <div class="auth-box">
-                        <label>Account Profile Name</label>
+                        <label>Account Profile Name / Username</label>
                         <input type="text" id="loginUser" placeholder="Enter your registered name...">
                         <label>Security PIN / Password</label>
                         <input type="password" style="width:100%; padding:10px; border:1px solid var(--border-glow); border-radius:8px; margin-bottom:12px;" id="loginPass" placeholder="••••••••">
@@ -149,10 +149,6 @@
                     <div class="menu-card" onclick="addItemToBasket('Red Velvet Cupcake', 2)">🧁<br>Cupcake<br><span class="menu-price">$2</span></div>
                     <div class="menu-card" onclick="addItemToBasket('Donut', 3)">🍩<br>Donut<br><span class="menu-price">$3</span></div>
                     <div class="menu-card" onclick="addItemToBasket('Pies Whole', 10)">🥧<br>Whole Pie<br><span class="menu-price">$10</span></div>
-                    <div class="menu-card" onclick="addItemToBasket('Coffee', 4)">☕<br>Coffee<br><span class="menu-price">$4</span></div>
-                    <div class="menu-card" onclick="addItemToBasket('Tea', 4)">🍵<br>Tea<br><span class="menu-price">$4</span></div>
-                    <div class="menu-card" onclick="addItemToBasket('Espresso', 5)">⚡<br>Espresso<br><span class="menu-price">$5</span></div>
-                    <div class="menu-card" onclick="addItemToBasket('Cappuccino', 5)">🥛<br>Cappuccino<br><span class="menu-price">$5</span></div>
                 </div>
             </div>
         </div>
@@ -195,9 +191,6 @@
                         <option value="Sunset Pointe">Sunset Pointe</option>
                         <option value="Lake View Heights">Lake View Heights</option>
                     </select>
-                    
-                    <label>Specific House/Unit Number & Street Line</label>
-                    <input type="text" id="deliveryStreetField" placeholder="e.g., House 42, Circular Avenue">
                 </div>
 
                 <label>Checkout Profile Tracking Name</label>
@@ -240,37 +233,39 @@
             tray.innerText = Object.entries(groupings).map(([item, qty]) => `${qty}x ${item}`).join(', ');
         }
 
-        // ACCOUNT REGISTRATION INGESTING TO SPREADSHEET SHEET "customer"
         async function handleAccountRegistration() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
-            if(!user || !pass) return alert("Provide both account fields to configure your profile credentials.");
+            if(!user || !pass) return alert("Please enter a username and a security PIN to register.");
             
-            // Payload explicitly matching Column A (customer) and Column B (pin) in your sheet
-            const registrationRow = {
-                customer: user,
-                pin: pass
-            };
+            // Format exact match payload array for SteinHQ API ingestion 
+            const registrationPayload = [
+                {
+                    customer: user,
+                    pin: String(pass)
+                }
+            ];
 
             try {
-                // Sends information explicitly to your "customer" sheet tab
                 const res = await fetch(`${MASTER_API_URL}/customer`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify([registrationRow])
+                    body: JSON.stringify(registrationPayload)
                 });
                 
                 if(res.ok) {
-                    alert("Profile created! Your details have been securely logged. You can now Log In.");
+                    alert("Profile successfully registered! Auto-logging you into your dashboard...");
+                    validatedSessionUser = user;
+                    document.getElementById('orderCustomerName').value = user;
+                    initializeUserSessionDashboard();
                 } else {
-                    alert("Registration failed. Please double-check your spreadsheet sheet name config.");
+                    alert("Registration failed. Please confirm that your Google Sheet has a tab named exactly 'customer' with column headers 'customer' and 'pin'.");
                 }
             } catch(e) {
-                alert("Network connectivity issue trying to write to registration rows.");
+                alert("Network error: Could not save data to database rows.");
             }
         }
 
-        // VALIDATING LOGINS AGAINST THE SHEET "customer"
         async function handleAccountLogin() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
@@ -280,10 +275,9 @@
                 const response = await fetch(`${MASTER_API_URL}/customer`);
                 const registeredUsers = await response.json();
                 
-                // Scan columns looking for matching configurations
                 const validProfileMatch = registeredUsers.find(row => 
-                    row.customer && row.customer.toLowerCase() === user.toLowerCase() && 
-                    row.pin && String(row.pin) === String(pass)
+                    row.customer && row.customer.toString().trim().toLowerCase() === user.toLowerCase() && 
+                    row.pin && row.pin.toString().trim() === pass.toString().trim()
                 );
 
                 if(validProfileMatch) {
@@ -291,7 +285,7 @@
                     document.getElementById('orderCustomerName').value = user;
                     initializeUserSessionDashboard();
                 } else {
-                    alert("Security Credentials Exception: Profile match not found in database records.");
+                    alert("Access Denied: Invalid Username or PIN match.");
                 }
             } catch(e) {
                 alert("Failed to communicate with authorization server sheets.");
@@ -300,6 +294,7 @@
 
         function handleAccountLogout() {
             validatedSessionUser = null;
+            document.getElementById('orderCustomerName').value = '';
             document.getElementById('loggedInSection').style.display = "none";
             document.getElementById('loggedOutSection').style.display = "block";
         }
@@ -316,7 +311,7 @@
                 const response = await fetch(`${MASTER_API_URL}/Sheet1`);
                 const allRows = await response.json();
                 
-                const accountFilteredTickets = allRows.filter(ticket => ticket.customer && ticket.customer.toLowerCase() === validatedSessionUser.toLowerCase());
+                const accountFilteredTickets = allRows.filter(ticket => ticket.customer && ticket.customer.toString().toLowerCase() === validatedSessionUser.toLowerCase());
                 
                 if(accountFilteredTickets.length === 0) {
                     historyContainer.innerHTML = '<div style="color:var(--text-secondary); font-style:italic; font-size:13px;">No transaction records found.</div>';
@@ -359,9 +354,7 @@
 
             if(mode === 'Delivery') {
                 const subCommunityComplex = document.getElementById('deliveryLocationDropdown').value;
-                const specificStreetInfo = document.getElementById('deliveryStreetField').value.trim();
-                if(!specificStreetInfo) return alert("A specific street address route location must be assigned.");
-                finalLogisticsNotes = `DELIVERY -> Complex: ${subCommunityComplex} | Address: ${specificStreetInfo}`;
+                finalLogisticsNotes = `DELIVERY -> Complex: ${subCommunityComplex} | House located via username profile alignment`;
             } else if(mode === 'Dine-In') {
                 const selectedTable = document.getElementById('dineInTableDropdown').value;
                 finalLogisticsNotes = `DINE-IN -> Location: ${selectedTable}`;
@@ -392,7 +385,6 @@
                     alert(`Order logged into production pipelines successfully! Tracking Identifier: ${spreadsheetRowObject.id}`);
                     activeBasketItems = [];
                     runningBasketTotal = 0;
-                    document.getElementById('deliveryStreetField').value = '';
                     updateBasketUI();
                     if(validatedSessionUser) initializeUserSessionDashboard();
                 }
