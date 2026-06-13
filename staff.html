@@ -321,7 +321,7 @@
                         
                         <span style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">👥 Active Duty Roster</span>
                         <div class="roster-list" id="activeDutyRosterBox">
-                            <div style="color:var(--text-secondary); font-size:13px; font-style:italic;">No operators currently on floor.</div>
+                            <div style="color:var(--text-secondary); font-size:13px; font-style:italic;">Loading live floor tracking data...</div>
                         </div>
                     </div>
                     <div>
@@ -478,9 +478,6 @@
         let currentInspectedCustomer = "";
         let currentLiveOrders = [];
         let systemStaffList = [];
-        
-        // Time tracking mechanics
-        let attendanceRegistry = {}; 
 
         function pushInternalNotification(message) {
             const container = document.getElementById('staffNotificationFeed');
@@ -489,55 +486,95 @@
             if (container.children.length > 20) container.removeChild(container.lastChild);
         }
 
-        function toggleStaffShift() {
+        async function toggleStaffShift() {
+            const btn = document.getElementById('timeclockBtn');
+            btn.disabled = true;
+            
+            const nowString = new Date().toLocaleString();
             isClockedIn = !isClockedIn;
+            
+            const payload = {
+                condition: { name: activeStaffName },
+                set: {
+                    status: isClockedIn ? "On Shift" : "Off Shift",
+                    clocked_in: isClockedIn ? nowString : "",
+                    clocked_out: isClockedIn ? "" : nowString
+                }
+            };
+
+            try {
+                await fetch(`${BASE_API_URL}/staff`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                
+                updateLocalShiftUI();
+                pushInternalNotification(`ATTENDANCE: ${activeStaffName} logged ${isClockedIn ? 'IN' : 'OUT'} to database.`);
+                await fetchLiveRosterData();
+            } catch(e) {
+                alert("Attendance sync failed.");
+                isClockedIn = !isClockedIn; // Revert locally
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function updateLocalShiftUI() {
             const pill = document.getElementById('timeclockPill');
             const btn = document.getElementById('timeclockBtn');
-            
             if(isClockedIn) {
                 pill.innerText = "On Shift";
                 pill.className = "shift-status-pill on";
                 btn.innerText = "Clock Out";
                 btn.style.background = "var(--color-danger)";
                 btn.style.color = "white";
-                
-                attendanceRegistry[activeStaffName] = Date.now();
-                pushInternalNotification(`ATTENDANCE: ${activeStaffName} clocked IN to duty station.`);
             } else {
                 pill.innerText = "Off Shift";
                 pill.className = "shift-status-pill off";
                 btn.innerText = "Clock In";
                 btn.style.background = "var(--accent-brand)";
                 btn.style.color = "var(--bg-darker)";
-                
-                delete attendanceRegistry[activeStaffName];
-                pushInternalNotification(`ATTENDANCE: ${activeStaffName} clocked OUT of duty station.`);
             }
-            renderActiveRoster();
         }
 
-        function renderActiveRoster() {
-            const container = document.getElementById('activeDutyRosterBox');
-            const checkedInStaff = Object.keys(attendanceRegistry);
-            
-            if(checkedInStaff.length === 0) {
-                container.innerHTML = `<div style="color:var(--text-secondary); font-size:13px; font-style:italic;">No operators currently on floor.</div>`;
-                return;
-            }
-            
-            container.innerHTML = '';
-            checkedInStaff.forEach(name => {
-                const elapsedMs = Date.now() - attendanceRegistry[name];
-                const formattedTime = formatElapsed(elapsedMs);
-                container.innerHTML += `
-                    <div class="roster-card" data-staff-name="${name}">
-                        <div style="font-weight:600;">🟢 ${name}</div>
-                        <div>Shift Time: <span class="roster-time">${formattedTime}</span></div>
-                    </div>`;
-            });
+        async function fetchLiveRosterData() {
+            try {
+                const res = await fetch(`${BASE_API_URL}/staff`);
+                const catalog = await res.json();
+                if(!catalog || catalog.error) return;
+                
+                systemStaffList = catalog;
+                const container = document.getElementById('activeDutyRosterBox');
+                container.innerHTML = '';
+
+                let activeWorkers = catalog.filter(s => s.status === "On Shift");
+
+                if(activeWorkers.length === 0) {
+                    container.innerHTML = `<div style="color:var(--text-secondary); font-size:13px; font-style:italic;">No operators currently on floor.</div>`;
+                    return;
+                }
+
+                activeWorkers.forEach(worker => {
+                    let durationText = "Calculating...";
+                    if(worker.clocked_in) {
+                        const startTime = new Date(worker.clocked_in).getTime();
+                        if(!isNaN(startTime)) {
+                            const diffMs = Date.now() - startTime;
+                            durationText = formatElapsed(diffMs);
+                        }
+                    }
+                    container.innerHTML += `
+                        <div class="roster-card">
+                            <div style="font-weight:600;">🟢 ${worker.name}</div>
+                            <div>Shift Time: <span class="roster-time" data-start="${worker.clocked_in}">${durationText}</span></div>
+                        </div>`;
+                });
+            } catch(e){}
         }
 
         function formatElapsed(ms) {
+            if(ms < 0) ms = 0;
             const totalSecs = Math.floor(ms / 1000);
             const hrs = Math.floor(totalSecs / 3600);
             const mins = Math.floor((totalSecs % 3600) / 60);
@@ -545,12 +582,21 @@
             return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // Live updater for shift timers
+        // Auto tick timers locally on the screen
         setInterval(() => {
-            if (Object.keys(attendanceRegistry).length > 0) {
-                renderActiveRoster();
-            }
+            document.querySelectorAll('.roster-time').forEach(el => {
+                const startTimeStr = el.getAttribute('data-start');
+                if(startTimeStr) {
+                    const start = new Date(startTimeStr).getTime();
+                    if(!isNaN(start)) {
+                        el.innerText = formatElapsed(Date.now() - start);
+                    }
+                }
+            });
         }, 1000);
+
+        // Fetch updates from database every 10 seconds
+        setInterval(fetchLiveRosterData, 10000);
 
         function routeTo(panelId) {
             if(panelId !== 'kitchenView' && activeStaffRank < 10) {
@@ -577,6 +623,9 @@
                 if(matched) {
                     activeStaffName = matched.name;
                     activeStaffRank = parseInt(matched.rank) || 1;
+                    isClockedIn = (matched.status === "On Shift");
+                    
+                    updateLocalShiftUI();
                     
                     document.getElementById('authGate').style.display = 'none';
                     document.getElementById('mainConsole').style.display = 'block';
@@ -590,6 +639,7 @@
                     
                     pushInternalNotification(`Staff session established: ${activeStaffName}`);
                     fetchLiveKitchenOrders();
+                    await fetchLiveRosterData();
                     setInterval(fetchLiveKitchenOrders, 5000);
                 } else { alert("Verification mismatch configuration."); }
             } catch(e){ alert("Database baseline unresponsive."); }
@@ -902,7 +952,7 @@
                 await fetch(`${BASE_API_URL}/staff`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify([{ name, code, rank }])
+                    body: JSON.stringify([{ name, code, rank, status: 'Off Shift', clocked_in: '', clocked_out: '' }])
                 });
                 document.getElementById('newStaffName').value = ''; document.getElementById('newStaffCode').value = ''; document.getElementById('newStaffRank').value = '';
                 fetchStaffDirectory();
