@@ -115,7 +115,7 @@
                     <div class="auth-box">
                         <label>Account Profile Name</label>
                         <input type="text" id="loginUser" placeholder="Enter your registered name...">
-                        <label>Security Password</label>
+                        <label>Security PIN / Password</label>
                         <input type="password" style="width:100%; padding:10px; border:1px solid var(--border-glow); border-radius:8px; margin-bottom:12px;" id="loginPass" placeholder="••••••••">
                         <div style="display:flex; gap:10px;">
                             <button class="btn btn-primary" style="padding:8px;" onclick="handleAccountLogin()">Log In</button>
@@ -170,9 +170,22 @@
 
                 <label>Fulfillment Routine</label>
                 <select id="fulfillmentMode" onchange="toggleFulfillmentFields()">
+                    <option value="Dine-In">🍽️ Dine-In Table Service</option>
                     <option value="Pickup">🚶 Counter Pickup</option>
                     <option value="Delivery">🚗 Direct Estate Delivery</option>
                 </select>
+
+                <div id="dineInGeographicBox" style="display: block; background: var(--bg-main); padding: 14px; border-radius: 8px; border: 1px solid var(--border-glow); margin-bottom: 12px;">
+                    <label>Select Your Table Assignment</label>
+                    <select id="dineInTableDropdown">
+                        <option value="Table 1">Table 1</option>
+                        <option value="Table 2">Table 2</option>
+                        <option value="Table 3">Table 3</option>
+                        <option value="Table 4">Table 4</option>
+                        <option value="Booth A">Booth A</option>
+                        <option value="Booth B">Booth B</option>
+                    </select>
+                </div>
 
                 <div id="deliveryGeographicBox" style="display: none; background: var(--bg-main); padding: 14px; border-radius: 8px; border: 1px solid var(--border-glow); margin-bottom: 12px;">
                     <label>Select Your Estate Complex Community Location</label>
@@ -205,6 +218,7 @@
         function toggleFulfillmentFields() {
             const mode = document.getElementById('fulfillmentMode').value;
             document.getElementById('deliveryGeographicBox').style.display = (mode === 'Delivery') ? 'block' : 'none';
+            document.getElementById('dineInGeographicBox').style.display = (mode === 'Dine-In') ? 'block' : 'none';
         }
 
         function addItemToBasket(name, price) {
@@ -226,27 +240,61 @@
             tray.innerText = Object.entries(groupings).map(([item, qty]) => `${qty}x ${item}`).join(', ');
         }
 
-        // CUSTOMER IDENTITY VALIDATION SUBSYSTEMS
-        function handleAccountRegistration() {
+        // ACCOUNT REGISTRATION INGESTING TO SPREADSHEET SHEET "customer"
+        async function handleAccountRegistration() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
-            if(!user || !pass) return alert("Provide both account fields to configure a storage credentials profile.");
+            if(!user || !pass) return alert("Provide both account fields to configure your profile credentials.");
             
-            localStorage.setItem(`aa_profile_${user}`, pass);
-            alert("Profile security records compiled locally! You may now sign into your profile.");
+            // Payload explicitly matching Column A (customer) and Column B (pin) in your sheet
+            const registrationRow = {
+                customer: user,
+                pin: pass
+            };
+
+            try {
+                // Sends information explicitly to your "customer" sheet tab
+                const res = await fetch(`${MASTER_API_URL}/customer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([registrationRow])
+                });
+                
+                if(res.ok) {
+                    alert("Profile created! Your details have been securely logged. You can now Log In.");
+                } else {
+                    alert("Registration failed. Please double-check your spreadsheet sheet name config.");
+                }
+            } catch(e) {
+                alert("Network connectivity issue trying to write to registration rows.");
+            }
         }
 
-        function handleAccountLogin() {
+        // VALIDATING LOGINS AGAINST THE SHEET "customer"
+        async function handleAccountLogin() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
+            if(!user || !pass) return alert("Please fill out both credentials fields.");
             
-            const databasePasswordRecord = localStorage.getItem(`aa_profile_${user}`);
-            if(databasePasswordRecord && databasePasswordRecord === pass) {
-                validatedSessionUser = user;
-                document.getElementById('orderCustomerName').value = user;
-                initializeUserSessionDashboard();
-            } else {
-                alert("Security Credentials Exception: Profile records mismatch or account does not exist.");
+            try {
+                const response = await fetch(`${MASTER_API_URL}/customer`);
+                const registeredUsers = await response.json();
+                
+                // Scan columns looking for matching configurations
+                const validProfileMatch = registeredUsers.find(row => 
+                    row.customer && row.customer.toLowerCase() === user.toLowerCase() && 
+                    row.pin && String(row.pin) === String(pass)
+                );
+
+                if(validProfileMatch) {
+                    validatedSessionUser = user;
+                    document.getElementById('orderCustomerName').value = user;
+                    initializeUserSessionDashboard();
+                } else {
+                    alert("Security Credentials Exception: Profile match not found in database records.");
+                }
+            } catch(e) {
+                alert("Failed to communicate with authorization server sheets.");
             }
         }
 
@@ -268,10 +316,8 @@
                 const response = await fetch(`${MASTER_API_URL}/Sheet1`);
                 const allRows = await response.json();
                 
-                // Track down rows that belong to this specific account name
                 const accountFilteredTickets = allRows.filter(ticket => ticket.customer && ticket.customer.toLowerCase() === validatedSessionUser.toLowerCase());
                 
-                // 1. Render History Logs
                 if(accountFilteredTickets.length === 0) {
                     historyContainer.innerHTML = '<div style="color:var(--text-secondary); font-style:italic; font-size:13px;">No transaction records found.</div>';
                 } else {
@@ -291,7 +337,6 @@
                     });
                 }
 
-                // 2. Scan for and post alerts if an order is paid upfront
                 const hasPaidTicket = accountFilteredTickets.some(t => t.paid === 'Yes');
                 if(hasPaidTicket) {
                     alertContainer.innerHTML = `<div class="notification-banner">🔔 Payment confirmation received! Your transaction has cleared verification loops successfully.</div>`;
@@ -304,11 +349,10 @@
             }
         }
 
-        // TRANSACTION TRANSACTION RECORD TRANSMISSION SUBMITTER
         async function submitCustomerOrderTicket() {
             const customerName = document.getElementById('orderCustomerName').value.trim();
             if(!customerName) return alert("Assign a client profile name tag to submit checkout rows.");
-            if(activeBasketItems.length === 0) return alert("Basket holds no target inventory matrix items.");
+            if(activeBasketItems.length === 0) return alert("Basket holds no target items.");
 
             const mode = document.getElementById('fulfillmentMode').value;
             let finalLogisticsNotes = `Storefront Customer (${mode})`;
@@ -316,9 +360,11 @@
             if(mode === 'Delivery') {
                 const subCommunityComplex = document.getElementById('deliveryLocationDropdown').value;
                 const specificStreetInfo = document.getElementById('deliveryStreetField').value.trim();
-                
                 if(!specificStreetInfo) return alert("A specific street address route location must be assigned.");
                 finalLogisticsNotes = `DELIVERY -> Complex: ${subCommunityComplex} | Address: ${specificStreetInfo}`;
+            } else if(mode === 'Dine-In') {
+                const selectedTable = document.getElementById('dineInTableDropdown').value;
+                finalLogisticsNotes = `DINE-IN -> Location: ${selectedTable}`;
             }
 
             const itemizedPayloadSummary = document.getElementById('checkoutBasketTray').innerText;
@@ -329,7 +375,7 @@
                 items: itemizedPayloadSummary,
                 total: runningBasketTotal,
                 status: 'Pending',
-                paid: validatedSessionUser ? 'Yes' : 'No', // Automatically flag as paid if logged into an account profile
+                paid: validatedSessionUser ? 'Yes' : 'No', 
                 eta: 'Asap',
                 notes: finalLogisticsNotes,
                 chef_notes: ''
