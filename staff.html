@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ A&A Cafe | Master Control Terminal</title>
+    <title>⚡ A&A Cafe | Control Terminal</title>
     <style>
         :root {
             --bg-main: #f1f5f9; --surface: #ffffff; --border: #cbd5e1; --accent: #2563eb;
@@ -13,7 +13,7 @@
         .topbar { background: var(--accent); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2); }
         .topbar h1 { margin: 0; font-size: 20px; font-weight: 700; }
         .tab-group { display: flex; gap: 10px; }
-        .tab-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+        .tab-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
         .tab-btn.active, .tab-btn:hover { background: white; color: var(--accent); }
         .workspace { padding: 40px; max-width: 1400px; margin: 0 auto; }
         .view-panel { display: none; }
@@ -22,6 +22,8 @@
         h2, h3, h4 { margin-top: 0; border-bottom: 2px solid var(--bg-main); padding-bottom: 12px; }
         input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; background: var(--bg-main); font-size: 14px; }
         .btn-submit { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        
+        /* RESTORED CLEAN KITCHEN STACK */
         .kitchen-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         .ticket-card { background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--accent); padding: 20px; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; }
         .ticket-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; margin-bottom: 10px; }
@@ -29,9 +31,9 @@
         .btn-paid-primary { background: var(--pos-green); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 700; width: 100%; margin-bottom: 8px; }
         .btn-override-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11px; width: 100%; text-transform: uppercase; font-weight: 600; }
         
-        .chef-note-container { background: #f8fafc; border: 1px dashed var(--border); padding: 10px; border-radius: 6px; margin-bottom: 12px; }
-        .chef-note-row { display: flex; gap: 5px; margin-top: 5px; }
-        .chef-note-row input { margin: 0; padding: 6px; border-radius: 4px; font-size: 12px; background: #fff; }
+        /* CHEF NOTE OVERLAY LINE */
+        .chef-note-row { display: flex; gap: 5px; margin-bottom: 12px; }
+        .chef-note-row input { margin: 0; padding: 6px; border-radius: 4px; font-size: 12px; }
         .btn-note-save { background: var(--text-main); color: white; border: none; padding: 0 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
         
         .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
@@ -84,48 +86,35 @@
             </div>
 
             <div id="panel-crm" class="view-panel">
-                <h3>👥 Customer Relationship & Player Restrictions</h3>
-                
+                <h3>👥 Customer Records & Restrictions</h3>
                 <div class="panel" style="border-left: 4px solid var(--pos-red);">
-                    <h4>🔨 Instant Player Ban Management</h4>
+                    <h4>🔨 Ban Control</h4>
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <input type="text" id="banTargetInput" placeholder="Enter Roblox Username to Blacklist..." style="margin:0;">
-                        <button class="btn-submit" style="background: var(--pos-red); width: 180px;" onclick="addPlayerBan()">Issue Blacklist</button>
+                        <input type="text" id="banTargetInput" placeholder="Roblox Username..." style="margin:0;">
+                        <button class="btn-submit" style="background: var(--pos-red); width: 150px;" onclick="addPlayerBan()">Ban Player</button>
                     </div>
                     <table id="banTable">
-                        <thead>
-                            <tr><th>Banned Username</th><th>Status</th><th>Action</th></tr>
-                        </thead>
-                        <tbody id="banTableBody">
-                            <tr><td colspan="3" style="color:var(--text-muted);">No restricted players logged.</td></tr>
-                        </tbody>
+                        <thead><tr><th>Banned User</th><th>Action</th></tr></thead>
+                        <tbody id="banTableBody"><tr><td colspan="2" style="color:var(--text-muted);">No bans active.</td></tr></tbody>
                     </table>
                 </div>
-
                 <div class="panel">
-                    <h4>📋 Active Customer History Logs</h4>
+                    <h4>📋 Customer History Logs</h4>
                     <input type="text" id="crmSearchInput" placeholder="Search customer records..." oninput="filterCRMTable()">
                     <table id="crmTable">
-                        <thead>
-                            <tr><th>Roblox Username</th><th>Latest State</th><th>Order Total Value</th></tr>
-                        </thead>
-                        <tbody id="crmTableBody">
-                            <tr><td colspan="3" style="color:var(--text-muted);">Awaiting network load...</td></tr>
-                        </tbody>
+                        <thead><tr><th>Username</th><th>Status</th><th>Total Value</th></tr></thead>
+                        <tbody id="crmTableBody"><tr><td colspan="3" style="color:var(--text-muted);">Awaiting load...</td></tr></tbody>
                     </table>
                 </div>
             </div>
 
             <div id="panel-staff" class="view-panel">
-                <h3>📋 Employee Directory & Shift Duration Tracking</h3>
+                <h3>📋 Staff Sessions & Duration Logs</h3>
                 <div class="panel">
-                    <h4>⏱️ Live Active Timesheet Sessions</h4>
                     <table id="timesheetTable">
-                        <thead>
-                            <tr><th>Employee Username</th><th>Status</th><th>Total Duration Worked</th></tr>
-                        </thead>
+                        <thead><tr><th>Employee Username</th><th>Status</th><th>Duration Worked</th></tr></thead>
                         <tbody id="timesheetTableBody">
-                            <tr><td>Awesomebuilderaiden</td><td><span style="color:var(--pos-green);">🟢 On-Duty</span></td><td id="duration-owner">0 mins (Active)</td></tr>
+                            <tr><td>Awesomebuilderaiden</td><td><span id="ownerStatusSpan" style="color:var(--pos-red);">🔴 Off-Duty</span></td><td id="duration-owner">0 mins logged</td></tr>
                             <tr><td>Barista123</td><td><span>⚪ Off-Duty</span></td><td>45 mins logged</td></tr>
                             <tr><td>Cashier456</td><td><span>⚪ Off-Duty</span></td><td>120 mins logged</td></tr>
                         </tbody>
@@ -136,7 +125,7 @@
             <div id="panel-manager" class="view-panel">
                 <div class="stat-grid">
                     <div class="stat-box"><h4>Gross Earnings</h4><div class="value-num" id="statGross">$0</div></div>
-                    <div class="stat-box"><h4>Staff Payouts</h4><div class="value-num" id="statPayouts" style="color: var(--pos-red);Explicitly">-$0</div></div>
+                    <div class="stat-box"><h4>Staff Payouts</h4><div class="value-num" id="statPayouts" style="color: var(--pos-red);">-$0</div></div>
                     <div class="stat-box"><h4>Net Balance</h4><div class="value-num" id="statNet">$0</div></div>
                 </div>
 
@@ -192,27 +181,21 @@
             isClockedIn = !isClockedIn;
             const btn = document.getElementById('shiftBtn');
             const statusIndicator = document.getElementById('shiftStatus');
+            const ownerSpan = document.getElementById('ownerStatusSpan');
+            const el = document.getElementById('duration-owner');
+            
             if(isClockedIn) {
                 shiftStartTimestamp = Date.now(); btn.innerText = "Clock Out"; btn.style.color = "var(--pos-red)";
                 statusIndicator.innerText = "🟢 Clocked In"; statusIndicator.style.background = "var(--pos-green)";
-                updateOwnerTimesheet(0, true);
+                ownerSpan.innerText = "🟢 On-Duty"; ownerSpan.style.color = "var(--pos-green)";
+                el.innerText = "Tracking Active Session..."; el.style.color = "var(--pos-green)";
             } else {
                 let sessionDeltaMinutes = Math.round((Date.now() - shiftStartTimestamp) / 60000);
                 alert(`Shift closed! Tracked time: ${sessionDeltaMinutes} minutes.`);
                 btn.innerText = "Clock In"; btn.style.color = "var(--accent)";
                 statusIndicator.innerText = "🔴 Clocked Out"; statusIndicator.style.background = "rgba(0,0,0,0.2)";
-                updateOwnerTimesheet(sessionDeltaMinutes, false);
-            }
-        }
-
-        function updateOwnerTimesheet(mins, active) {
-            const el = document.getElementById('duration-owner');
-            if(active) {
-                el.innerText = "Tracking... (Active Now)";
-                el.style.color = "var(--pos-green)";
-            } else {
-                el.innerText = `${mins} mins logged`;
-                el.style.color = "var(--text-main)";
+                ownerSpan.innerText = "🔴 Off-Duty"; ownerSpan.style.color = "var(--pos-red)";
+                el.innerText = `${sessionDeltaMinutes} mins logged`; el.style.color = "var(--text-main)";
             }
         }
 
@@ -229,6 +212,7 @@
                 const queueTarget = document.getElementById('liveQueue');
                 if(!data || data.length === 0 || data.error) return queueTarget.innerHTML = "<p>Queue clear.</p>";
                 
+                // RESTORED STREAMLINED CARD PATTERN
                 queueTarget.innerHTML = data.reverse().map(o => `
                     <div class="ticket-card">
                         <div>
@@ -237,14 +221,9 @@
                                 <span style="color:var(--accent);">👤 ${o.customer}</span>
                             </div>
                             <p class="ticket-items"><strong>Items:</strong> ${o.items}</p>
-                            
-                            <div class="chef-note-container">
-                                <div style="font-size:11px; color:var(--text-muted);"><strong>Private Chef Note Feed:</strong></div>
-                                <div style="font-size:13px; color:var(--accent); margin-top:2px;" id="currentNoteText-${o.id}">${o.chef_notes || 'None logged.'}</div>
-                                <div class="chef-note-row">
-                                    <input type="text" id="noteInput-${o.id}" placeholder="Type updating step..." value="${o.chef_notes || ''}">
-                                    <button class="btn-note-save" onclick="saveChefNote('${o.id}')">Update</button>
-                                </div>
+                            <div class="chef-note-row">
+                                <input type="text" id="noteInput-${o.id}" placeholder="Chef note..." value="${o.chef_notes || ''}">
+                                <button class="btn-note-save" onclick="saveChefNote('${o.id}')">Save</button>
                             </div>
                         </div>
                         <div style="margin-top:5px;">
@@ -262,22 +241,22 @@
 
         async function saveChefNote(id) {
             const val = document.getElementById(`noteInput-${id}`).value.trim();
-            document.getElementById(`currentNoteText-${id}`).innerText = val || 'None logged.';
             await fetch(`${BASE_API_URL}/Sheet1`, {
                 method: 'PUT', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ condition: { id: id }, set: { chef_notes: val } })
             });
+            alert("Chef note updated!");
         }
 
         function addPlayerBan() {
             const target = document.getElementById('banTargetInput').value.trim();
-            if(!target) return alert("Type a username to ban.");
+            if(!target) return alert("Specify target username.");
             if(!bannedPlayers.includes(target)) {
                 bannedPlayers.push(target);
                 localStorage.setItem('cafeBans', JSON.stringify(bannedPlayers));
                 renderBans();
                 document.getElementById('banTargetInput').value = '';
-                alert(`Player ${target} has been blacklisted from portal transactions.`);
+                alert(`Banned ${target}`);
             }
         }
 
@@ -290,20 +269,19 @@
         function renderBans() {
             const tbody = document.getElementById('banTableBody');
             if(bannedPlayers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="color:var(--text-muted);">No restricted players logged.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="2" style="color:var(--text-muted);">No bans active.</td></tr>`;
                 return;
             }
             tbody.innerHTML = bannedPlayers.map(p => `
                 <tr>
                     <td><strong style="color:var(--pos-red);">${p}</strong></td>
-                    <td><span style="font-weight:bold; color:var(--pos-red);">ACCESS BLOCKED</span></td>
                     <td><button class="unban-btn" onclick="removePlayerBan('${p}')">Lift Ban</button></td>
                 </tr>
             `).join('');
         }
 
         function populateCRMTable(data) {
-            const tbody = document.querySelector('#crmTable tbody');
+            const tbody = document.getElementById('crmTableBody');
             if(!data || data.length === 0) return;
             const usersMap = {};
             data.forEach(item => {
@@ -327,30 +305,29 @@
         }
 
         async function loadSavedFinances() {
+            // Load from safe local state storage explicitly first to stop wiping out metrics
+            totalGrossSales = parseFloat(localStorage.getItem('grossStoreVal') || 0);
+            totalStaffExpenses = parseFloat(localStorage.getItem('payoutsStoreVal') || 0);
+            recalculateDashboardUI(false);
+            
             try {
                 const res = await fetch(`${BASE_API_URL}/finances`);
                 const data = await res.json();
                 if (data && data.length > 0 && !data.error) {
                     const latest = data[data.length - 1];
-                    totalGrossSales = parseFloat(latest.gross || 0);
-                    totalStaffExpenses = parseFloat(latest.payouts || 0);
-                    recalculateDashboardUI(false);
-                } else {
-                    totalGrossSales = parseFloat(localStorage.getItem('grossFallback') || 0);
-                    totalStaffExpenses = parseFloat(localStorage.getItem('payoutsFallback') || 0);
-                    recalculateDashboardUI(false);
+                    if(parseFloat(latest.gross) >= totalGrossSales) {
+                        totalGrossSales = parseFloat(latest.gross || 0);
+                        totalStaffExpenses = parseFloat(latest.payouts || 0);
+                        recalculateDashboardUI(false);
+                    }
                 }
-            } catch(e){
-                totalGrossSales = parseFloat(localStorage.getItem('grossFallback') || 0);
-                totalStaffExpenses = parseFloat(localStorage.getItem('payoutsFallback') || 0);
-                recalculateDashboardUI(false);
-            }
+            } catch(e){}
         }
 
         async function saveFinancesToDatabase() {
             const currentNet = totalGrossSales - totalStaffExpenses;
-            localStorage.setItem('grossFallback', totalGrossSales);
-            localStorage.setItem('payoutsFallback', totalStaffExpenses);
+            localStorage.setItem('grossStoreVal', totalGrossSales);
+            localStorage.setItem('payoutsStoreVal', totalStaffExpenses);
             try {
                 await fetch(`${BASE_API_URL}/finances`, {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -369,7 +346,7 @@
         }
 
         async function markTicketPaidOverride(id, baselineMenuTotal) {
-            const customInput = prompt(`Enter exact cash total (Base was $${baselineMenuTotal}):`);
+            const customInput = prompt(`Enter cash total:`);
             if(!customInput || isNaN(customInput)) return;
             const processedVal = parseFloat(customInput);
             await adjustFinancePool(processedVal, 0); 
@@ -388,19 +365,15 @@
         async function logStaffPayout() {
             const name = document.getElementById('payName').value.trim();
             const amt = parseFloat(document.getElementById('payAmount').value);
-            if(!name || isNaN(amt)) return alert("Fill out payroll entries.");
+            if(!name || isNaN(amt)) return alert("Fill fields.");
             await adjustFinancePool(0, amt);
-            await fetch(`${BASE_API_URL}/alerts`, {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([{ target: name, title: 'Payroll Dispatched', message: `Management logged a shift payment of $${amt} to your profile.` }])
-            });
             document.getElementById('payName').value = ''; document.getElementById('payAmount').value = '';
-            alert("Payout registered and saved!");
+            alert("Payout registered!");
         }
 
         async function executeVaultOverride(modeType) {
             const amt = parseFloat(document.getElementById('overrideAmount').value);
-            if(isNaN(amt)) return alert("Specify valid number.");
+            if(isNaN(amt)) return alert("Invalid number.");
             if(modeType === 'add') await adjustFinancePool(amt, 0);
             if(modeType === 'remove') await adjustFinancePool(0, amt);
             document.getElementById('overrideAmount').value = ''; document.getElementById('overrideReason').value = '';
