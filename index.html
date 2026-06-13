@@ -408,7 +408,7 @@
 
             // Past history
             try {
-                const archiveRes = await fetch(`${BASE_API_URL}?sheet=record_keeping&customer=${encodeURIComponent(user)}`);
+                const archiveRes = await fetch(`${"https://script.google.com/macros/s/AKfycbyxO87nP9A2T0PH2gzg32nTiPKGvdlcKem5rBlGf-9b_fUK0DD_A7SE1NjWXqcqbPpS/exec"}?sheet=record_keeping&customer=${encodeURIComponent(user)}`);
                 const passedData = await archiveRes.json();
                 const historyBox = document.getElementById('pastHistoryList');
 
@@ -431,7 +431,7 @@
 async function fetchGoogleDocMenu() {
     const gridBox = document.getElementById('menuGridBox');
     try {
-        const response = await fetch(`${BASE_API_URL}?sheet=menu`);
+        const response = await fetch(`${"https://script.google.com/macros/s/AKfycbyxO87nP9A2T0PH2gzg32nTiPKGvdlcKem5rBlGf-9b_fUK0DD_A7SE1NjWXqcqbPpS/exec}?sheet=menu"`);
         const menuItems = await response.json();
         
         if(!menuItems || menuItems.length === 0 || menuItems.error) {
