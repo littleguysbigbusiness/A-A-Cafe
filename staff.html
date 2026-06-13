@@ -1036,16 +1036,14 @@
             } catch(e){}
         }
 async function fetchStaffMenuReference() {
-    const staffGridBox = document.getElementById('staffMenuGridBox');
+    // FIXED: Target 'menuGridBox' to match the actual HTML container on line 211
+    const staffGridBox = document.getElementById('menuGridBox');
     if (!staffGridBox) return; 
     
     try {
-        // Added a dynamic timestamp parameter (?_=${Date.now()}) to bypass browser cache freezes
         const targetUrl = "https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec?sheet=menu&type=menu&_=" + Date.now();
         
         const response = await fetch(targetUrl);
-        
-        // Read as plain text first to break through Google's deployment redirect wrapper safely
         const rawText = await response.text();
         const menuItems = JSON.parse(rawText);
         
@@ -1054,6 +1052,8 @@ async function fetchStaffMenuReference() {
             return;
         }
         
+        // CSS matching your dark grid design language
+        staffGridBox.style.cssText = "display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 20px 0;";
         staffGridBox.innerHTML = '';
         
         menuItems.forEach(m => {
@@ -1061,13 +1061,18 @@ async function fetchStaffMenuReference() {
             const itemPrice = parseFloat(m.price) || 0;
             
             const el = document.createElement('div');
-            el.style.cssText = "background: #f0f4f8; padding: 10px; border: 1px solid #d9e2ec; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; color: #102a43;";
-            el.innerText = itemName + " ($" + itemPrice + ")";
+            // Styled as a terminal POS selector item matching .pos-item class mechanics
+            el.className = "pos-item";
+            el.setAttribute("onclick", `selectManualItem(this, "${itemName.replace(/"/g, '&quot;')}", ${itemPrice})`);
+            el.innerHTML = `
+                <span>${itemName}</span>
+                <span class="item-price">$${itemPrice.toFixed(2)}</span>
+            `;
             staffGridBox.appendChild(el);
         });
     } catch(e) {
         console.error("Staff menu load error:", e);
-        staffGridBox.innerHTML = '<div style="color: red; font-size: 12px; padding: 10px;">⚠️ Connection Failed</div>';
+        staffGridBox.innerHTML = '<div style="color: #f43f5e; font-size: 12px; padding: 10px;">⚠️ Connection Failed</div>';
     }
 }
         async function registerNewStaffProfile() {
