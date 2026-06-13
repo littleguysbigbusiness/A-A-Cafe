@@ -1040,25 +1040,28 @@ async function fetchStaffMenuReference() {
     if (!staffGridBox) return; 
     
     try {
-        // Combined parameters satisfy both sheet checking and doc rendering engine blocks
-        const response = await fetch(`${BASE_API_URL}?sheet=menu&type=menu`);
+        // Hardcoded straight to the deployment link with zero external variables
+        const response = await fetch("https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec?sheet=menu&type=menu");
         const menuItems = await response.json();
         
         if(!menuItems || menuItems.length === 0 || menuItems.error) {
-            staffGridBox.innerHTML = `<div style="color: var(--danger); font-size: 12px;">⚠️ Error: ${menuItems.error || 'Empty.'}</div>`;
+            staffGridBox.innerHTML = `<div style="color: red; font-size: 12px; padding: 10px;">⚠️ Error: ${menuItems.error || 'Empty.'}</div>`;
             return;
         }
         
         staffGridBox.innerHTML = '';
         
         menuItems.forEach(m => {
+            const itemName = m.item;
+            const itemPrice = parseFloat(m.price) || 0;
+            
             const el = document.createElement('div');
             el.style.cssText = "background: #f0f4f8; padding: 10px; border: 1px solid #d9e2ec; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; color: #102a43;";
-            el.innerText = `${m.item} ($${m.price})`;
+            el.innerText = `${itemName} ($${itemPrice})`;
             staffGridBox.appendChild(el);
         });
     } catch(e) {
-        staffGridBox.innerHTML = '<div style="color: var(--danger); font-size: 12px;">⚠️ Connection Failed</div>';
+        staffGridBox.innerHTML = '<div style="color: red; font-size: 12px; padding: 10px;">⚠️ Connection Failed</div>';
     }
 }
         async function registerNewStaffProfile() {
