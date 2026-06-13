@@ -350,36 +350,12 @@
                         <h3>Counter POS Entry</h3>
                         <label>Walk-In Customer Name:</label>
                         <input type="text" id="manualCustName" placeholder="Enter name...">
-                        
-                        <div class="pos-grid">
-                            <div class="pos-item" onclick="selectManualItem(this, 'Muffin', 2)"><span>Muffin</span><span class="item-price">$2</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Red Velvet Cupcake', 2)"><span>Red Velvet Cupcake</span><span class="item-price">$2</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Pies Whole', 10)"><span>Pies Whole</span><span class="item-price">$10</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Donut', 3)"><span>Donut</span><span class="item-price">$3</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Cheesecake', 11)"><span>Whole Cheesecake</span><span class="item-price">$11</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Whole Cake', 11)"><span>Whole Cake</span><span class="item-price">$11</span></div>
-                            
-                            <div class="pos-item" onclick="selectManualItem(this, 'Coffee', 4)"><span>Coffee</span><span class="item-price">$4</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Tea', 4)"><span>Tea</span><span class="item-price">$4</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Espresso', 5)"><span>Espresso</span><span class="item-price">$5</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Cappuccino', 5)"><span>Cappuccino</span><span class="item-price">$5</span></div>
-                            
-                            <div class="pos-item" onclick="selectManualItem(this, 'Matcha', 9)"><span>Matcha</span><span class="item-price">$9</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Ice Matcha', 10)"><span>Ice Matcha</span><span class="item-price">$10</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Milkshakes', 6)"><span>Milkshakes</span><span class="item-price">$6</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Fruit Smoothie', 5)"><span>Fruit Smoothie</span><span class="item-price">$5</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Smoothie Super Edition', 8)"><span>Smoothie Super Ed.</span><span class="item-price">$8</span></div>
-                            
-                            <div class="pos-item" onclick="selectManualItem(this, 'Pancakes', 9)"><span>Pancakes</span><span class="item-price">$9</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Fairy Bread', 8)"><span>Fairy Bread</span><span class="item-price">$8</span></div>
+                            <div class="menu-grid" id="menuGridBox">
+                    <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-style: italic; padding: 20px;">
+                        🔄 Fetching current menu directly from Google Docs list...
+                    </div>
+                </div>
 
-                            <div class="pos-item" onclick="selectManualItem(this, 'Orange Juice', 0)"><span>Orange Juice</span><span class="item-price">$0</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Water', 0)"><span>Water</span><span class="item-price">$0</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Grape Juice', 1)"><span>Grape Juice</span><span class="item-price">$1</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Ice Tea', 1)"><span>Ice Tea</span><span class="item-price">$1</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Milk Tier 1', 1)"><span>Milk</span><span class="item-price">$1</span></div>
-                            <div class="pos-item" onclick="selectManualItem(this, 'Lemonade', 1)"><span>Lemonade</span><span class="item-price">$1</span></div>
-                        </div>
                         <div class="total-display">$<span id="manualTotal">0</span></div>
                         <button class="btn-action" id="manualSubmitBtn" onclick="dispatchManualOrder()" style="background:var(--color-success); color:white;">Post Cash/Card Ticket</button>
                     </div>
@@ -1059,7 +1035,32 @@
                 staff.forEach(s => { list.innerHTML += `<li>Node ID: <strong>${s.name}</strong> — Rank [${s.rank}]</li>`; });
             } catch(e){}
         }
-
+async function fetchStaffMenuReference() {
+    const staffGridBox = document.getElementById('staffMenuGridBox');
+    if (!staffGridBox) return; 
+    
+    try {
+        // Combined parameters satisfy both sheet checking and doc rendering engine blocks
+        const response = await fetch(`${BASE_API_URL}?sheet=menu&type=menu`);
+        const menuItems = await response.json();
+        
+        if(!menuItems || menuItems.length === 0 || menuItems.error) {
+            staffGridBox.innerHTML = `<div style="color: var(--danger); font-size: 12px;">⚠️ Error: ${menuItems.error || 'Empty.'}</div>`;
+            return;
+        }
+        
+        staffGridBox.innerHTML = '';
+        
+        menuItems.forEach(m => {
+            const el = document.createElement('div');
+            el.style.cssText = "background: #f0f4f8; padding: 10px; border: 1px solid #d9e2ec; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; color: #102a43;";
+            el.innerText = `${m.item} ($${m.price})`;
+            staffGridBox.appendChild(el);
+        });
+    } catch(e) {
+        staffGridBox.innerHTML = '<div style="color: var(--danger); font-size: 12px;">⚠️ Connection Failed</div>';
+    }
+}
         async function registerNewStaffProfile() {
             const name = document.getElementById('newStaffName').value.trim();
             const code = document.getElementById('newStaffCode').value.trim();
