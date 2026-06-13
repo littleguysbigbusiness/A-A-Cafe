@@ -201,43 +201,12 @@
                 <label><strong>Your Name:</strong></label>
                 <input type="text" id="custName" placeholder="Type your name to link orders..." oninput="onNameChange()">
 
-                <div class="menu-category-title">☕ Hot & Iced Caffeine</div>
-                <div class="menu-grid">
-                    <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Espresso', 5)">Espresso ($5)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Cappuccino', 5)">Cappuccino ($5)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Matcha', 9)">Matcha ($9)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Ice Matcha', 10)">Ice Matcha ($10)</div>
-                </div>
-
-                <div class="menu-category-title">🥤 Cold Refreshments</div>
-                <div class="menu-grid">
-                    <div class="menu-item" onclick="toggleItem(this, 'Orange Water', 0)">Orange Water ($0)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Tea', 4)">Tea ($4)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Grape Drink', 1)">Grape ($1)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Ice Tea', 1)">Ice Tea ($1)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Milk', 1)">Milk ($1)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Lemonade', 1)">Lemonade ($1)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Milkshakes', 6)">Milkshakes ($6)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Fruit Smoothie', 5)">Fruit Smoothie ($5)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Smoothie Super Edition', 8)">Smoothie Super Ed. ($8)</div>
-                </div>
-
-                <div class="menu-category-title">🍰 Fresh Bakery & Dessert Treats</div>
-                <div class="menu-grid">
-                    <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Red Velvet Cupcake', 2)">Red Velvet Cupcake ($2)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Whole Cheese Cake', 11)">Whole Cheese Cake ($11)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Whole Cake', 11)">Whole Cake ($11)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Pies Whole', 10)">Pies Whole ($10)</div>
-                </div>
-
-                <div class="menu-category-title">🥞 Kitchen Plates</div>
-                <div class="menu-grid">
-                    <div class="menu-item" onclick="toggleItem(this, 'Pancakes', 9)">Pancakes ($9)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Fairy Bread', 8)">Fairy Bread ($8)</div>
-                </div>
+<div class="menu-grid" id="menuGridBox">
+    <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-style: italic; padding: 20px;">
+        🔄 Fetching current menu directly from Google Docs list...
+    </div>
+</div>
+               
 
                 <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
 
@@ -458,11 +427,42 @@
         }
 
         // Kick off on load if name was saved
-        if (savedName) {
-            checkUserBan(savedName);
-            updateCustomerData();
-            updateInterval = setInterval(updateCustomerData, 15000);
+     // === PASTE THIS ENGINE AT THE BOTTOM OF YOUR SCRIPT TAG ===
+async function fetchGoogleDocMenu() {
+    const gridBox = document.getElementById('menuGridBox');
+    try {
+        const response = await fetch(`${BASE_API_URL}?sheet=menu`);
+        const menuItems = await response.json();
+        
+        if(!menuItems || menuItems.length === 0 || menuItems.error) {
+            gridBox.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: red; font-style: italic; padding: 20px;">⚠️ Error: ${menuItems.error || 'Menu empty.'}</div>`;
+            return;
         }
+        
+        gridBox.innerHTML = '';
+        
+        menuItems.forEach(m => {
+            const itemName = m.item;
+            const itemPrice = parseFloat(m.price) || 0;
+            
+            const el = document.createElement('div');
+            el.className = 'menu-item';
+            el.innerText = `${itemName} ($${itemPrice})`;
+            el.onclick = function() { toggleItem(this, itemName, itemPrice); };
+            
+            if(typeof selectedItems !== 'undefined' && selectedItems.includes(itemName)) el.classList.add('selected');
+            if(typeof isBanned !== 'undefined' && isBanned) el.classList.add('disabled');
+            
+            gridBox.appendChild(el);
+        });
+    } catch(e) {
+        gridBox.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: red; font-style: italic; padding: 20px;">⚠️ Failed connection to live inventory database.</div>';
+    }
+}
+
+// Automatically load the menu layout elements on boot initialization
+fetchGoogleDocMenu();
+// ===============================================================
     </script>
 </body>
 </html>
