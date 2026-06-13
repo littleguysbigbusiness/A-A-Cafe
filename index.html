@@ -431,7 +431,7 @@
 async function fetchGoogleDocMenu() {
     const gridBox = document.getElementById('menuGridBox');
     try {
-const response = await fetch("https://script.google.com/macros/s/AKfycbyEbjfim-8mlrncnDH_qp-12107bwfVJW1WCc6vHZiZw1N60cyZvALLn_48RIwNuiLq/exec?sheet=menu&type=menu");
+const response = await fetch("https://script.google.com/macros/s/AKfycbyEbjfim-8mlrncnDH_qp-12107bwfVJW1WCc6vHZiZw1N60cyZvALLn_48RIwNuiLq/exec?type=menu");
         const menuItems = await response.json();
         
         if(!menuItems || menuItems.length === 0 || menuItems.error) {
