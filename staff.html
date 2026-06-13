@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚡ A&A Cafe — Enterprise Control Center & Terminal</title>
     <style>
-        /* CSS RESET & VARIABLES */
         :root {
             --bg-main: #f0f7ff;
             --bg-card: #ffffff;
@@ -20,10 +19,8 @@
             --color-alert: #f59e0b;
             --radius-main: 12px;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(2, 132, 199, 0.05), 0 2px 4px -1px rgba(2, 132, 199, 0.03);
-            --shadow-lg: 0 10px 25px -5px rgba(2, 132, 199, 0.1), 0 10px 10px -5px rgba(2, 132, 199, 0.04);
-            --transition-fast: 0.15s ease;
-            --transition-normal: 0.25s ease;
+            --shadow-md: 0 4px 6px -1px rgba(2, 132, 199, 0.05);
+            --shadow-lg: 0 10px 25px -5px rgba(2, 132, 199, 0.1);
         }
 
         *, ::before, ::after {
@@ -34,33 +31,13 @@
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             background-color: var(--bg-main);
             color: var(--text-primary);
             margin: 0;
             padding: 0;
-            line-height: 1.5;
-            letter-spacing: -0.01em;
-            -webkit-font-smoothing: antialiased;
         }
 
-        /* GLOBAL UTILITIES & SCROLLBARS */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-main);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-glow);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-secondary);
-        }
-
-        /* LAYOUT CORE SYSTEM */
         .topbar {
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
@@ -73,707 +50,129 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: var(--shadow-sm);
         }
 
-        .brand-zone {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
+        .brand-zone { display: flex; align-items: center; gap: 12px; }
         .brand-logo {
-            background: var(--accent-brand);
-            color: #ffffff;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 18px;
-            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+            background: var(--accent-brand); color: #ffffff; width: 36px; height: 36px;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900;
         }
 
-        .topbar h1 { 
-            margin: 0; 
-            font-size: 18px; 
-            font-weight: 800; 
-            color: var(--text-primary);
-            letter-spacing: -0.02em;
-        }
-
-        .topbar h1 span {
-            color: var(--accent-brand);
-        }
+        .topbar h1 { margin: 0; font-size: 18px; font-weight: 800; }
+        .topbar h1 span { color: var(--accent-brand); }
         
-        .tab-menu { 
-            display: flex; 
-            gap: 6px; 
-            background: var(--bg-main);
-            padding: 4px;
-            border-radius: 10px;
-            border: 1px solid var(--border-glow);
-        }
-
+        .tab-menu { display: flex; gap: 6px; background: var(--bg-main); padding: 4px; border-radius: 10px; border: 1px solid var(--border-glow); }
         .tab-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all var(--transition-fast);
+            background: transparent; border: none; color: var(--text-secondary); padding: 8px 16px;
+            border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px;
+        }
+        .tab-btn.active { background: var(--bg-card); color: var(--accent-brand); box-shadow: var(--shadow-sm); }
+
+        .system-controls { display: flex; align-items: center; gap: 14px; }
+        .network-status { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--color-success); background: #f0fdf4; padding: 6px 12px; border-radius: 20px; border: 1px solid #bbf7d0; }
+        .network-status.syncing { color: var(--color-alert); background: #fffbeb; border-color: #fef3c7; }
+        .network-pulse { width: 8px; height: 8px; background-color: currentColor; border-radius: 50%; display: inline-block; }
+
+        .staff-alert-marquee {
+            background: #fffbeb; border-bottom: 1px solid #fef3c7; padding: 10px 30px;
+            font-size: 13px; font-weight: 700; color: #b45309; display: flex; align-items: center; gap: 10px;
         }
 
-        .tab-btn:hover {
-            color: var(--text-primary);
+        .alert-dot {
+            width: 8px; height: 8px; background: var(--color-alert); border-radius: 50%; animation: pulse 1.5s infinite;
         }
 
-        .tab-btn.active {
-            background: var(--bg-card);
-            color: var(--accent-brand);
-            box-shadow: var(--shadow-sm);
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
         }
 
-        .system-controls {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
+        .workspace { max-width: 1700px; margin: 0 auto; padding: 30px 20px; }
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+        .grid-split-view { display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; }
 
-        .network-status {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--color-success);
-            background: #f0fdf4;
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid #bbf7d0;
-        }
+        .panel { background: var(--bg-card); border: 1px solid var(--border-glow); border-radius: var(--radius-main); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-md); position: relative; }
+        .panel-header-wrapper { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-glow); padding-bottom: 14px; margin-bottom: 18px; }
 
-        .network-status.syncing {
-            color: var(--color-alert);
-            background: #fffbeb;
-            border-color: #fef3c7;
-        }
+        h2, h3, h4 { margin: 0; font-weight: 800; color: var(--text-primary); font-size: 14px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        .panel-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 4px; font-weight: 500; text-transform: none; }
+        .panel-counter-badge { background: var(--bg-darker); color: var(--accent-brand); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 20px; }
 
-        .network-pulse {
-            width: 8px;
-            height: 8px;
-            background-color: currentColor;
-            border-radius: 50%;
-            display: inline-block;
-        }
+        /* LIVE BOARD TICKET ROW */
+        .production-board-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
+        .ticket-card { background: var(--bg-card); border: 2px solid var(--border-glow); border-radius: var(--radius-main); padding: 18px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+        .ticket-card.delivery-priority { border-color: var(--color-alert); }
+        .ticket-card.delivery-priority::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--color-alert); }
 
-        /* WORKSPACE CONTAINERS */
-        .workspace { 
-            max-width: 1700px; 
-            margin: 0 auto; 
-            padding: 30px 20px; 
-        }
-
-        .view-panel { 
-            display: none; 
-            animation: fadeIn 0.2s ease-in-out;
-        }
-
-        .view-panel.active { 
-            display: block; 
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* FLEXIBLE LAYOUT STRUCTURES */
-        .grid-split-view { 
-            display: grid; 
-            grid-template-columns: 1fr 1.3fr; 
-            gap: 24px; 
-        }
-
-        .grid-three-column { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; 
-            gap: 20px; 
-        }
-
-        .grid-asymmetric {
-            display: grid;
-            grid-template-columns: 1.8fr 1fr;
-            gap: 24px;
-        }
-
-        /* CARD PANELS */
-        .panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glow);
-            border-radius: var(--radius-main);
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: var(--shadow-md);
-            position: relative;
-        }
-
-        .panel-header-wrapper {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--border-glow);
-            padding-bottom: 14px;
-            margin-bottom: 18px;
-        }
-
-        h2, h3, h4 { 
-            margin: 0;
-            font-weight: 800; 
-            color: var(--text-primary); 
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .panel-subtitle {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            font-weight: 500;
-            text-transform: none;
-            letter-spacing: normal;
-        }
-
-        .panel-counter-badge {
-            background: var(--bg-darker);
-            color: var(--accent-brand);
-            font-size: 11px;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-
-        /* LIVE PRODUCTION TICKET ROW */
-        .production-board-layout {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-            gap: 20px;
-        }
-
-        .ticket-card {
-            background: var(--bg-card);
-            border: 2px solid var(--border-glow);
-            border-radius: var(--radius-main);
-            padding: 18px;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            transition: all var(--transition-normal);
-            overflow: hidden;
-        }
-
-        .ticket-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .ticket-card.delivery-priority {
-            border-color: var(--color-alert);
-        }
-
-        .ticket-card.delivery-priority::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--color-alert);
-        }
-
-        .ticket-meta-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .ticket-number {
-            font-weight: 900;
-            color: var(--accent-brand);
-            font-size: 15px;
-            font-family: monospace;
-            background: var(--bg-main);
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .ticket-timer {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .type-badge {
-            font-size: 11px;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-        }
-
+        .ticket-meta-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .ticket-number { font-weight: 900; color: var(--accent-brand); font-size: 15px; font-family: monospace; background: var(--bg-main); padding: 2px 6px; border-radius: 4px; }
+        
+        .type-badge { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
         .badge-pickup { background: var(--accent-light); color: var(--accent-brand); }
         .badge-delivery { background: #fef3c7; color: #d97706; }
+        .badge-dinein { background: #e0f2fe; color: #0369a1; }
 
-        .ticket-customer-title {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--text-primary);
-            margin: 0 0 10px 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .ticket-customer-title { font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0 0 10px 0; }
+        .ticket-manifest-box { background: var(--bg-main); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 12px; border: 1px solid var(--border-glow); min-height: 60px; }
+        .ticket-line-item { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed rgba(2, 132, 199, 0.1); }
+        .ticket-instruction-log { font-size: 11px; color: var(--text-secondary); background: #fafafa; padding: 8px 10px; border-radius: 6px; border-left: 3px solid var(--border-glow); margin-bottom: 16px; font-style: italic; }
+        .ticket-footer-actions { display: flex; gap: 8px; margin-top: auto; }
 
-        .ticket-manifest-box {
-            background: var(--bg-main);
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            border: 1px solid var(--border-glow);
-            min-height: 60px;
-        }
+        /* TOUCH GRID POS */
+        .pos-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); gap: 12px; }
+        .pos-touch-card { background: var(--bg-main); border: 1px solid var(--border-glow); border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 90px; }
+        .pos-touch-card:hover { border-color: var(--accent-brand); background: var(--accent-light); }
+        .pos-item-icon { font-size: 20px; }
+        .pos-item-name { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+        .pos-item-cost { font-size: 11px; font-weight: 800; color: var(--accent-brand); }
 
-        .ticket-line-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 3px 0;
-            border-bottom: 1px dashed rgba(2, 132, 199, 0.1);
-        }
-
-        .ticket-line-item:last-child {
-            border-bottom: none;
-        }
-
-        .ticket-instruction-log {
-            font-size: 11px;
-            color: var(--text-secondary);
-            background: #fafafa;
-            padding: 8px 10px;
-            border-radius: 6px;
-            border-left: 3px solid var(--border-glow);
-            margin-bottom: 16px;
-            font-style: italic;
-            word-break: break-word;
-        }
-
-        .ticket-footer-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: auto;
-        }
-
-        /* REGISTER & EXPEDITED POS TOUCH GRID */
-        .pos-grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
-            gap: 12px;
-        }
-
-        .pos-touch-card {
-            background: var(--bg-main);
-            border: 1px solid var(--border-glow);
-            border-radius: 10px;
-            padding: 14px 10px;
-            text-align: center;
-            cursor: pointer;
-            user-select: none;
-            transition: all var(--transition-fast);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 90px;
-        }
-
-        .pos-touch-card:hover {
-            border-color: var(--accent-brand);
-            background: var(--accent-light);
-            transform: scale(1.02);
-        }
-
-        .pos-touch-card:active {
-            transform: scale(0.98);
-        }
-
-        .pos-item-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        .pos-item-name {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-        }
-
-        .pos-item-cost {
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--accent-brand);
-            margin-top: 2px;
-        }
-
-        /* FORM ELEMENTS & FIELDS */
-        .form-row-block {
-            margin-bottom: 16px;
-        }
-
-        .form-group-flex {
-            display: flex;
-            gap: 14px;
-            margin-bottom: 16px;
-        }
-
-        .form-group-flex > div {
-            flex: 1;
-        }
-
-        label {
-            display: block;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            margin-bottom: 6px;
-        }
-
-        input[type="text"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 11px 14px;
-            background: #ffffff;
-            border: 1px solid var(--border-glow);
-            color: var(--text-primary);
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all var(--transition-fast);
-        }
-
-        input[type="text"]:focus,
-        select:focus,
-        textarea:focus {
-            border-color: var(--accent-brand);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
-        }
-
-        textarea {
-            resize: vertical;
-        }
-
-        /* LIVE STREAM TERMINAL BASKET VIEW */
-        .basket-preview-terminal {
-            background: var(--bg-main);
-            border: 1px solid var(--border-glow);
-            border-radius: 10px;
-            padding: 14px;
-            min-height: 120px;
-            max-height: 280px;
-            overflow-y: auto;
-            margin-bottom: 16px;
-        }
-
-        .basket-row-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(2, 132, 199, 0.08);
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .basket-row-item:last-child {
-            border-bottom: none;
-        }
-
-        .basket-item-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .basket-qty-tag {
-            background: var(--accent-light);
-            color: var(--accent-brand);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 800;
-        }
-
-        .basket-item-del-btn {
-            background: transparent;
-            color: var(--color-danger);
-            border: none;
-            cursor: pointer;
-            font-weight: 800;
-            font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .basket-item-del-btn:hover {
-            background: #fee2e2;
-        }
-
-        .register-pricing-summary {
-            border-top: 2px solid var(--border-glow);
-            padding-top: 14px;
-            margin-bottom: 18px;
-        }
-
-        .pricing-line-flex {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-        }
-
-        .pricing-line-flex.grand-total {
-            font-size: 20px;
-            font-weight: 900;
-            color: var(--accent-brand);
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border-glow);
-        }
-
-        /* MASTER ACTION BUTTON ENGINE */
-        .btn-core {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 12px 16px;
-            font-weight: 700;
-            font-size: 13px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            text-align: center;
-            user-select: none;
-        }
-
-        .btn-core-primary { background: var(--accent-brand); color: #ffffff; }
-        .btn-core-primary:hover { opacity: 0.95; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2); }
+        /* FORMS */
+        .form-row-block { margin-bottom: 16px; }
+        .form-group-flex { display: flex; gap: 14px; margin-bottom: 16px; }
+        .form-group-flex > div { flex: 1; }
+        label { display: block; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px; }
         
+        input[type="text"], select, textarea { width: 100%; padding: 11px 14px; background: #ffffff; border: 1px solid var(--border-glow); border-radius: 8px; font-size: 13px; font-weight: 600; }
+
+        .basket-preview-terminal { background: var(--bg-main); border: 1px solid var(--border-glow); border-radius: 10px; padding: 14px; min-height: 120px; max-height: 280px; overflow-y: auto; margin-bottom: 16px; }
+        .basket-row-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(2, 132, 199, 0.08); font-size: 13px; font-weight: 700; }
+        .basket-qty-tag { background: var(--accent-light); color: var(--accent-brand); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+        .register-pricing-summary { border-top: 2px solid var(--border-glow); padding-top: 14px; margin-bottom: 18px; }
+        .pricing-line-flex { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+        .pricing-line-flex.grand-total { font-size: 20px; font-weight: 900; color: var(--accent-brand); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-glow); }
+
+        .btn-core { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 16px; font-weight: 700; font-size: 13px; border-radius: 8px; cursor: pointer; }
         .btn-core-success { background: var(--color-success); color: #ffffff; }
-        .btn-core-success:hover { opacity: 0.95; }
-
         .btn-core-danger { background: #fee2e2; color: var(--color-danger); }
-        .btn-core-danger:hover { background: var(--color-danger); color: #ffffff; }
-
         .btn-core-secondary { background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-glow); }
-        .btn-core-secondary:hover { background: var(--border-glow); }
+        .btn-core:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 
-        .btn-core:disabled {
-            background: #e2e8f0;
-            color: #94a3b8;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        /* DATA LEDGERS & DATA METRIC MODULES */
-        .metrics-grid-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .metric-analytics-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glow);
-            padding: 18px 20px;
-            border-radius: var(--radius-main);
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .metric-icon-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            background: var(--bg-main);
-            color: var(--accent-brand);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
+        /* METRICS & TABLES */
+        .metrics-grid-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .metric-analytics-card { background: var(--bg-card); border: 1px solid var(--border-glow); padding: 18px 20px; border-radius: var(--radius-main); display: flex; align-items: center; gap: 16px; }
+        .metric-icon-avatar { width: 44px; height: 44px; border-radius: 10px; background: var(--bg-main); color: var(--accent-brand); display: flex; align-items: center; justify-content: center; font-size: 20px; }
         .metric-icon-avatar.success { background: #f0fdf4; color: var(--color-success); }
         .metric-icon-avatar.danger { background: #fef2f2; color: var(--color-danger); }
         .metric-icon-avatar.alert { background: #fffbeb; color: var(--color-alert); }
+        .metric-data-block { display: flex; flex-direction: column; }
+        .metric-lbl { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; }
+        .metric-big-value { font-size: 22px; font-weight: 900; margin-top: 2px; }
 
-        .metric-data-block {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .metric-lbl {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-        }
-
-        .metric-big-value {
-            font-size: 22px;
-            font-weight: 900;
-            color: var(--text-primary);
-            margin-top: 2px;
-            line-height: 1.1;
-        }
-
-        /* DATA MANAGEMENT TABLES CSS */
-        .table-responsive-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            border-radius: 8px;
-            border: 1px solid var(--border-glow);
-            background: #ffffff;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            text-align: left;
-        }
-
-        th {
-            background: var(--bg-main);
-            color: var(--text-secondary);
-            font-weight: 800;
-            padding: 12px 16px;
-            border-bottom: 2px solid var(--border-glow);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            user-select: none;
-        }
-
-        td {
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(2, 132, 199, 0.06);
-            color: var(--text-primary);
-            font-weight: 500;
-            vertical-align: middle;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background: rgba(2, 132, 199, 0.01);
-        }
-
-        .row-status-pill {
-            display: inline-flex;
-            align-items: center;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
+        .table-responsive-wrapper { width: 100%; overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-glow); background: #ffffff; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { background: var(--bg-main); color: var(--text-secondary); font-weight: 800; padding: 12px 16px; border-bottom: 2px solid var(--border-glow); font-size: 11px; text-transform: uppercase; }
+        td { padding: 12px 16px; border-bottom: 1px solid rgba(2, 132, 199, 0.06); font-weight: 500; }
+        
+        .row-status-pill { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
         .pill-pending { background: #fffbeb; color: #b45309; }
         .pill-completed { background: #f0fdf4; color: #15803d; }
         .pill-cancelled { background: #fef2f2; color: #b91c1c; }
 
-        /* ADVANCED TOOL PANEL ELEMENTS */
-        .filter-search-tray {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-            align-items: center;
-        }
-
-        .filter-search-tray > div {
-            flex: 1;
-        }
-
-        .search-input-wrapper {
-            position: relative;
-        }
-
-        /* NOTIFICATION POPUP GRAPHIC */
-        .sys-toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: #1e293b;
-            color: #ffffff;
-            padding: 14px 20px;
-            border-radius: 10px;
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 5000;
-            font-size: 13px;
-            font-weight: 600;
-            transform: translateY(150%);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .sys-toast.active {
-            transform: translateY(0);
-        }
-
-        .sys-toast-icon {
-            color: var(--accent-brand);
-            font-size: 16px;
-        }
+        .sys-toast { position: fixed; bottom: 24px; right: 24px; background: #1e293b; color: #ffffff; padding: 14px 20px; border-radius: 10px; display: flex; align-items: center; gap: 12px; z-index: 5000; font-size: 13px; font-weight: 600; transform: translateY(150%); transition: transform 0.3s ease; }
+        .sys-toast.active { transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -795,10 +194,13 @@
                 <span class="network-pulse"></span>
                 <span id="networkStatusText">Terminal Live</span>
             </div>
-            <button class="btn-core btn-core-secondary" style="padding: 8px 14px; font-size:12px;" onclick="triggerManualSync()">
-                🔄 Force Sync
-            </button>
+            <button class="btn-core btn-core-secondary" style="padding: 8px 14px; font-size:12px;" onclick="triggerManualSync()">🔄 Force Sync</button>
         </div>
+    </div>
+
+    <div class="staff-alert-marquee" id="liveNotificationMarqueeBar">
+        <div class="alert-dot"></div>
+        <span id="marqueeAlertText">Operational Feed Active: Waiting for remote payment transmissions...</span>
     </div>
 
     <div class="workspace">
@@ -808,7 +210,7 @@
                 <div class="panel-header-wrapper">
                     <div>
                         <h2>🍳 Active Kitchen Ticket Pipeline</h2>
-                        <div class="panel-subtitle">Real-time pending orders transmitted from customer kiosk endpoints</div>
+                        <div class="panel-subtitle">Real-time pending orders transmitted from customer storefront endpoints</div>
                     </div>
                     <span id="activeTicketCountBadge" class="panel-counter-badge">0 Active</span>
                 </div>
@@ -841,9 +243,7 @@
                             </tr>
                         </thead>
                         <tbody id="archiveTableBodyTarget">
-                            <tr>
-                                <td colspan="6" style="color:var(--text-secondary); text-align:center; padding: 20px;">No resolved historical data rows buffered in cache.</td>
-                            </tr>
+                            <tr><td colspan="6" style="color:var(--text-secondary); text-align:center; padding: 20px;">No resolved historical data rows buffered.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -859,15 +259,16 @@
                         
                         <div class="form-row-block">
                             <label>Customer Allocation Identifier Name</label>
-                            <input type="text" id="posFormCustomerField" placeholder="Enter custom ticket identification string...">
+                            <input type="text" id="posFormCustomerField" placeholder="Enter name...">
                         </div>
 
                         <div class="form-group-flex">
                             <div>
                                 <label>Fulfillment Routine Logistics</label>
-                                <select id="posFormFulfillmentSelect" onchange="evaluatePosDeliveryScaffolding()">
-                                    <option value="Pickup" selected>🚶 Counter Counter Pickup</option>
-                                    <option value="Delivery">🚗 Direct Courier Delivery</option>
+                                <select id="posFormFulfillmentSelect" onchange="evaluatePosFulfillmentScaffolding()">
+                                    <option value="Dine-In" selected>🍽️ Dine-In Table Service</option>
+                                    <option value="Pickup">🚶 Counter Pickup</option>
+                                    <option value="Delivery">🚗 Direct Estate Delivery</option>
                                 </select>
                             </div>
                             <div>
@@ -881,111 +282,64 @@
 
                         <div id="posFormDeliverySubcontainer" style="display:none; background: var(--bg-main); padding:16px; border-radius:10px; margin-bottom:16px; border:1px solid var(--border-glow);">
                             <h4 style="margin-bottom:12px; font-size:12px; color:var(--accent-brand);">🚗 Logistics Distribution Mapping</h4>
-                            <div class="form-row-block">
-                                <label>Street Destination Address</label>
-                                <input type="text" id="posFormAddressField" placeholder="Unit, House Number, Road Name, Suburb">
+                            <div class="form-row-block" style="margin-bottom: 0;">
+                                <label>Select Estate Complex Area</label>
+                                <select id="posFormEstateDropdown">
+                                    <option value="Riverside Estates">Riverside Estates</option>
+                                    <option value="Bloxy Acres">Bloxy Acres</option>
+                                    <option value="Sunset Pointe">Sunset Pointe</option>
+                                    <option value="Lake View Heights">Lake View Heights</option>
+                                </select>
                             </div>
-                            <div class="form-row-block" style="margin-bottom:0;">
-                                <label>Recipient Contact Mobile Phone Line</label>
-                                <input type="text" id="posFormPhoneField" placeholder="e.g., +61 400 000 000">
-                            </div>
+                        </div>
+
+                        <div id="posFormDineInSubcontainer" style="display:block; background: var(--bg-main); padding:16px; border-radius:10px; margin-bottom:16px; border:1px solid var(--border-glow);">
+                            <label>Table Allocation Assignment</label>
+                            <select id="posFormTableDropdown">
+                                <option value="Table 1">Table 1</option>
+                                <option value="Table 2">Table 2</option>
+                                <option value="Table 3">Table 3</option>
+                                <option value="Table 4">Table 4</option>
+                                <option value="Booth A">Booth A</option>
+                                <option value="Booth B">Booth B</option>
+                            </select>
                         </div>
 
                         <div class="form-row-block">
                             <label>Internal Kitchen Production/Allergy Notes</label>
-                            <textarea id="posFormNotesField" rows="3" placeholder="Add extra billing descriptions, special notes, or preparation modifiers..."></textarea>
+                            <textarea id="posFormNotesField" rows="3" placeholder="Add preparation modifiers..."></textarea>
                         </div>
                     </div>
                 </div>
 
                 <div>
                     <div class="panel">
-                        <h2>⚡ Rapid Touch Item Matched Inventory</h2>
-                        <div class="panel-subtitle" style="margin-bottom: 15px;">Tap icons to inject localized objects instantly into active transaction memory</div>
+                        <h2>⚡ Rapid Touch Item Inventory</h2>
+                        <div class="panel-subtitle" style="margin-bottom: 15px;">Tap icons to inject products instantly into active ticket memory</div>
                         
                         <div class="pos-grid-container">
                             <div class="pos-touch-card" onclick="addMenuProductToBasket('Muffin', 2.00, '🍰')">
-                                <div class="pos-item-icon">🍰</div>
-                                <div class="pos-item-name">Muffin</div>
-                                <div class="pos-item-cost">$2.00</div>
+                                <div class="pos-item-icon">🍰</div><div class="pos-item-name">Muffin</div><div class="pos-item-cost">$2.00</div>
                             </div>
                             <div class="pos-touch-card" onclick="addMenuProductToBasket('Red Velvet Cupcake', 2.00, '🧁')">
-                                <div class="pos-item-icon">🧁</div>
-                                <div class="pos-item-name">Velvet Cupcake</div>
-                                <div class="pos-item-cost">$2.00</div>
+                                <div class="pos-item-icon">🧁</div><div class="pos-item-name">Velvet Cupcake</div><div class="pos-item-cost">$2.00</div>
                             </div>
                             <div class="pos-touch-card" onclick="addMenuProductToBasket('Donut', 3.00, '🍩')">
-                                <div class="pos-item-icon">🍩</div>
-                                <div class="pos-item-name">Donut</div>
-                                <div class="pos-item-cost">$3.00</div>
+                                <div class="pos-item-icon">🍩</div><div class="pos-item-name">Donut</div><div class="pos-item-cost">$3.00</div>
                             </div>
                             <div class="pos-touch-card" onclick="addMenuProductToBasket('Pies Whole', 10.00, '🥧')">
-                                <div class="pos-item-icon">🥧</div>
-                                <div class="pos-item-name">Pies Whole</div>
-                                <div class="pos-item-cost">$10.00</div>
-                            </div>
-
-                            <div class="pos-touch-card" onclick="addMenuProductToBasket('Coffee', 4.00, '☕')">
-                                <div class="pos-item-icon">☕</div>
-                                <div class="pos-item-name">Hot Brew Coffee</div>
-                                <div class="pos-item-cost">$4.00</div>
-                            </div>
-                            <div class="pos-touch-card" onclick="addMenuProductToBasket('Tea', 4.00, '🍵')">
-                                <div class="pos-item-icon">🍵</div>
-                                <div class="pos-item-name">Infused Hot Tea</div>
-                                <div class="pos-item-cost">$4.00</div>
-                            </div>
-                            <div class="pos-touch-card" onclick="addMenuProductToBasket('Espresso', 5.00, '⚡')">
-                                <div class="pos-item-icon">⚡</div>
-                                <div class="pos-item-name">Double Espresso</div>
-                                <div class="pos-item-cost">$5.00</div>
-                            </div>
-                            <div class="pos-touch-card" onclick="addMenuProductToBasket('Cappuccino', 5.00, '🥛')">
-                                <div class="pos-item-icon">🥛</div>
-                                <div class="pos-item-name">Cappuccino</div>
-                                <div class="pos-item-cost">$5.00</div>
-                            </div>
-
-                            <div class="pos-touch-card" onclick="addMenuProductToBasket('Matcha', 9.00, '🍃')">
-                                <div class="pos-item-icon">🍃</div>
-                                <div class="pos-item-name">Matcha Pure</div>
-                                <div class="pos-item-cost">$9.00</div>
-                            </div>
-                            <div class="pos-touch-card" onclick="addMenuProductToBasket('Ice Matcha', 10.00, '🧊')">
-                                <div class="pos-item-icon">🧊</div>
-                                <div class="pos-item-name">Ice Matcha</div>
-                                <div class="pos-item-cost">$10.00</div>
-                            </div>
-                            <div class="pos-touch-card" onclick="addMenuProductToBasket('Milkshakes', 6.00, '🥤')">
-                                <div class="pos-item-icon">🥤</div>
-                                <div class="pos-item-name">Milkshake</div>
-                                <div class="pos-item-cost">$6.00</div>
-                            </div>
-                            <div class="pos-touch-card" onclick="addMenuProductToBasket('Fruit Smoothie', 5.00, '🍓')">
-                                <div class="pos-item-icon">🍓</div>
-                                <div class="pos-item-name">Fruit Smoothie</div>
-                                <div class="pos-item-cost">$5.00</div>
+                                <div class="pos-item-icon">🥧</div><div class="pos-item-name">Pies Whole</div><div class="pos-item-cost">$10.00</div>
                             </div>
                         </div>
 
                         <h3 style="margin-top: 24px; margin-bottom: 10px;">🛒 Active Working Basket Buffer</h3>
                         <div class="basket-preview-terminal" id="posBasketDOMContainer">
-                            <div style="color:var(--text-secondary); text-align:center; padding-top:35px; font-style:italic;">No row items assigned to compiling memory.</div>
+                            <div style="color:var(--text-secondary); text-align:center; padding-top:35px; font-style:italic;">No items in memory.</div>
                         </div>
 
                         <div class="register-pricing-summary">
-                            <div class="pricing-line-flex">
-                                <span>Subtotal Value:</span>
-                                <span>$<span id="posSummarySubtotal">0.00</span></span>
-                            </div>
-                            <div class="pricing-line-flex">
-                                <span>Tax Configuration (GST 10% Included):</span>
-                                <span>$<span id="posSummaryTax">0.00</span></span>
-                            </div>
-                            <div class="pricing-line-flex grand-total">
-                                <span>Grand Total Cost:</span>
-                                <span>$<span id="posSummaryGrandTotal">0.00</span></span>
-                            </div>
+                            <div class="pricing-line-flex"><span>Subtotal Value:</span><span>$<span id="posSummarySubtotal">0.00</span></span></div>
+                            <div class="pricing-line-flex grand-total"><span>Grand Total Cost:</span><span>$<span id="posSummaryGrandTotal">0.00</span></span></div>
                         </div>
 
                         <button id="posTerminalCommitBtn" class="btn-core btn-core-success" onclick="executeManualBasketTicketSubmission()" disabled>
@@ -1000,68 +354,39 @@
             <div class="metrics-grid-row">
                 <div class="metric-analytics-card">
                     <div class="metric-icon-avatar alert">📋</div>
-                    <div class="metric-data-block">
-                        <span class="metric-lbl">Active Queue Load</span>
-                        <span class="metric-big-value" id="statsActiveCount">0</span>
-                    </div>
+                    <div class="metric-data-block"><span class="metric-lbl">Active Queue Load</span><span class="metric-big-value" id="statsActiveCount">0</span></div>
                 </div>
                 <div class="metric-analytics-card">
                     <div class="metric-icon-avatar success">💰</div>
-                    <div class="metric-data-block">
-                        <span class="metric-lbl">Settled Ledger Gross</span>
-                        <span class="metric-big-value" id="statsGrossRevenue">$0.00</span>
-                    </div>
+                    <div class="metric-data-block"><span class="metric-lbl">Settled Ledger Gross</span><span class="metric-big-value" id="statsGrossRevenue">$0.00</span></div>
                 </div>
                 <div class="metric-analytics-card">
                     <div class="metric-icon-avatar">✅</div>
-                    <div class="metric-data-block">
-                        <span class="metric-lbl">Completed Runs</span>
-                        <span class="metric-big-value" id="statsCompletedCount">0</span>
-                    </div>
+                    <div class="metric-data-block"><span class="metric-lbl">Completed Runs</span><span class="metric-big-value" id="statsCompletedCount">0</span></div>
                 </div>
                 <div class="metric-analytics-card">
                     <div class="metric-icon-avatar danger">🚨</div>
-                    <div class="metric-data-block">
-                        <span class="metric-lbl">Cancelled Drops</span>
-                        <span class="metric-big-value" id="statsCancelledCount">0</span>
-                    </div>
+                    <div class="metric-data-block"><span class="metric-lbl">Cancelled Drops</span><span class="metric-big-value" id="statsCancelledCount">0</span></div>
                 </div>
             </div>
 
             <div class="panel">
-                <div class="panel-header-wrapper">
-                    <div>
-                        <h2>📊 Dynamic Analytical Raw Database Logs</h2>
-                        <div class="panel-subtitle">Direct multi-variant matrix of all rows found inside remote spreadsheet database columns</div>
-                    </div>
-                    <button class="btn-core btn-core-secondary" style="width:auto; padding: 6px 12px; font-size:11px;" onclick="syncDatabaseEngine()">
-                        🔄 Re-Index Array
-                    </button>
-                </div>
-
-                <div class="filter-search-tray">
-                    <div class="search-input-wrapper">
-                        <input type="text" id="ledgerTableSearchField" placeholder="Filter rows across customer strings, ticket IDs, or matching criteria..." onkeyup="evaluateLedgerTableSearchFilter()">
-                    </div>
-                </div>
-
-                <div class="table-responsive-wrapper">
+                <h2>📊 Raw Master Spreadsheet Column Ingestion Matrix Logs</h2>
+                <div class="table-responsive-wrapper" style="margin-top:15px;">
                     <table id="ledgerMasterDataGridTable">
                         <thead>
                             <tr>
-                                <th style="cursor:pointer;" onclick="sortLedgerMatrixByColumn(0)">System Row ID ⇅</th>
-                                <th style="cursor:pointer;" onclick="sortLedgerMatrixByColumn(1)">Customer Profile Name ⇅</th>
-                                <th>Itemization Manifest Items</th>
-                                <th style="cursor:pointer;" onclick="sortLedgerMatrixByColumn(3)">Financial Billing Gross ⇅</th>
-                                <th style="cursor:pointer;" onclick="sortLedgerMatrixByColumn(4)">Production Status ⇅</th>
-                                <th style="cursor:pointer;" onclick="sortLedgerMatrixByColumn(5)">Paid State ⇅</th>
-                                <th>Logistics & Operation Notes</th>
+                                <th>Row ID</th>
+                                <th>Customer Account Name</th>
+                                <th>Line Purchases</th>
+                                <th>Billing Gross</th>
+                                <th>Production Status</th>
+                                <th>Paid State</th>
+                                <th>Logistics Memo Route Directives</th>
                             </tr>
                         </thead>
                         <tbody id="ledgerMasterTableBodyTarget">
-                            <tr>
-                                <td colspan="7" style="text-align:center; padding:30px; color:var(--text-secondary);"> Execute system sync to fetch rows from remote endpoints.</td>
-                            </tr>
+                            <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-secondary);">Sync system database to populate data rows.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1072,128 +397,57 @@
 
     <div id="systemNotificationToastBox" class="sys-toast">
         <span class="sys-toast-icon">ℹ️</span>
-        <span id="systemToastMessageText">Terminal System initialization initialized successfully.</span>
+        <span id="systemToastMessageText">Terminal System initialized.</span>
     </div>
 
     <script>
-        // CORE NETWORKING INFRASTRUCTURE PARAMETERS
         const CENTRAL_END_API_URI = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
         
-        // APPARATUS MEMORY ARCHITECTURE POOLS
         let localRegisterBasketArray = [];
         let globalCachedDatabaseStateRows = [];
         let activeInterfacePanelId = "production";
-        let ledgerSortDirectionAscending = true;
 
-        // INVENTORY ICON DICTIONARY LOOKUP (Internal POS parsing support structures)
-        const itemIconDictionary = {
-            'Muffin': '🍰', 'Red Velvet Cupcake': '🧁', 'Donut': '🍩', 'Pies Whole': '🥧',
-            'Coffee': '☕', 'Tea': '🍵', 'Espresso': '⚡', 'Cappuccino': '🥛',
-            'Matcha': '🍃', 'Ice Matcha': '🧊', 'Milkshakes': '🥤', 'Fruit Smoothie': '🍓',
-            'Smoothie Super Edition': '🥤', 'Pancakes': '🥞', 'Fairy Bread': '🍞',
-            'Orange Juice': '🍊', 'Water': '💧', 'Grape Juice': '🍇', 'Ice Tea': '🍋',
-            'Milk': '🥛', 'Lemonade': '🥤'
-        };
-
-        /**
-         * Interface Execution View Shifting Navigation Panel Routing Control
-         */
         function executeViewSwitch(targetPanelId) {
             if (!targetPanelId) return;
             activeInterfacePanelId = targetPanelId;
-            
-            // Toggle view visibility rules across application views
-            document.querySelectorAll('.view-panel').forEach(panelNode => {
-                panelNode.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-btn').forEach(btnNode => {
-                if(!btnNode.classList.contains('refresh-btn')) {
-                    btnNode.classList.remove('active');
-                }
-            });
-
-            const activePanelDOMNode = document.getElementById(`viewPanel-${targetPanelId}`);
-            const activeButtonDOMNode = document.getElementById(`navBtn-${targetPanelId}`);
-            
-            if (activePanelDOMNode) activePanelDOMNode.classList.add('active');
-            if (activeButtonDOMNode) activeButtonDOMNode.classList.add('active');
-
-            displaySystemToastNotification(`Switched application context view to: ${targetPanelId.toUpperCase()}`);
-            
-            // Auto run internal updates if navigating to matrix ledger frames
-            if(targetPanelId === 'ledger' || targetPanelId === 'production') {
-                syncDatabaseEngine();
-            }
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`viewPanel-${targetPanelId}`).classList.add('active');
+            document.getElementById(`navBtn-${targetPanelId}`).classList.add('active');
         }
 
-        /**
-         * Evaluate POS Form Context State Delivery Visibility Rules
-         */
-        function evaluatePosDeliveryScaffolding() {
-            const currentSelectionMode = document.getElementById('posFormFulfillmentSelect').value;
-            const deliveryUIBoxNode = document.getElementById('posFormDeliverySubcontainer');
-            if(deliveryUIBoxNode) {
-                deliveryUIBoxNode.style.display = (currentSelectionMode === 'Delivery') ? 'block' : 'none';
-            }
+        function evaluatePosFulfillmentScaffolding() {
+            const mode = document.getElementById('posFormFulfillmentSelect').value;
+            document.getElementById('posFormDeliverySubcontainer').style.display = (mode === 'Delivery') ? 'block' : 'none';
+            document.getElementById('posFormDineInSubcontainer').style.display = (mode === 'Dine-In') ? 'block' : 'none';
         }
 
-        /**
-         * Push Menu Item Entry Instances directly into compiling basket instance arrays
-         */
         function addMenuProductToBasket(productName, standardUnitCost, categoryIcon) {
-            if (!productName || standardUnitCost === undefined) return;
-            
-            // Check if object element exists to iterate numerical allocation values instead
-            const matchIndex = localRegisterBasketArray.findIndex(element => element.name === productName);
+            const matchIndex = localRegisterBasketArray.findIndex(e => e.name === productName);
             if(matchIndex !== -1) {
                 localRegisterBasketArray[matchIndex].quantity += 1;
             } else {
                 localRegisterBasketArray.push({
-                    name: productName,
-                    unitCost: parseFloat(standardUnitCost),
-                    quantity: 1,
-                    graphicIcon: categoryIcon || '🍽️'
+                    name: productName, unitCost: parseFloat(standardUnitCost), quantity: 1, graphicIcon: categoryIcon
                 });
             }
-            
-            displaySystemToastNotification(`Injected ${productName} into memory collection frame.`);
             renderRegisterBasketDOMEngine();
         }
 
-        /**
-         * Remove Item entries directly from basket allocation instances
-         */
-        function purgeProductFromBasket(productTargetName) {
-            const index = localRegisterBasketArray.findIndex(item => item.name === productTargetName);
-            if(index !== -1) {
-                localRegisterBasketArray.splice(index, 1);
-                renderRegisterBasketDOMEngine();
-                displaySystemToastNotification(`Purged targeted item array mapping data entry: ${productTargetName}`);
-            }
-        }
-
-        /**
-         * Compiles and outputs markup interfaces for working transactions
-         */
         function renderRegisterBasketDOMEngine() {
             const containerNode = document.getElementById('posBasketDOMContainer');
             const submitBtnNode = document.getElementById('posTerminalCommitBtn');
-            
             let incrementalSubtotalAccumulator = 0;
 
-            if(!containerNode) return;
-
             if(localRegisterBasketArray.length === 0) {
-                containerNode.innerHTML = `<div style="color:var(--text-secondary); text-align:center; padding-top:35px; font-style:italic;">No row items assigned to compiling memory.</div>`;
-                if(submitBtnNode) submitBtnNode.disabled = true;
-                
+                containerNode.innerHTML = `<div style="color:var(--text-secondary); text-align:center; padding-top:35px; font-style:italic;">No items in memory.</div>`;
+                submitBtnNode.disabled = true;
                 document.getElementById('posSummarySubtotal').innerText = "0.00";
-                document.getElementById('posSummaryTax').innerText = "0.00";
                 document.getElementById('posSummaryGrandTotal').innerText = "0.00";
                 return;
             }
 
-            if(submitBtnNode) submitBtnNode.disabled = false;
+            submitBtnNode.disabled = false;
             containerNode.innerHTML = '';
 
             localRegisterBasketArray.forEach(basketRow => {
@@ -1204,79 +458,43 @@
                     <div class="basket-row-item">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span>${basketRow.graphicIcon}</span>
-                            <span style="font-weight:800; color:var(--text-primary);">${basketRow.name}</span>
+                            <span style="font-weight:800;">${basketRow.name}</span>
                         </div>
-                        <div class="basket-item-controls">
+                        <div>
                             <span class="basket-qty-tag">x${basketRow.quantity}</span>
                             <span style="color:var(--accent-brand); font-weight:800;">$${combinedRowCostValuation.toFixed(2)}</span>
-                            <button class="basket-item-del-btn" onclick="purgeProductFromBasket('${basketRow.name}')">Purge</button>
                         </div>
                     </div>`;
             });
 
-            // Calculate tax distributions
-            const analyticalComputedTaxSegment = incrementalSubtotalAccumulator * 0.10;
-            const finalComputedInvoiceGrandTotal = incrementalSubtotalAccumulator;
-
             document.getElementById('posSummarySubtotal').innerText = incrementalSubtotalAccumulator.toFixed(2);
-            document.getElementById('posSummaryTax').innerText = analyticalComputedTaxSegment.toFixed(2);
-            document.getElementById('posSummaryGrandTotal').innerText = finalComputedInvoiceGrandTotal.toFixed(2);
+            document.getElementById('posSummaryGrandTotal').innerText = incrementalSubtotalAccumulator.toFixed(2);
         }
 
-        /**
-         * Formulates internal strings out of structured array maps to process clean entries
-         */
-        function generateStringSummaryFromWorkingBasket() {
-            return localRegisterBasketArray.map(obj => `${obj.quantity}x ${obj.name}`).join(', ');
-        }
-
-        /**
-         * Manual Terminal POST Operational Routine Execution Handler
-         */
         async function executeManualBasketTicketSubmission() {
             const customerProfileString = document.getElementById('posFormCustomerField').value.trim();
             const fulfillmentMethodType = document.getElementById('posFormFulfillmentSelect').value;
             const initialPaymentStatusValue = document.getElementById('posFormPaymentSelect').value;
             const customizedOperatorNotesMemo = document.getElementById('posFormNotesField').value.trim();
-            const submitBtnDomPointer = document.getElementById('posTerminalCommitBtn');
 
-            if(!customerProfileString) {
-                alert("Critical Entry Validation Exception: Customer Profile field cannot remain unassigned.");
-                return;
-            }
-            if(localRegisterBasketArray.length === 0) {
-                alert("Critical Action Dropped: Terminal requires compilation matrix items inside active memory arrays.");
-                return;
-            }
+            if(!customerProfileString) return alert("Customer Name is required.");
 
-            // Route dynamic note descriptors explicitly based on shipping choices
             let operationalSystemNotesAggregationString = `POS Entry (${fulfillmentMethodType})`;
 
             if(fulfillmentMethodType === 'Delivery') {
-                const physicalAddressTargetStr = document.getElementById('posFormAddressField').value.trim();
-                const trackingPhoneTargetStr = document.getElementById('posFormPhoneField').value.trim();
-
-                if(!physicalAddressTargetStr || !trackingPhoneTargetStr) {
-                    alert("Validation Error: Distribution mapping requires destination address coordinates and recipient contact credentials.");
-                    return;
-                }
-                operationalSystemNotesAggregationString = `DELIVERY -> Addr: ${physicalAddressTargetStr} | Phone: ${trackingPhoneTargetStr}`;
+                const estate = document.getElementById('posFormEstateDropdown').value;
+                operationalSystemNotesAggregationString = `DELIVERY -> Complex: ${estate} | Profile username route matching configured`;
+            } else if (fulfillmentMethodType === 'Dine-In') {
+                const tbl = document.getElementById('posFormTableDropdown').value;
+                operationalSystemNotesAggregationString = `DINE-IN -> Location: ${tbl}`;
             }
 
-            if(customizedOperatorNotesMemo) {
-                operationalSystemNotesAggregationString += ` | Operator Notes: ${customizedOperatorNotesMemo}`;
-            }
-
-            setNetworkSynchronizationStatusBadge(true, "Posting Packet");
-            if(submitBtnDomPointer) {
-                submitBtnDomPointer.disabled = true;
-                submitBtnDomPointer.innerText = "Transmitting Network Stream...";
-            }
+            if(customizedOperatorNotesMemo) operationalSystemNotesAggregationString += ` | Notes: ${customizedOperatorNotesMemo}`;
 
             const activeInvoiceTotalValue = parseFloat(document.getElementById('posSummaryGrandTotal').innerText) || 0;
-            const itemizedSummaryString = generateStringSummaryFromWorkingBasket();
+            const itemizedSummaryString = localRegisterBasketArray.map(obj => `${obj.quantity}x ${obj.name}`).join(', ');
 
-            const fullyCompiledSpreadsheetPayloadRowObject = {
+            const payload = {
                 id: 'POS-' + Math.floor(1000 + Math.random() * 9000),
                 customer: customerProfileString,
                 items: itemizedSummaryString,
@@ -1289,457 +507,185 @@
             };
 
             try {
-                const responseChannel = await fetch(`${CENTRAL_END_API_URI}/Sheet1`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify([fullyCompiledSpreadsheetPayloadRowObject])
+                setNetworkSynchronizationStatusBadge(true, "Posting POS Ticket");
+                const response = await fetch(`${CENTRAL_END_API_URI}/Sheet1`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([payload])
                 });
 
-                if(responseChannel.ok) {
-                    displaySystemToastNotification(`Successfully initialized transaction line item entry: ${fullyCompiledSpreadsheetPayloadRowObject.id}`);
-                    
-                    // Clear state pools entirely back to factory parameters
+                if(response.ok) {
+                    displaySystemToastNotification(`Successfully logged ticket: ${payload.id}`);
                     localRegisterBasketArray = [];
                     document.getElementById('posFormCustomerField').value = '';
                     document.getElementById('posFormNotesField').value = '';
-                    document.getElementById('posFormAddressField').value = '';
-                    document.getElementById('posFormPhoneField').value = '';
-                    document.getElementById('posFormFulfillmentSelect').value = 'Pickup';
-                    document.getElementById('posFormPaymentSelect').value = 'No';
-                    
-                    evaluatePosDeliveryScaffolding();
                     renderRegisterBasketDOMEngine();
-                    
-                    // Pull updated records to refresh cache bounds
                     await syncDatabaseEngine();
-                } else {
-                    alert("Server Ingestion Rejection: Link endpoints returned unauthorized validation failure states.");
                 }
-            } catch(errorPipelineException) {
-                alert("Fatal Endpoint Communications Error: High level packet transmission failed verification limits.");
-            } finally {
-                setNetworkSynchronizationStatusBadge(false, "Terminal Live");
-                if(submitBtnDomPointer) {
-                    submitBtnDomPointer.disabled = false;
-                    submitBtnDomPointer.innerText = "💾 Transmit & Commit Local Manifest";
-                }
-            }
+            } catch(e) { alert("POS connection error."); }
+            finally { setNetworkSynchronizationStatusBadge(false, "Terminal Live"); }
         }
 
-        /**
-         * Global Database Core Re-indexing & Frame Synchronization Pipeline Architecture
-         */
         async function syncDatabaseEngine() {
             setNetworkSynchronizationStatusBadge(true, "Syncing Sheets");
-            
             try {
-                const operationalNetworkStreamResponse = await fetch(`${CENTRAL_END_API_URI}/Sheet1`);
-                const parsedJSONDataCollectionMatrix = await operationalNetworkStreamResponse.json();
+                const stream = await fetch(`${CENTRAL_END_API_URI}/Sheet1`);
+                const rows = await stream.json();
+                if(!rows || rows.error) return;
 
-                if(!parsedJSONDataCollectionMatrix || parsedJSONDataCollectionMatrix.error) {
-                    displaySystemToastNotification("API Endpoint processing pipeline configuration returned bad data segments.");
-                    setNetworkSynchronizationStatusBadge(false, "Pipeline Alert");
-                    return;
-                }
+                globalCachedDatabaseStateRows = rows;
+                evaluateLivePaymentAlertSystem(rows);
 
-                // Cache globally for localized search mutations
-                globalCachedDatabaseStateRows = parsedJSONDataCollectionMatrix;
-
-                // Fire rendering threads across all dependent view frames synchronously
                 buildKitchenQueueBoardDOMInterface();
                 buildRecentArchiveTableDOMInterface();
                 buildGlobalAnalyticalLedgerEngineDOMInterface();
+            } catch (e) { displaySystemToastNotification("Database sync failure."); }
+            finally { setNetworkSynchronizationStatusBadge(false, "Terminal Live"); }
+        }
 
-                displaySystemToastNotification("Data tables synchronized successfully with master tracking sheets.");
-
-            } catch (networkFatalExceptionChannel) {
-                console.error(networkFatalExceptionChannel);
-                displaySystemToastNotification("Fatal connection timeout trying to link to storage infrastructure sheets.");
-            } finally {
-                setNetworkSynchronizationStatusBadge(false, "Terminal Live");
+        function evaluateLivePaymentAlertSystem(rows) {
+            const marqueeTextNode = document.getElementById('marqueeAlertText');
+            const paidAlertQueueSubsets = rows.filter(r => r.status === 'Pending' && r.paid === 'Yes');
+            
+            if(paidAlertQueueSubsets.length > 0) {
+                const latestPaidNotificationInstance = paidAlertQueueSubsets[paidAlertQueueSubsets.length - 1];
+                marqueeTextNode.innerHTML = `💸 <strong>PAYMENT CLEAR:</strong> Order <span style="text-decoration:underline;">${latestPaidNotificationInstance.id}</span> for <strong>${latestPaidNotificationInstance.customer}</strong> has been cleared as PAID!`;
+                marqueeTextNode.style.color = "#15803d";
+            } else {
+                marqueeTextNode.innerText = "Operational Feed Active: Waiting for remote payment transmissions...";
+                marqueeTextNode.style.color = "#b45309";
             }
         }
 
-        /**
-         * Direct Pipeline Refresh Wrapper helper
-         */
-        function triggerManualSync() {
-            syncDatabaseEngine();
-        }
-
-        /**
-         * Compiles and draws the primary production environment cards
-         */
         function buildKitchenQueueBoardDOMInterface() {
             const queueGridDOMNodeTarget = document.getElementById('productionTicketsDisplayGrid');
             const activeCounterBadgeDOMNode = document.getElementById('activeTicketCountBadge');
-            
             if(!queueGridDOMNodeTarget) return;
 
-            // Isolate active workflows explicitly from data pools
-            const isolatedActivePendingTicketsArray = globalCachedDatabaseStateRows.filter(ticketRowObj => ticketRowObj.status === 'Pending');
-            
-            if(activeCounterBadgeDOMNode) {
-                activeCounterBadgeDOMNode.innerText = `${isolatedActivePendingTicketsArray.length} Active Tickets`;
-            }
+            const pending = globalCachedDatabaseStateRows.filter(t => t.status === 'Pending');
+            if(activeCounterBadgeDOMNode) activeCounterBadgeDOMNode.innerText = `${pending.length} Active Tickets`;
 
-            if(isolatedActivePendingTicketsArray.length === 0) {
-                queueGridDOMNodeTarget.innerHTML = `
-                    <div style="color:var(--text-secondary); text-align:center; padding:50px; width:100%; grid-column:1/-1; font-style:italic;">
-                        Production lines clear! No active pending tickets currently registered inside queue loops.
-                    </div>`;
+            if(pending.length === 0) {
+                queueGridDOMNodeTarget.innerHTML = `<div style="color:var(--text-secondary); text-align:center; padding:50px; width:100%; grid-column:1/-1; font-style:italic;">Queue layout clear.</div>`;
                 return;
             }
 
             queueGridDOMNodeTarget.innerHTML = '';
-
-            isolatedActivePendingTicketsArray.forEach(activeTicketRow => {
-                const operationalDeliveryBooleanFlag = activeTicketRow.notes && activeTicketRow.notes.includes('DELIVERY');
-                const calculatedCardComponentStyleClass = operationalDeliveryBooleanFlag ? 'ticket-card delivery-priority' : 'ticket-card';
-                const logisticBadgeTypeStyleMarkupClass = operationalDeliveryBooleanFlag ? 'badge-delivery' : 'badge-pickup';
-                const logisticBadgeLocalizedTextLabel = operationalDeliveryBooleanFlag ? '🚗 Delivery Order' : '🚶 Counter Pickup';
-
-                // Parse out item string representations into cleanly organized list nodes
-                const operationalItemsListStringSegments = activeTicketRow.items ? activeTicketRow.items.split(', ') : [];
-                let structuredLineItemsHTMLAccumulator = '';
+            pending.forEach(activeTicketRow => {
+                const isDelivery = activeTicketRow.notes && activeTicketRow.notes.includes('DELIVERY');
+                const isDineIn = activeTicketRow.notes && activeTicketRow.notes.includes('DINE-IN');
                 
-                operationalItemsListStringSegments.forEach(itemStringSegment => {
-                    const trackingQuantityNumericMatches = itemStringSegment.match(/^(\d+)x\s+(.+)$/);
-                    if(trackingQuantityNumericMatches && trackingQuantityNumericMatches.length >= 3) {
-                        const parsedQty = trackingQuantityNumericMatches[1];
-                        const parsedItemName = trackingQuantityNumericMatches[2];
-                        const iconCharacterLookup = itemIconDictionary[parsedItemName] || '🍽️';
+                let badgeClass = 'badge-pickup', badgeText = '🚶 Pickup';
+                if(isDelivery) { badgeClass = 'badge-delivery'; badgeText = '🚗 Delivery'; }
+                else if(isDineIn) { badgeClass = 'badge-dinein'; badgeText = '🍽️ Dine-In'; }
 
-                        structuredLineItemsHTMLAccumulator += `
-                            <div class="ticket-line-item">
-                                <span>${iconCharacterLookup} ${parsedItemName}</span>
-                                <span style="color:var(--accent-brand); font-weight:900;">x${parsedQty}</span>
-                            </div>`;
-                    } else {
-                        structuredLineItemsHTMLAccumulator += `
-                            <div class="ticket-line-item">
-                                <span>❓ ${itemStringSegment}</span>
-                                <span style="color:var(--accent-brand); font-weight:900;">x1</span>
-                            </div>`;
-                    }
-                });
+                const items = activeTicketRow.items ? activeTicketRow.items.split(', ') : [];
+                let lineItemsHTML = '';
+                items.forEach(i => { lineItemsHTML += `<div class="ticket-line-item"><span>${i}</span></div>`; });
 
                 queueGridDOMNodeTarget.innerHTML += `
-                    <div class="${calculatedCardComponentStyleClass}" id="ticketElementNodeRef-${activeTicketRow.id}">
+                    <div class="ticket-card ${isDelivery ? 'delivery-priority' : ''}">
                         <div>
                             <div class="ticket-meta-header">
                                 <span class="ticket-number">${activeTicketRow.id}</span>
-                                <span class="type-badge ${logisticBadgeTypeStyleMarkupClass}">${logisticBadgeLocalizedTextLabel}</span>
+                                <span class="type-badge ${badgeClass}">${badgeText}</span>
                             </div>
-                            <h3 class="ticket-customer-title" title="${activeTicketRow.customer}">${activeTicketRow.customer}</h3>
-                            <div class="ticket-manifest-box">
-                                ${structuredLineItemsHTMLAccumulator}
-                            </div>
-                            <div class="ticket-instruction-log">
-                                <strong>Directives:</strong> ${activeTicketRow.notes || 'No custom notes logged.'}
+                            <h3 class="ticket-customer-title">${activeTicketRow.customer}</h3>
+                            <div class="ticket-manifest-box">${lineItemsHTML}</div>
+                            <div class="ticket-instruction-log"><strong>Memos:</strong> ${activeTicketRow.notes || 'None.'}</div>
+                            <div style="font-weight: 800; font-size:12px; margin-bottom:12px; color:${activeTicketRow.paid === 'Yes' ? 'var(--color-success)' : 'var(--color-danger)'}">
+                                Paid Status: ${activeTicketRow.paid === 'Yes' ? '🟢 SETTLED' : '🔴 UNPAID'}
                             </div>
                         </div>
                         <div class="ticket-footer-actions">
-                            <button class="btn-core btn-core-success" style="padding: 8px;" onclick="setOrderFulfillmentWorkflowState('${activeTicketRow.id}', 'Completed')">
-                                ✓ Clear Ticket
-                            </button>
-                            <button class="btn-core btn-core-danger" style="padding: 8px; flex: 0 0 75px;" onclick="setOrderFulfillmentWorkflowState('${activeTicketRow.id}', 'Cancelled')">
-                                Drop
-                            </button>
+                            <button class="btn-core btn-core-success" onclick="setOrderWorkflowState('${activeTicketRow.id}', 'Completed')">Clear</button>
+                            <button class="btn-core btn-core-danger" style="flex:0 0 75px;" onclick="setOrderWorkflowState('${activeTicketRow.id}', 'Cancelled')">Drop</button>
                         </div>
                     </div>`;
             });
         }
 
-        /**
-         * Draws the tracking elements under the production board
-         */
         function buildRecentArchiveTableDOMInterface() {
-            const tableBodyNodeTarget = document.getElementById('archiveTableBodyTarget');
-            if(!tableBodyNodeTarget) return;
+            const target = document.getElementById('archiveTableBodyTarget');
+            if(!target) return;
+            const past = globalCachedDatabaseStateRows.filter(r => r.status !== 'Pending').reverse().slice(0, 10);
 
-            // Isolate non-active states, flip sequencing to review new logs first, pull upper boundaries
-            const formattedHistoricalRecordsArray = globalCachedDatabaseStateRows
-                .filter(rowElement => rowElement.status !== 'Pending')
-                .reverse()
-                .slice(0, 10);
-
-            if(formattedHistoricalRecordsArray.length === 0) {
-                tableBodyNodeTarget.innerHTML = `
-                    <tr>
-                        <td colspan="6" style="color:var(--text-secondary); text-align:center; padding:30px; font-style:italic;">
-                            No operational historical entries compiled inside active table sets.
-                        </td>
-                    </tr>`;
+            if(past.length === 0) {
+                target.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">No resolved history logs.</td></tr>';
                 return;
             }
-
-            tableBodyNodeTarget.innerHTML = '';
-            formattedHistoricalRecordsArray.forEach(historicalOrderRow => {
-                const numericalCleanCostFormat = parseFloat(historicalOrderRow.total) || 0;
-                const evaluatedWorkflowStateStyleClass = historicalOrderRow.status === 'Completed' ? 'pill-completed' : 'pill-cancelled';
-
-                tableBodyNodeTarget.innerHTML += `
+            target.innerHTML = '';
+            past.forEach(r => {
+                target.innerHTML += `
                     <tr>
-                        <td style="font-family:monospace; font-weight:900; color:var(--accent-brand); font-size:14px;">${historicalOrderRow.id}</td>
-                        <td><strong style="color:var(--text-primary); font-size:14px;">${historicalOrderRow.customer}</strong></td>
-                        <td style="font-weight:600; font-size:13px; color:var(--text-primary);">${historicalOrderRow.items || ''}</td>
-                        <td style="font-weight:900; color:var(--text-primary); font-size:14px;">$${numericalCleanCostFormat.toFixed(2)}</td>
-                        <td>
-                            <span class="row-status-pill ${evaluatedWorkflowStateStyleClass}">${historicalOrderRow.status}</span>
-                        </td>
-                        <td style="color:var(--text-secondary); font-size:12px; font-style:italic; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            ${historicalOrderRow.notes || ''}
-                        </td>
+                        <td style="font-family:monospace; font-weight:900; color:var(--accent-brand);">${r.id}</td>
+                        <td><strong>${r.customer}</strong></td>
+                        <td>${r.items || ''}</td>
+                        <td style="font-weight:900;">$${parseFloat(r.total || 0).toFixed(2)}</td>
+                        <td><span class="row-status-pill ${r.status === 'Completed' ? 'pill-completed' : 'pill-cancelled'}">${r.status}</span></td>
+                        <td>${r.notes || ''}</td>
                     </tr>`;
             });
         }
 
-        /**
-         * Builds analytical frameworks across metric boxes and master ledger records
-         */
-        function buildGlobalAnalyticalLedgerEngineDOMInterface(customFilteredMatrixDatasetArray) {
-            const ledgerBodyTargetNode = document.getElementById('ledgerMasterTableBodyTarget');
-            
-            // Default variable fallbacks if custom parameters arrays are absent
-            const activeWorkingDatasetMatrix = customFilteredMatrixDatasetArray || globalCachedDatabaseStateRows;
+        function buildGlobalAnalyticalLedgerEngineDOMInterface() {
+            const target = document.getElementById('ledgerMasterTableBodyTarget');
+            if(!target) return;
 
-            // Metrics calculation core variables
-            let computedAccumulatorPendingCount = 0;
-            let computedAccumulatorCompletedCount = 0;
-            let computedAccumulatorCancelledCount = 0;
-            let computedAccumulatorFinancialGrossRevenue = 0;
+            let pend = 0, comp = 0, canc = 0, rev = 0;
+            target.innerHTML = '';
 
-            // Run processing calculations across the comprehensive master data matrix cache fields
-            globalCachedDatabaseStateRows.forEach(rowInstance => {
-                const localizedParsedPriceFloat = parseFloat(rowInstance.total) || 0;
-                
-                if(rowInstance.status === 'Pending') computedAccumulatorPendingCount++;
-                if(rowInstance.status === 'Completed') {
-                    computedAccumulatorCompletedCount++;
-                    computedAccumulatorFinancialGrossRevenue += localizedParsedPriceFloat;
-                }
-                if(rowInstance.status === 'Cancelled') computedAccumulatorCancelledCount++;
-            });
+            globalCachedDatabaseStateRows.forEach(r => {
+                const total = parseFloat(r.total) || 0;
+                if(r.status === 'Pending') pend++;
+                if(r.status === 'Completed') { comp++; rev += total; }
+                if(r.status === 'Cancelled') canc++;
 
-            // Update user interfaces analytics tracking fields
-            const domActiveCount = document.getElementById('statsActiveCount');
-            const domGrossRev = document.getElementById('statsGrossRevenue');
-            const domCompCount = document.getElementById('statsCompletedCount');
-            const domCancelCount = document.getElementById('statsCancelledCount');
-
-            if(domActiveCount) domActiveCount.innerText = computedAccumulatorPendingCount;
-            if(domGrossRev) domGrossRev.innerText = `$${computedAccumulatorFinancialGrossRevenue.toFixed(2)}`;
-            if(domCompCount) domCompCount.innerText = `${computedAccumulatorCompletedCount} Tickets`;
-            if(domCancelCount) domCancelCount.innerText = `${computedAccumulatorCancelledCount} Closed`;
-
-            if(!ledgerBodyTargetNode) return;
-
-            if(activeWorkingDatasetMatrix.length === 0) {
-                ledgerBodyTargetNode.innerHTML = `
+                target.innerHTML += `
                     <tr>
-                        <td colspan="7" style="text-align:center; padding:40px; color:var(--text-secondary); font-style:italic;">
-                            No rows matched the active query filter parameter constraints.
-                        </td>
-                    </tr>`;
-                return;
-            }
-
-            ledgerBodyTargetNode.innerHTML = '';
-            activeWorkingDatasetMatrix.forEach(ledgerRowElement => {
-                const absoluteCostValue = parseFloat(ledgerRowElement.total) || 0;
-                
-                let dynamicStatusBadgeStylingMarkupClass = 'pill-pending';
-                if(ledgerRowElement.status === 'Completed') dynamicStatusBadgeStylingMarkupClass = 'pill-completed';
-                if(ledgerRowElement.status === 'Cancelled') dynamicStatusBadgeStylingMarkupClass = 'pill-cancelled';
-
-                const paidColoredStateStyleMarkup = ledgerRowElement.paid === 'Yes' ? 'color:var(--color-success); font-weight:800;' : 'color:var(--color-danger); font-weight:800;';
-
-                ledgerBodyTargetNode.innerHTML += `
-                    <tr>
-                        <td style="font-family:monospace; font-weight:800; color:var(--text-secondary);">${ledgerRowElement.id}</td>
-                        <td><strong>${ledgerRowElement.customer}</strong></td>
-                        <td style="font-weight:600; color:#475569;">${ledgerRowElement.items || ''}</td>
-                        <td style="font-weight:900;">$${absoluteCostValue.toFixed(2)}</td>
-                        <td><span class="row-status-pill ${dynamicStatusBadgeStylingMarkupClass}">${ledgerRowElement.status}</span></td>
-                        <td style="${paidColoredStateStyleMarkup}">${ledgerRowElement.paid === 'Yes' ? 'SETTLED' : 'UNPAID'}</td>
-                        <td style="font-size:12px; color:var(--text-secondary); max-width:300px; overflow:hidden; text-overflow:ellipsis;">${ledgerRowElement.notes || ''}</td>
+                        <td style="font-family:monospace;">${r.id}</td>
+                        <td><strong>${r.customer}</strong></td>
+                        <td>${r.items || ''}</td>
+                        <td>$${total.toFixed(2)}</td>
+                        <td><span class="row-status-pill ${r.status === 'Pending' ? 'pill-pending' : r.status === 'Completed' ? 'pill-completed' : 'pill-cancelled'}">${r.status}</span></td>
+                        <td style="font-weight:800; color:${r.paid === 'Yes' ? 'var(--color-success)' : 'var(--color-danger)'}">${r.paid === 'Yes' ? 'SETTLED' : 'UNPAID'}</td>
+                        <td style="color:var(--text-secondary); font-size:12px;">${r.notes || ''}</td>
                     </tr>`;
             });
+
+            document.getElementById('statsActiveCount').innerText = pend;
+            document.getElementById('statsGrossRevenue').innerText = `$${rev.toFixed(2)}`;
+            document.getElementById('statsCompletedCount').innerText = `${comp} Runs`;
+            document.getElementById('statsCancelledCount').innerText = `${canc} Drops`;
         }
 
-        /**
-         * Evaluates typing context matching algorithms across raw column entries to filter arrays
-         */
-        function evaluateLedgerTableSearchFilter() {
-            const currentSearchQueryValue = document.getElementById('ledgerTableSearchField').value.toLowerCase().trim();
-            
-            if(!currentSearchQueryValue) {
-                // If search query is cleared out, fallback cleanly to rendering defaults
-                buildGlobalAnalyticalLedgerEngineDOMInterface(globalCachedDatabaseStateRows);
-                return;
-            }
-
-            const mathematicallyFilteredOutputSubsetsArray = globalCachedDatabaseStateRows.filter(rowEntryData => {
-                const targetMatchCustomerId = rowEntryData.id ? rowEntryData.id.toLowerCase() : '';
-                const targetMatchCustomerName = rowEntryData.customer ? rowEntryData.customer.toLowerCase() : '';
-                const targetMatchManifestItems = rowEntryData.items ? rowEntryData.items.toLowerCase() : '';
-                const targetMatchSystemMemos = rowEntryData.notes ? rowEntryData.notes.toLowerCase() : '';
-
-                return targetMatchCustomerId.includes(currentSearchQueryValue) || 
-                       targetMatchCustomerName.includes(currentSearchQueryValue) || 
-                       targetMatchManifestItems.includes(currentSearchQueryValue) ||
-                       targetMatchSystemMemos.includes(currentSearchQueryValue);
-            });
-
-            buildGlobalAnalyticalLedgerEngineDOMInterface(mathematicallyFilteredOutputSubsetsArray);
-        }
-
-        /**
-         * State Sorting Algorithm Controller Logic Engine
-         */
-        function sortLedgerMatrixByColumn(columnIndexKeyNumber) {
-            if (globalCachedDatabaseStateRows.length === 0) return;
-            
-            ledgerSortDirectionAscending = !ledgerSortDirectionAscending;
-            displaySystemToastNotification(`Sorting ledger columns directional vector matrix: ${ledgerSortDirectionAscending ? 'ASC' : 'DESC'}`);
-
-            globalCachedDatabaseStateRows.sort((elementAlpha, elementBeta) => {
-                let comparisonValueA = '';
-                let comparisonValueB = '';
-
-                switch(columnIndexKeyNumber) {
-                    case 0: // ID sort rules
-                        comparisonValueA = elementAlpha.id || '';
-                        comparisonValueB = elementBeta.id || '';
-                        break;
-                    case 1: // Customer alphabetization fields
-                        comparisonValueA = elementAlpha.customer || '';
-                        comparisonValueB = elementBeta.customer || '';
-                        break;
-                    case 3: // Financial cost sorting parameters
-                        comparisonValueA = parseFloat(elementAlpha.total) || 0;
-                        comparisonValueB = parseFloat(elementBeta.total) || 0;
-                        return ledgerSortDirectionAscending ? comparisonValueA - comparisonValueB : comparisonValueB - comparisonValueA;
-                    case 4: // Status strings
-                        comparisonValueA = elementAlpha.status || '';
-                        comparisonValueB = elementBeta.status || '';
-                        break;
-                    case 5: // Paid sorting fields
-                        comparisonValueA = elementAlpha.paid || '';
-                        comparisonValueB = elementBeta.paid || '';
-                        break;
-                    default:
-                        return 0;
-                }
-
-                if (comparisonValueA < comparisonValueB) return ledgerSortDirectionAscending ? -1 : 1;
-                if (comparisonValueA > comparisonValueB) return ledgerSortDirectionAscending ? 1 : -1;
-                return 0;
-            });
-
-            // Regenerate interface representations out of newly ordered cache vectors
-            buildGlobalAnalyticalLedgerEngineDOMInterface();
-        }
-
-        /**
-         * Orchestrates PUT network operations to modify row entries
-         */
-        async function setOrderFulfillmentWorkflowState(targetOrderId, targetedNextWorkflowState) {
-            if(!targetOrderId || !targetedNextWorkflowState) return;
-
-            displaySystemToastNotification(`Modifying row sequence state allocation index for ticket: ${targetOrderId}`);
-            setNetworkSynchronizationStatusBadge(true, "Updating Line");
-
-            // Add UI structural fading feedback safely prior to network completion resolution
-            const visualDOMCardReference = document.getElementById(`ticketElementNodeRef-${targetOrderId}`);
-            if(visualDOMCardReference) {
-                visualDOMCardReference.style.opacity = '0.4';
-                visualDOMCardReference.style.pointerEvents = 'none';
-            }
-
+        async function setOrderWorkflowState(id, nextState) {
             try {
-                const administrativeResponseEndpointChannel = await fetch(`${CENTRAL_END_API_URI}/Sheet1`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        condition: { id: targetOrderId },
-                        set: { status: targetedNextWorkflowState }
-                    })
+                setNetworkSynchronizationStatusBadge(true, "Updating Ticket Status");
+                const res = await fetch(`${CENTRAL_END_API_URI}/Sheet1`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ condition: { id: id }, set: { status: nextState } })
                 });
-
-                if(administrativeResponseEndpointChannel.ok) {
-                    displaySystemToastNotification(`Successfully updated ticket ${targetOrderId} row state parameters.`);
-                    // Fire update cascade to verify baseline storage rows sync precisely
-                    await syncDatabaseEngine();
-                } else {
-                    alert("Data Sync Modification Rejection: The database target reference baseline denied mutations.");
-                    if(visualDOMCardReference) {
-                        visualDOMCardReference.style.opacity = '1';
-                        visualDOMCardReference.style.pointerEvents = 'auto';
-                    }
-                }
-            } catch (pipelineFailureException) {
-                alert("Critical Execution Link Interruption: Could not complete server action verification parameters.");
-                if(visualDOMCardReference) {
-                    visualDOMCardReference.style.opacity = '1';
-                    visualDOMCardReference.style.pointerEvents = 'auto';
-                }
-            } finally {
-                setNetworkSynchronizationStatusBadge(false, "Terminal Live");
-            }
+                if(res.ok) await syncDatabaseEngine();
+            } catch (e) { alert("Status update error."); }
+            finally { setNetworkSynchronizationStatusBadge(false, "Terminal Live"); }
         }
 
-        /**
-         * State Controller to fluctuate top control networking display configurations
-         */
-        function setNetworkSynchronizationStatusBadge(isProcessingDataStreamCurrently, stringOverrideStatusLabelText) {
-            const indicatorTextNode = document.getElementById('networkStatusText');
-            const structuralBadgeContainerNode = document.getElementById('connectionStatusBadge');
-
-            if(!indicatorTextNode || !structuralBadgeContainerNode) return;
-
-            if(isProcessingDataStreamCurrently) {
-                structuralBadgeContainerNode.className = "network-status syncing";
-                indicatorTextNode.innerText = stringOverrideStatusLabelText || "Syncing Packet...";
-            } else {
-                structuralBadgeContainerNode.className = "network-status";
-                indicatorTextNode.innerText = stringOverrideStatusLabelText || "Terminal Live";
-            }
+        function triggerManualSync() { syncDatabaseEngine(); }
+        function setNetworkSynchronizationStatusBadge(syncing, msg) {
+            const text = document.getElementById('networkStatusText');
+            const b = document.getElementById('connectionStatusBadge');
+            if(syncing) { b.className = "network-status syncing"; text.innerText = msg; }
+            else { b.className = "network-status"; text.innerText = msg; }
         }
 
-        /**
-         * System Toast Graphic Display Notification Manager Controller
-         */
-        function displaySystemToastNotification(toastDisplayMessageContentString) {
-            const toastBoxDOMNodePointer = document.getElementById('systemNotificationToastBox');
-            const toastTextDOMNodePointer = document.getElementById('systemToastMessageText');
-
-            if(!toastBoxDOMNodePointer || !toastTextDOMNodePointer) return;
-
-            toastTextDOMNodePointer.innerText = toastDisplayMessageContentString || "Notification Event Logged.";
-            toastBoxDOMNodePointer.classList.add('active');
-
-            // Handle clean computational timing window clears
-            clearTimeout(window.systemToastDismissalTimerInstanceTrack);
-            window.systemToastDismissalTimerInstanceTrack = setTimeout(() => {
-                toastBoxDOMNodePointer.classList.remove('active');
-            }, 3500);
+        function displaySystemToastNotification(msg) {
+            const box = document.getElementById('systemNotificationToastBox');
+            const text = document.getElementById('systemToastMessageText');
+            text.innerText = msg; box.classList.add('active');
+            setTimeout(() => box.classList.remove('active'), 3500);
         }
 
-        // DYNAMIC CONCURRENT LOOP INTERVAL TASKS AUTOMATION SCHEDULE ENGINE
-        // Runs silent synchronization tracks every 15000ms (15 Seconds) to mirror backend databases
-        const pipelineBackgroundPollerHandle = setInterval(() => {
-            // Protect local operator entry configurations by preventing background interruptions while typing forms
-            if(activeInterfacePanelId === 'production' || activeInterfacePanelId === 'ledger') {
-                syncDatabaseEngine();
-            }
-        }, 15000);
-
-        // INSTANT FACTORY TRIGGER ASSIGNMENT
-        window.addEventListener('DOMContentLoaded', () => {
-            syncDatabaseEngine();
-        });
+        setInterval(syncDatabaseEngine, 10000);
+        window.onload = syncDatabaseEngine;
     </script>
 </body>
 </html>
