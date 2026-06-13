@@ -486,6 +486,21 @@
             if (container.children.length > 20) container.removeChild(container.lastChild);
         }
 
+        function safeParseSpreadsheetDate(dateStr) {
+            if (!dateStr) return null;
+            let formattedStr = dateStr;
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split(',');
+                const dateParts = parts[0].trim().split('/');
+                if (dateParts.length === 3 && parseInt(dateParts[0]) > 12) {
+                    // Rearranges DD/MM/YYYY to MM/DD/YYYY to avoid invalid cross-browser conversions
+                    formattedStr = `${dateParts[1]}/${dateParts[0]}/${dateParts[2]}`;
+                    if (parts[1]) formattedStr += `, ${parts[1].trim()}`;
+                }
+            }
+            return formattedStr;
+        }
+
         async function toggleStaffShift() {
             const btn = document.getElementById('timeclockBtn');
             btn.disabled = true;
@@ -509,7 +524,7 @@
                 });
                 
                 updateLocalShiftUI();
-                pushInternalNotification(`ATTENDANCE: ${activeStaffName} logged ${isClockedIn ? 'IN' : 'OUT'} to spreadsheet.`);
+                pushInternalNotification(`ATTENDANCE: ${activeStaffName} logged ${isClockedIn ? 'IN' : 'OUT'} to database.`);
                 await fetchLiveRosterData();
             } catch(e) {
                 alert("Attendance sync failed.");
@@ -547,8 +562,8 @@
                 const container = document.getElementById('activeDutyRosterBox');
                 container.innerHTML = '';
 
-                // Filters active workers if clocked_in is populated and clocked_out is completely empty
-                let activeWorkers = catalog.filter(s => s.clocked_in && !s.clocked_out);
+                // Workers are active if clocked_in is full and clocked_out is completely empty
+                let activeWorkers = catalog.filter(s => s.clocked_in && (!s.clocked_out || s.clocked_out.trim() === ""));
 
                 if(activeWorkers.length === 0) {
                     container.innerHTML = `<div style="color:var(--text-secondary); font-size:13px; font-style:italic;">No operators currently on floor.</div>`;
@@ -557,7 +572,9 @@
 
                 activeWorkers.forEach(worker => {
                     let durationText = "Calculating...";
-                    const startTime = new Date(worker.clocked_in).getTime();
+                    const safeDateStr = safeParseSpreadsheetDate(worker.clocked_in);
+                    const startTime = new Date(safeDateStr).getTime();
+                    
                     if(!isNaN(startTime)) {
                         const diffMs = Date.now() - startTime;
                         durationText = formatElapsed(diffMs);
@@ -580,20 +597,23 @@
             return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // Live ticks time offsets locally on screen to reduce API strain
+        // Live ticks time offsets locally on screen to remove calculating layout lag
         setInterval(() => {
             document.querySelectorAll('.roster-time').forEach(el => {
-                const startTimeStr = el.getAttribute('data-start');
-                if(startTimeStr) {
-                    const start = new Date(startTimeStr).getTime();
+                const rawStartStr = el.getAttribute('data-start');
+                if(rawStartStr) {
+                    const safeDateStr = safeParseSpreadsheetDate(rawStartStr);
+                    const start = new Date(safeDateStr).getTime();
                     if(!isNaN(start)) {
                         el.innerText = formatElapsed(Date.now() - start);
+                    } else {
+                        el.innerText = "00:00:00";
                     }
                 }
             });
         }, 1000);
 
-        // Periodically poll backend data every 10 seconds
+        // Periodically verify roster alignment updates via sheets endpoint every 10s
         setInterval(fetchLiveRosterData, 10000);
 
         function routeTo(panelId) {
@@ -623,7 +643,7 @@
                     activeStaffRank = parseInt(matched.rank) || 1;
                     
                     // Derives true status directly from existing time pillars
-                    isClockedIn = (matched.clocked_in && !matched.clocked_out);
+                    isClockedIn = !!(matched.clocked_in && (!matched.clocked_out || matched.clocked_out.trim() === ""));
                     
                     updateLocalShiftUI();
                     
