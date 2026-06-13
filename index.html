@@ -64,11 +64,21 @@
             color: var(--text-main);
         }
 
+        .menu-category-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 12px;
-            margin: 24px 0;
+            margin-bottom: 24px;
         }
 
         .menu-item {
@@ -98,7 +108,6 @@
             border-color: var(--accent);
         }
 
-        /* Prevent hover transform on disabled items */
         .menu-item.disabled {
             pointer-events: none;
             opacity: 0.5;
@@ -190,17 +199,33 @@
                 <label><strong>Your Name:</strong></label>
                 <input type="text" id="custName" placeholder="Type your name to link orders..." oninput="onNameChange()">
 
-                <div class="menu-grid" id="menuGridBox">
-                    <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Cheesecake', 11)">Cheesecake ($11)</div>
+                <div class="menu-category-title">☕ Espresso & Coffee</div>
+                <div class="menu-grid">
+                    <div class="menu-item" onclick="toggleItem(this, 'Espresso Shot', 5)">Espresso ($5)</div>
                     <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Capuccino', 7)">Capuccino ($7)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Latte', 8)">Latte ($8)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Caramel Macchiato', 9)">Macchiato ($9)</div>
+                </div>
+
+                <div class="menu-category-title">🍵 Teas & Specialty</div>
+                <div class="menu-grid">
                     <div class="menu-item" onclick="toggleItem(this, 'Tea', 4)">Tea ($4)</div>
                     <div class="menu-item" onclick="toggleItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
-                    <div class="menu-item" onclick="toggleItem(this, 'Espresso Shot', 5)">Espresso ($5)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Chai Latte', 8)">Chai Latte ($8)</div>
                     <div class="menu-item" onclick="toggleItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Hot Chocolate', 6)">Hot Chocolate ($6)</div>
+                </div>
+
+                <div class="menu-category-title">🍰 Fresh Bakery treats</div>
+                <div class="menu-grid">
+                    <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Croissant', 5)">Croissant ($5)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Cookie', 3)">Cookie ($3)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Cheesecake', 11)">Cheesecake ($11)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
                 </div>
 
                 <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
@@ -229,7 +254,7 @@
         const BASE_API_URL = "https://script.google.com/macros/s/AKfycbxuT5QyTj2kSnLOHdvdYSyzUZrILN3gn9jBVxpbEj0n-kzSxZlpiRFyAv9v34x-QM2T/exec";
         
         let selectedItems = [];
-        let selectedPrices = {}; // FIX: track price per item name to avoid mismatch on deselect
+        let selectedPrices = {}; 
         let currentTotal = 0;
         let updateInterval = null;
         let isBanned = false;
@@ -241,7 +266,6 @@
         }
 
         function toggleItem(el, name, price) {
-            // FIX: guard via isBanned flag instead of checking disabled attribute
             if (isBanned) return;
 
             el.classList.toggle('selected');
@@ -268,7 +292,6 @@
                     updateInterval = setInterval(updateCustomerData, 15000);
                 }
             } else {
-                // FIX: clear ban state when name is cleared
                 isBanned = false;
                 document.getElementById('banAlert').style.display = 'none';
                 document.getElementById('submitBtn').disabled = false;
@@ -288,7 +311,6 @@
                     isBanned = true;
                     document.getElementById('banAlert').style.display = 'block';
                     document.getElementById('submitBtn').disabled = true;
-                    // FIX: visually disable menu items and deselect any chosen
                     document.querySelectorAll('.menu-item').forEach(m => {
                         m.classList.add('disabled');
                         m.classList.remove('selected');
@@ -300,10 +322,7 @@
                     document.getElementById('customerTrackerList').innerText = "Suspended profiles cannot pull tracking updates.";
                     return true;
                 }
-            } catch (e) {
-                // Network failure — don't block the user
-            }
-            // Not banned
+            } catch (e) {}
             isBanned = false;
             document.getElementById('banAlert').style.display = 'none';
             document.getElementById('submitBtn').disabled = false;
@@ -311,7 +330,7 @@
             return false;
         }
 
-     async function submitCustomerOrder() {
+        async function submitCustomerOrder() {
             const name = document.getElementById('custName').value.trim();
             const orderNotes = document.getElementById('chefNotesInput').value.trim();
 
@@ -319,13 +338,11 @@
                 return alert("Please type your name and pick your treats first!");
             }
 
-            // Disable button during submission to prevent double-posting
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
 
             if (await checkUserBan(name)) return;
 
-            // RESTRUCTURED PAYLOAD: Match the Apps Script Action and Row Rules
             const payload = {
                 action: 'insert',
                 sheet: 'Sheet1',
@@ -387,7 +404,6 @@
                     container.innerText = "No active orders in the current queue.";
                 } else {
                     container.innerHTML = '';
-                    // FIX: copy before reversing to avoid mutating the original array
                     [...activeOrders].reverse().forEach(o => {
                         const displayEta = o.eta ? o.eta : 'Calculating...';
                         const displayChefNotes = o.chef_notes ? o.chef_notes : 'Preparing your items...';
