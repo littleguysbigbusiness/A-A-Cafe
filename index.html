@@ -3,93 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ A&A Cafe | Customer Portal</title>
+    <title>☕ Cozy Beans Cafe</title>
     <style>
         :root {
-            --bg-main: #f1f5f9; --surface: #ffffff; --border: #cbd5e1;
-            --text-main: #0f172a; --text-muted: #64748b;
-            --accent: #2563eb; --accent-hover: #1d4ed8; --success: #10b981;
+            --bg-main: #f0f4f8;
+            --surface: #ffffff;
+            --border: #d9e2ec;
+            --text-main: #102a43;
+            --text-muted: #486581;
+            --accent: #0066cc; /* Electric Tech Blue */
+            --accent-hover: #004b99;
+            --badge-bg: #f59e0b;
         }
-        body { font-family: -apple-system, sans-serif; margin: 0; padding: 0; background-color: var(--bg-main); color: var(--text-main); }
-        header { background-color: var(--accent); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2); }
-        header h1 { margin: 0; font-size: 22px; color: var(--surface); font-weight: 700; }
-        .container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
-        .grid-3 { display: grid; grid-template-columns: 1.1fr 1fr 0.9fr; gap: 25px; }
-        @media (max-width: 1024px) { .grid-3 { grid-template-columns: 1fr; } }
-        .panel { background: var(--surface); padding: 25px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        h2, h3, h4 { margin-top: 0; padding-bottom: 12px; border-bottom: 2px solid var(--bg-main); }
-        .auth-card { max-width: 400px; margin: 100px auto; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 8px 0 16px 0; box-sizing: border-box; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-main); }
-        .btn-action { background: var(--accent); color: var(--surface); padding: 14px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 15px; font-weight: 600; }
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin: 20px 0; }
-        .menu-item { padding: 15px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; background: var(--bg-main); font-weight: 600; font-size: 13px; }
-        .menu-item.selected { background-color: var(--accent); color: var(--surface); border-color: var(--accent); }
-        .total-box { background: #eff6ff; color: var(--accent); padding: 15px; border-radius: 8px; text-align: right; font-size: 22px; font-weight: 700; margin: 15px 0; border: 1px solid #bfdbfe; }
-        .order-card, .notif-card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
-        .notif-card { border-left-color: var(--success); background: #f0fdf4; }
-        .badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .badge.paid { background: #d1fae5; color: var(--success); }
-        .badge.unpaid { background: #fee2e2; color: #ef4444; }
-        .logout-btn { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
+        }
+
+        header {
+            background-color: var(--accent);
+            color: var(--surface);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 102, 204, 0.2);
+        }
+        
+        header h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+
+        .container {
+            max-width: 1140px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+            font-weight: 600;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--bg-main);
+            color: var(--text-main);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .menu-item {
+            padding: 16px 10px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            background: var(--bg-main);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:hover { 
+            background: var(--surface);
+            border-color: var(--accent);
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(0,102,204,0.1);
+        }
+        
+        .menu-item.selected {
+            background-color: var(--accent);
+            color: var(--surface);
+            border-color: var(--accent);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0 20px 0;
+            box-sizing: border-box;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-main);
+            font-size: 14px;
+            color: var(--text-main);
+            transition: border 0.2s;
+        }
+        input:focus { border-color: var(--accent); outline: none; background: var(--surface); }
+
+        .action-btn {
+            background: var(--accent);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 15px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover { background: var(--accent-hover); }
+        .action-btn:disabled { background: #e9ecef; color: #adb5bd; cursor: not-allowed; }
+
+        .total-box {
+            background: #e1f0ff;
+            color: var(--accent);
+            padding: 18px;
+            border-radius: 10px;
+            text-align: right;
+            font-size: 22px;
+            font-weight: 700;
+            margin: 20px 0;
+            border: 1px solid #b3d7ff;
+        }
+
+        .order-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+        }
+
+        .status-badge {
+            background: var(--badge-bg);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .error-msg {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <div id="authContainer">
-        <div class="panel auth-card">
-            <h2>Cafe Portal Access</h2>
-            <div style="text-align: left; margin-top: 20px;">
-                <label><strong>Roblox Username:</strong></label>
-                <input type="text" id="authName" placeholder="Player123">
-                <button class="btn-action" onclick="handleAuth()">Open Dashboard</button>
-            </div>
-        </div>
-    </div>
+    <header>
+        <h1>☕ Cozy Beans Cafe</h1>
+    </header>
 
-    <div id="appContainer" style="display: none;">
-        <header>
-            <h1>☕ A&A Cafe Customer Hub</h1>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span id="userGreeting" style="font-size: 14px; font-weight: 600; color: white;"></span>
-                <button class="logout-btn" onclick="location.reload()">Sign Out</button>
-            </div>
-        </header>
+    <div class="container">
+        <div class="grid-2">
+            <div class="panel">
+                <h2>Fresh Daily Menu</h2>
+                <div id="banAlert" class="error-msg">🚫 Order Blocked: Profile suspended. Please see the barista counter.</div>
+                
+                <label><strong>Your Name:</strong></label>
+                <input type="text" id="custName" placeholder="Type your name to link orders..." oninput="onNameChange()">
 
-        <div class="container">
-            <div class="grid-3">
+                <div class="menu-grid" id="menuGridBox">
+                    <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Cheesecake', 11)">Cheesecake ($11)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Tea', 4)">Tea ($4)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Espresso Shot', 5)">Espresso ($5)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
+                </div>
+
+                <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
+                <button class="action-btn" id="submitBtn" onclick="submitCustomerOrder()">Send to Kitchen Barista</button>
+            </div>
+
+            <div>
                 <div class="panel">
-                    <h3>Place an Order</h3>
-                    <div class="menu-grid">
-                        <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
-                        <div class="menu-item" onclick="toggleItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
-                        <div class="menu-item" onclick="toggleItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
-                        <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
-                        <div class="menu-item" onclick="toggleItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
-                    </div>
-                    <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
-                    <button class="btn-action" onclick="submitCustomerOrder()" style="background: var(--success); color: white;">Submit Order Ticket</button>
+                    <h2>Live Order Status</h2>
+                    <div id="customerTrackerList">Enter your name to see active live track updates.</div>
                 </div>
 
                 <div class="panel">
-                    <h3>📋 Store Price Quick Reference</h3>
-                    <div style="font-size: 13px; line-height: 2.2; margin-top: 15px;">
-                        <div style="display:flex; justify-content:space-between; border-bottom: 1px dashed var(--border); padding-bottom: 5px;"><span>☕ Fresh Brewed Coffee</span><strong>$4</strong></div>
-                        <div style="display:flex; justify-content:space-between; border-bottom: 1px dashed var(--border); padding-bottom: 5px; margin-top: 5px;"><span>🍵 Premium Matcha Latte</span><strong>$9</strong></div>
-                        <div style="display:flex; justify-content:space-between; border-bottom: 1px dashed var(--border); padding-bottom: 5px; margin-top: 5px;"><span>🧁 Gourmet Cupcake</span><strong>$2</strong></div>
-                        <div style="display:flex; justify-content:space-between; border-bottom: 1px dashed var(--border); padding-bottom: 5px; margin-top: 5px;"><span>🍩 Fresh Muffin</span><strong>$2</strong></div>
-                        <div style="display:flex; justify-content:space-between; border-bottom: 1px dashed var(--border); padding-bottom: 5px; margin-top: 5px;"><span>🥧 Whole Cafe Pie</span><strong>$10</strong></div>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="panel">
-                        <h3>🔔 Notification Center</h3>
-                        <div id="notifList"><p style="color: var(--text-muted); font-size: 13px;">No new alerts.</p></div>
-                    </div>
-                    <div class="panel">
-                        <h3>Active Progress</h3>
-                        <div id="customerTrackerList">No active orders processing.</div>
-                    </div>
+                    <h2>📜 My Past Order History Logs</h2>
+                    <div id="pastHistoryList">History records will load here once a name is entered.</div>
                 </div>
             </div>
         </div>
@@ -97,19 +216,15 @@
 
     <script>
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
-        let loggedInUser = null; let selectedItems = []; let currentTotal = 0;
+        let selectedItems = [];
+        let currentTotal = 0;
 
-        async function handleAuth() {
-            const name = document.getElementById('authName').value.trim();
-            if(!name) return alert("Please enter your Roblox username.");
-            loggedInUser = name; 
-            document.getElementById('authContainer').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'block';
-            document.getElementById('userGreeting').innerText = `👤 Player: ${loggedInUser}`;
-            updateCustomerData(); setInterval(updateCustomerData, 5000);
+        if(localStorage.getItem('cafeCustomerName')) {
+            document.getElementById('custName').value = localStorage.getItem('cafeCustomerName');
         }
 
         function toggleItem(el, name, price) {
+            if(document.getElementById('submitBtn').disabled) return;
             el.classList.toggle('selected');
             const idx = selectedItems.indexOf(name);
             if(idx > -1) { selectedItems.splice(idx, 1); currentTotal -= price; }
@@ -117,53 +232,121 @@
             document.getElementById('totalPrice').innerText = currentTotal;
         }
 
+        function onNameChange() {
+            const name = document.getElementById('custName').value.trim();
+            if(name) {
+                localStorage.setItem('cafeCustomerName', name);
+                checkUserBan(name);
+                updateCustomerData();
+            }
+        }
+
+        async function checkUserBan(name) {
+            try {
+                const res = await fetch(`${BASE_API_URL}/customers?search={"customer":"${name}"}`);
+                const data = await res.json();
+                if(data.length > 0 && data[0].status === 'Banned') {
+                    document.getElementById('banAlert').style.display = 'block';
+                    document.getElementById('submitBtn').disabled = true;
+                    document.getElementById('customerTrackerList').innerText = "Suspended profiles cannot pull tracking telemetry.";
+                    return true;
+                }
+            } catch(e){}
+            document.getElementById('banAlert').style.display = 'none';
+            document.getElementById('submitBtn').disabled = false;
+            return false;
+        }
+
         async function submitCustomerOrder() {
-            if(selectedItems.length === 0) return alert("Select items before ordering.");
+            const name = document.getElementById('custName').value.trim();
+            if(!name || selectedItems.length === 0) return alert("Please type your name and pick your treats first!");
+
+            if(await checkUserBan(name)) return;
+
+            const payload = {
+                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                customer: name,
+                items: selectedItems.join(', '),
+                total: currentTotal,
+                status: 'Pending',
+                paid: 'No',
+                eta: '',
+                notes: '',
+                chef_notes: ''
+            };
+
             await fetch(`${BASE_API_URL}/Sheet1`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([{
-                    id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                    customer: loggedInUser, items: selectedItems.join(', '), total: currentTotal,
-                    status: 'Pending', paid: 'No', chef_notes: ''
-                }])
+                body: JSON.stringify([payload])
             });
-            alert("Ticket sent to the kitchen!");
-            selectedItems = []; currentTotal = 0; document.getElementById('totalPrice').innerText = 0;
+
+            alert("Order sent straight to the barista station!");
+            selectedItems = []; currentTotal = 0;
+            document.getElementById('totalPrice').innerText = 0;
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
             updateCustomerData();
         }
 
         async function updateCustomerData() {
-            if(!loggedInUser) return;
+            const user = document.getElementById('custName').value.trim();
+            if(!user) return;
+
             try {
-                const activeRes = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${loggedInUser}"}`);
+                const activeRes = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${user}"}`);
                 const activeOrders = await activeRes.json();
                 const container = document.getElementById('customerTrackerList');
+                
                 if(!activeOrders || activeOrders.length === 0 || activeOrders.error) {
-                    container.innerText = "No active orders processing.";
+                    container.innerText = "No active orders in the current queue.";
                 } else {
                     container.innerHTML = '';
                     activeOrders.reverse().forEach(o => {
+                        const displayEta = o.eta ? o.eta : 'Calculating...';
+                        const displayChefNotes = o.chef_notes ? o.chef_notes : 'Preparing your items...';
+                        const displayStaffNotes = o.notes ? o.notes : '';
+
                         container.innerHTML += `
                             <div class="order-card">
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
                                     <strong>ID: ${o.id}</strong>
-                                    <span class="badge ${o.paid==='Yes'?'paid':'unpaid'}">${o.paid==='Yes'?'Paid':'Unpaid'}</span>
+                                    <span class="status-badge">${o.status}</span>
                                 </div>
-                                <p style="font-size:13px; margin:8px 0;">Items: ${o.items}</p>
-                                ${o.chef_notes ? `<p style="font-size:12px; margin:5px 0; background:#f0f9ff; color:#0369a1; padding:6px; border-radius:4px;">👨‍🍳 <strong>Chef Note:</strong> ${o.chef_notes}</p>` : ''}
-                                <div style="font-size:12px; color:var(--text-muted);">Total: $${o.total} | Status: <strong style="color:var(--accent);">${o.status}</strong></div>
+                                <p style="font-size:13px; margin:8px 0; font-weight: 500;">Items: ${o.items}</p>
+                                <div style="background: var(--bg-main); padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; margin-top: 5px;">
+                                    <div style="color:var(--accent); font-weight:bold; margin-bottom: 4px;">⏱️ Est. Wait Time: ${displayEta}</div>
+                                    <div style="color:#555;"><strong style="color:var(--text-main);">👨‍🍳 Barista Note:</strong> ${displayChefNotes}</div>
+                                    ${displayStaffNotes ? `<div style="color:#777; font-size:11px; margin-top:4px; font-style:italic;">Memo: ${displayStaffNotes}</div>` : ''}
+                                </div>
                             </div>`;
                     });
                 }
-                const notifRes = await fetch(`${BASE_API_URL}/alerts?search={"target":"${loggedInUser}"}`);
-                const alertsData = await notifRes.json();
-                if(alertsData && alertsData.length > 0 && !alertsData.error) {
-                    document.getElementById('notifList').innerHTML = alertsData.reverse().map(n => `<div class="notif-card"><strong>📬 ${n.title}</strong><p style="margin:5px 0 0; font-size:12px;">${n.message}</p></div>`).join('');
+            } catch(e){}
+
+            try {
+                const archiveRes = await fetch(`${BASE_API_URL}/record_keeping?search={"customer":"${user}"}`);
+                const passedData = await archiveRes.json();
+                const historyBox = document.getElementById('pastHistoryList');
+                if(!passedData || passedData.length === 0 || passedData.error) {
+                    historyBox.innerText = "No archived receipts found under this profile identity.";
+                } else {
+                    historyBox.innerHTML = '';
+                    passedData.reverse().forEach(h => {
+                        historyBox.innerHTML += `
+                            <div style="padding:10px 0; border-bottom:1px solid var(--border); font-size:13px;">
+                                ✅ Order <strong>${h.id}</strong> — ${h.items} <span style="color:var(--accent); font-weight:bold;">($${h.total})</span>
+                            </div>`;
+                    });
                 }
             } catch(e){}
         }
+
+        const existingDeviceUser = document.getElementById('custName').value.trim();
+        if(existingDeviceUser) {
+            checkUserBan(existingDeviceUser);
+            updateCustomerData();
+        }
+        setInterval(updateCustomerData, 5000);
     </script>
 </body>
 </html>
