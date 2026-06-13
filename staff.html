@@ -6,98 +6,41 @@
     <title>⚡ A&A Cafe | Complete Terminal</title>
     <style>
         :root {
-            --bg-main: #f1f5f9; /* Light slate blue-gray base */
-            --surface: #ffffff; /* White panels */
-            --border: #cbd5e1;  /* Structural outlines */
-            --accent: #2563eb;  /* Radiant Royal Blue */
-            --text-main: #0f172a; /* Dark text font */
-            --text-muted: #64748b; /* Subtext gray */
-            --pos-green: #10b981; /* Success Green */
-            --pos-red: #ef4444;   /* Alert/Expense Red */
+            --bg-main: #f1f5f9; --surface: #ffffff; --border: #cbd5e1; --accent: #2563eb;
+            --text-main: #0f172a; --text-muted: #64748b; --pos-green: #10b981; --pos-red: #ef4444;
         }
-
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; 
-        }
-
-        .topbar { 
-            background: var(--accent); padding: 15px 30px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            color: white; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
-        }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; }
+        .topbar { background: var(--accent); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2); }
         .topbar h1 { margin: 0; font-size: 20px; font-weight: 700; }
-        
         .tab-group { display: flex; gap: 10px; }
-        .tab-btn { 
-            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); 
-            color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; 
-            font-weight: 600; font-size: 13px; transition: all 0.2s; 
-        }
+        .tab-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
         .tab-btn.active, .tab-btn:hover { background: white; color: var(--accent); }
-
         .workspace { padding: 40px; max-width: 1400px; margin: 0 auto; }
         .view-panel { display: none; }
         .view-panel.active { display: block; }
-
-        .panel { 
-            background: var(--surface); padding: 25px; border-radius: 12px; 
-            border: 1px solid var(--border); margin-bottom: 25px; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-        h2, h3, h4 { margin-top: 0; border-bottom: 2px solid var(--bg-main); padding-bottom: 12px; color: var(--text-main); }
-
-        input, select { 
-            width: 100%; padding: 12px; margin-bottom: 15px; 
-            border: 1px solid var(--border); border-radius: 8px; 
-            box-sizing: border-box; background: var(--bg-main); font-size: 14px;
-        }
-        input:focus { border-color: var(--accent); outline: none; background: var(--surface); }
-
-        .btn-submit { 
-            background: var(--accent); color: white; border: none; 
-            padding: 14px; border-radius: 8px; cursor: pointer; 
-            font-weight: bold; width: 100%; transition: opacity 0.2s;
-        }
-        .btn-submit:hover { opacity: 0.9; }
-
-        /* KITCHEN QUEUE GRID */
+        .panel { background: var(--surface); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        h2, h3, h4 { margin-top: 0; border-bottom: 2px solid var(--bg-main); padding-bottom: 12px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; background: var(--bg-main); font-size: 14px; }
+        .btn-submit { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
         .kitchen-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .ticket-card { 
-            background: var(--surface); border: 1px solid var(--border); 
-            border-top: 4px solid var(--accent); padding: 20px; border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between;
-        }
+        .ticket-card { background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--accent); padding: 20px; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; }
         .ticket-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; margin-bottom: 10px; }
-        .ticket-items { font-size: 13px; color: var(--text-muted); margin: 0 0 15px 0; line-height: 1.4; }
-        
-        /* TWO-TIER CHECKOUT BUTTONS */
-        .btn-paid-primary { 
-            background: var(--pos-green); color: white; border: none; 
-            padding: 12px; border-radius: 6px; cursor: pointer; 
-            font-weight: 700; width: 100%; margin-bottom: 8px; font-size: 14px;
-        }
-        .btn-paid-primary:hover { background: #0dad77; }
-        
-        .btn-override-secondary { 
-            background: transparent; color: var(--text-muted); 
-            border: 1px solid var(--border); padding: 6px; border-radius: 6px; 
-            cursor: pointer; font-size: 11px; width: 100%; text-transform: uppercase; font-weight: 600;
-        }
-        .btn-override-secondary:hover { border-color: var(--text-muted); color: var(--text-main); }
-
-        /* FINANCIAL DASHBOARD STRIPS */
+        .ticket-items { font-size: 13px; color: var(--text-muted); margin: 0 0 15px 0; }
+        .btn-paid-primary { background: var(--pos-green); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 700; width: 100%; margin-bottom: 8px; }
+        .btn-override-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11px; width: 100%; text-transform: uppercase; font-weight: 600; }
+        .chef-note-row { display: flex; gap: 5px; margin-bottom: 12px; }
+        .chef-note-row input { margin: 0; padding: 6px; border-radius: 4px; font-size: 12px; }
+        .btn-note-save { background: var(--text-main); color: white; border: none; padding: 0 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
         .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-box { 
-            background: var(--surface); border: 1px solid var(--border); 
-            padding: 25px; border-radius: 12px; text-align: center;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-        .stat-box h4 { margin: 0 0 8px 0; color: var(--text-muted); border: none; padding: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-box { background: var(--surface); border: 1px solid var(--border); padding: 25px; border-radius: 12px; text-align: center; }
+        .stat-box h4 { margin: 0 0 8px 0; color: var(--text-muted); font-size: 13px; text-transform: uppercase; border: none; padding:0;}
         .stat-box .value-num { font-size: 32px; font-weight: 800; color: var(--accent); }
-
-        /* GATE LOCKOUT */
         .gate-card { max-width: 380px; margin: 120px auto; text-align: center; }
+        
+        /* TABLE STYLE FOR NEW TABS */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { background-color: var(--bg-main); color: var(--text-main); font-weight: 600; }
     </style>
 </head>
 <body>
@@ -118,6 +61,8 @@
             <h1>⚡ A&A Cafe Control Terminal</h1>
             <div class="tab-group">
                 <button id="tab-kitchen" class="tab-btn active" onclick="switchTab('kitchen')">🍳 Kitchen Queue</button>
+                <button id="tab-crm" class="tab-btn" onclick="switchTab('crm')">👥 CRM Customers</button>
+                <button id="tab-staff" class="tab-btn" onclick="switchTab('staff')">📋 Staff Directory</button>
                 <button id="tab-manager" class="tab-btn" onclick="switchTab('manager')">📊 Manager Analytics</button>
             </div>
             <div style="display: flex; gap: 15px; align-items: center;">
@@ -130,49 +75,74 @@
             
             <div id="panel-kitchen" class="view-panel active">
                 <h3>Live Kitchen Production Queue</h3>
-                <div class="kitchen-stack" id="liveQueue">Awaiting database handshake...</div>
+                <div class="kitchen-stack" id="liveQueue">Awaiting database connection...</div>
+            </div>
+
+            <div id="panel-crm" class="view-panel">
+                <h3>👥 Customer Relationship Management (CRM)</h3>
+                <p style="font-size:12px; color:var(--text-muted); margin-top:-10px; margin-bottom:20px;">Monitor active visitor records and baseline order log frequencies.</p>
+                <div class="panel">
+                    <input type="text" id="crmSearchInput" placeholder="Search customer by Roblox username..." oninput="filterCRMTable()">
+                    <table id="crmTable">
+                        <thead>
+                            <tr>
+                                <th>Roblox Username</th>
+                                <th>Latest Order Status</th>
+                                <th>Last Order Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="crmTableBody">
+                            <tr><td colspan="3" style="color:var(--text-muted);">No customer entries loaded.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="panel-staff" class="view-panel">
+                <h3>📋 Staff & Shift Management</h3>
+                <p style="font-size:12px; color:var(--text-muted); margin-top:-10px; margin-bottom:20px;">Review registered employee roles and operational statuses.</p>
+                <div class="panel">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee Username</th>
+                                <th>Role</th>
+                                <th>System Privilege</th>
+                                <th>Shift Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Awesomebuilderaiden</td><td>Cafe Owner</td><td>Administrator</td><td>🟢 Active</td></tr>
+                            <tr><td>Barista123</td><td>Lead Barista</td><td>Standard Terminal</td><td>⚪ Off-Duty</td></tr>
+                            <tr><td>Cashier456</td><td>Junior Cashier</td><td>Standard Terminal</td><td>⚪ Off-Duty</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="panel-manager" class="view-panel">
                 <div class="stat-grid">
-                    <div class="stat-box">
-                        <h4>Gross Earnings</h4>
-                        <div class="value-num" id="statGross">$0</div>
-                    </div>
-                    <div class="stat-box">
-                        <h4>Staff Payouts / Outflow</h4>
-                        <div class="value-num" id="statPayouts" style="color: var(--pos-red);">-$0</div>
-                    </div>
-                    <div class="stat-box">
-                        <h4>Net Money Balance</h4>
-                        <div class="value-num" id="statNet">$0</div>
-                    </div>
+                    <div class="stat-box"><h4>Gross Earnings</h4><div class="value-num" id="statGross">$0</div></div>
+                    <div class="stat-box"><h4>Staff Payouts</h4><div class="value-num" id="statPayouts" style="color: var(--pos-red);">-$0</div></div>
+                    <div class="stat-box"><h4>Net Balance</h4><div class="value-num" id="statNet">$0</div></div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px;">
                     <div class="panel">
-                        <h3>🛡️ Payout Staff Employee</h3>
-                        <p style="font-size:12px; color:var(--text-muted); margin-top:-10px; margin-bottom:20px;">Logs expenses into P&L math and dispatches notification instantly onto target player profile dashboard.</p>
-                        
+                        <h3>🛡️ Record Staff Payout</h3>
                         <label><strong>Roblox Employee Username:</strong></label>
                         <input type="text" id="payName" placeholder="Barista123">
-                        
                         <label><strong>Total Money Paid ($):</strong></label>
                         <input type="number" id="payAmount" placeholder="1500">
-                        
                         <button class="btn-submit" onclick="logStaffPayout()">Authorize & Notify Employee</button>
                     </div>
 
                     <div class="panel">
-                        <h3>💸 Manual Vault Adjustments</h3>
-                        <p style="font-size:12px; color:var(--text-muted); margin-top:-10px; margin-bottom:20px;">Override ledger matrix fields for plot utility bills, bulk food preparation, or decorations.</p>
-                        
+                        <h3>💸 Manual Ledger Adjustments</h3>
                         <label><strong>Adjustment Amount ($):</strong></label>
                         <input type="number" id="overrideAmount" placeholder="500">
-                        
-                        <label><strong>Reason / Destination Note:</strong></label>
-                        <input type="text" id="overrideReason" placeholder="Cafe House Plot Bills">
-                        
+                        <label><strong>Reason / Notes:</strong></label>
+                        <input type="text" id="overrideReason" placeholder="Cafe Plot Utility Bills">
                         <div style="display: flex; gap: 15px; margin-top: 5px;">
                             <button class="btn-submit" style="background: var(--pos-green);" onclick="executeVaultOverride('add')">Add Money (+)</button>
                             <button class="btn-submit" style="background: var(--pos-red);" onclick="executeVaultOverride('remove')">Remove Money (-)</button>
@@ -180,58 +150,43 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
-        let staffUser = "";
-        let isClockedIn = false;
-        let shiftStartTimestamp = 0;
-        
-        // Financial Ledger Balancing variables (Accumulates live actions)
-        let totalGrossSales = 0; 
-        let totalStaffExpenses = 0; 
+        let staffUser = ""; let isClockedIn = false; let shiftStartTimestamp = 0;
+        let totalGrossSales = 0; let totalStaffExpenses = 0;
+        let rawCRMData = [];
 
         function switchTab(targetId) {
             document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
             document.getElementById(`panel-${targetId}`).classList.add('active');
             document.getElementById(`tab-${targetId}`).classList.add('active');
         }
 
         function authenticateTerminal() {
             staffUser = document.getElementById('staffName').value.trim();
-            if(!staffUser) return alert("Please specify staff identity credential.");
-            
+            if(!staffUser) return alert("Please specify staff credentials.");
             document.getElementById('authGate').style.display = 'none';
             document.getElementById('mainConsole').style.display = 'block';
-            
-            fetchLiveQueue(); 
-            setInterval(fetchLiveQueue, 5000);
-            recalculateFinancialDashboard();
+            fetchLiveQueue(); setInterval(fetchLiveQueue, 5000);
+            loadSavedFinances();
         }
 
         function toggleTimecardShift() {
             isClockedIn = !isClockedIn;
             const btn = document.getElementById('shiftBtn');
             const statusIndicator = document.getElementById('shiftStatus');
-            
             if(isClockedIn) {
-                shiftStartTimestamp = Date.now();
-                btn.innerText = "Clock Out";
-                btn.style.color = "var(--pos-red)";
-                statusIndicator.innerText = "🟢 Clocked In";
-                statusIndicator.style.background = "var(--pos-green)";
+                shiftStartTimestamp = Date.now(); btn.innerText = "Clock Out"; btn.style.color = "var(--pos-red)";
+                statusIndicator.innerText = "🟢 Clocked In"; statusIndicator.style.background = "var(--pos-green)";
             } else {
                 let sessionDeltaMinutes = Math.round((Date.now() - shiftStartTimestamp) / 60000);
-                alert(`Shift closed! Total tracked time logged: ${sessionDeltaMinutes} minutes.`);
-                btn.innerText = "Clock In";
-                btn.style.color = "var(--accent)";
-                statusIndicator.innerText = "🔴 Clocked Out";
-                statusIndicator.style.background = "rgba(0,0,0,0.2)";
+                alert(`Shift closed! Tracked time: ${sessionDeltaMinutes} minutes.`);
+                btn.innerText = "Clock In"; btn.style.color = "var(--accent)";
+                statusIndicator.innerText = "🔴 Clocked Out"; statusIndicator.style.background = "rgba(0,0,0,0.2)";
             }
         }
 
@@ -239,29 +194,34 @@
             try {
                 const res = await fetch(`${BASE_API_URL}/Sheet1`);
                 const data = await res.json();
-                const queueTarget = document.getElementById('liveQueue');
                 
-                if(!data || data.length === 0 || data.error) {
-                    return queueTarget.innerHTML = "<p style='color:var(--text-muted);'>Kitchen production queue clear.</p>";
+                if(data && !data.error) {
+                    rawCRMData = data;
+                    populateCRMTable(data);
                 }
+
+                const queueTarget = document.getElementById('liveQueue');
+                if(!data || data.length === 0 || data.error) return queueTarget.innerHTML = "<p>Queue clear.</p>";
                 
                 queueTarget.innerHTML = data.reverse().map(o => `
                     <div class="ticket-card">
                         <div>
                             <div class="ticket-header">
                                 <span>${o.id}</span>
-                                <span style="color:var(--accent); font-size:13px;">👤 ${o.customer}</span>
+                                <span style="color:var(--accent);">👤 ${o.customer}</span>
                             </div>
                             <p class="ticket-items"><strong>Items:</strong> ${o.items}</p>
-                            ${o.notes ? `<p style="font-size:11px; background:#eff6ff; padding:6px; border-radius:4px; margin-top:-5px; color:var(--accent);">📋 ${o.notes}</p>` : ''}
+                            <div class="chef-note-row">
+                                <input type="text" id="noteInput-${o.id}" placeholder="Chef note..." value="${o.chef_notes || ''}">
+                                <button class="btn-note-save" onclick="saveChefNote('${o.id}')">Save</button>
+                            </div>
                         </div>
-                        
-                        <div style="margin-top:15px;">
+                        <div style="margin-top:5px;">
                             ${o.paid !== 'Yes' ? `
                                 <button class="btn-paid-primary" onclick="markTicketPaidStandard('${o.id}', ${o.total})">Mark Paid ($${o.total})</button>
-                                <button class="btn-override-secondary" onclick="markTicketPaidOverride('${o.id}', ${o.total})">💳 Payment Override / Tip</button>
+                                <button class="btn-override-secondary" onclick="markTicketPaidOverride('${o.id}', ${o.total})">💵 Override / Tip</button>
                             ` : `
-                                <button class="btn-submit" style="background:var(--text-main);" onclick="archiveTicketCompleted('${o.id}')">Complete & Clear Ticket</button>
+                                <button class="btn-submit" style="background:var(--pos-green);" onclick="archiveTicketCompleted('${o.id}')">Complete & Clear Ticket</button>
                             `}
                         </div>
                     </div>
@@ -269,96 +229,126 @@
             } catch(e){}
         }
 
+        function populateCRMTable(data) {
+            const tbody = document.getElementById('crmTableBody');
+            if(!data || data.length === 0) return;
+            
+            // Generate distinct map of latest user profiles
+            const usersMap = {};
+            data.forEach(item => {
+                if(item.customer) {
+                    usersMap[item.customer] = {
+                        status: item.paid === 'Yes' ? 'Settled Ticket' : 'Pending Payment',
+                        total: item.total || 0
+                    };
+                }
+            });
+
+            tbody.innerHTML = Object.keys(usersMap).map(username => `
+                <tr>
+                    <td><strong>${username}</strong></td>
+                    <td>${usersMap[username].status}</td>
+                    <td>$${usersMap[username].total}</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterCRMTable() {
+            const query = document.getElementById('crmSearchInput').value.toLowerCase();
+            const filtered = rawCRMData.filter(item => item.customer && item.customer.toLowerCase().includes(query));
+            populateCRMTable(filtered);
+        }
+
+        async function saveChefNote(id) {
+            const val = document.getElementById(`noteInput-${id}`).value.trim();
+            await fetch(`${BASE_API_URL}/Sheet1`, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ condition: { id: id }, set: { chef_notes: val } })
+            });
+            alert("Chef note updated on customer profile!");
+        }
+
+        async function loadSavedFinances() {
+            try {
+                const res = await fetch(`${BASE_API_URL}/finances`);
+                const data = await res.json();
+                if (data && data.length > 0 && !data.error) {
+                    const latest = data[data.length - 1];
+                    totalGrossSales = parseFloat(latest.gross || 0);
+                    totalStaffExpenses = parseFloat(latest.payouts || 0);
+                    recalculateDashboardUI(false);
+                }
+            } catch(e){}
+        }
+
+        async function saveFinancesToDatabase() {
+            const currentNet = totalGrossSales - totalStaffExpenses;
+            await fetch(`${BASE_API_URL}/finances`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify([{ gross: totalGrossSales, payouts: totalStaffExpenses, net: currentNet }])
+            });
+        }
+
         async function markTicketPaidStandard(id, totalValue) {
-            adjustFinancePool(totalValue, 0); 
+            await adjustFinancePool(totalValue, 0); 
             await fetch(`${BASE_API_URL}/Sheet1`, { 
-                method: 'PUT', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ condition: { id: id }, set: { paid: 'Yes', notes: 'Paid standard menu total.' } }) 
+                method: 'PUT', headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ condition: { id: id }, set: { paid: 'Yes' } }) 
             });
             fetchLiveQueue();
         }
 
         async function markTicketPaidOverride(id, baselineMenuTotal) {
-            const customInput = prompt(`Enter exact total money amount received (Baseline menu items total was $${baselineMenuTotal}):`);
-            if(!customInput || isNaN(customInput) || customInput.trim() === "") return;
-            
-            const processedCustomValue = parseFloat(customInput);
-            adjustFinancePool(processedCustomValue, 0); 
-            
+            const customInput = prompt(`Enter exact cash total (Base was $${baselineMenuTotal}):`);
+            if(!customInput || isNaN(customInput)) return;
+            const processedVal = parseFloat(customInput);
+            await adjustFinancePool(processedVal, 0); 
             await fetch(`${BASE_API_URL}/Sheet1`, { 
-                method: 'PUT', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ condition: { id: id }, set: { paid: 'Yes', total: processedCustomValue, notes: `Override logged total: $${processedCustomValue} (Base: $${baselineMenuTotal})` } }) 
+                method: 'PUT', headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ condition: { id: id }, set: { paid: 'Yes', total: processedVal } }) 
             });
             fetchLiveQueue();
         }
 
         async function archiveTicketCompleted(id) {
-            await fetch(`${BASE_API_URL}/Sheet1`, { 
-                method: 'DELETE', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ condition: { id: id } }) 
-            });
+            await fetch(`${BASE_API_URL}/Sheet1`, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ condition: { id: id } }) });
             fetchLiveQueue();
         }
 
         async function logStaffPayout() {
-            const employeeName = document.getElementById('payName').value.trim();
-            const payrollAmount = parseFloat(document.getElementById('payAmount').value);
-            
-            if(!employeeName || !payrollAmount || isNaN(payrollAmount)) return alert("Please specify target employee and value metrics.");
-            
-            adjustFinancePool(0, payrollAmount);
-            
-            // Post payload to alert sheet engine system
+            const name = document.getElementById('payName').value.trim();
+            const amt = parseFloat(document.getElementById('payAmount').value);
+            if(!name || isNaN(amt)) return alert("Fill out payroll entries.");
+            await adjustFinancePool(0, amt);
             await fetch(`${BASE_API_URL}/alerts`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([{
-                    target: employeeName,
-                    title: 'Payroll Dispatched',
-                    message: `Management has logged a payout shift expense of $${payrollAmount} to your account profile. Collect your cash donation at the desk!`
-                }])
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify([{ target: name, title: 'Payroll Dispatched', message: `Management logged a shift payment of $${amt} to your profile.` }])
             });
-            
-            document.getElementById('payName').value = '';
-            document.getElementById('payAmount').value = '';
-            alert(`Payroll check logged! Subtracting $${payrollAmount} from Net Balance.`);
+            document.getElementById('payName').value = ''; document.getElementById('payAmount').value = '';
+            alert("Payout registered and saved!");
         }
 
-        function executeVaultOverride(modeType) {
-            const targetAmount = parseFloat(document.getElementById('overrideAmount').value);
-            const adjustmentReason = document.getElementById('overrideReason').value.trim() || 'Manual Override Adjustment';
-            
-            if(!targetAmount || isNaN(targetAmount)) return alert("Specify valid adjustment value.");
-            
-            if(modeType === 'add') {
-                adjustFinancePool(targetAmount, 0);
-                alert(`Successfully injected $${targetAmount} into vault matrix ledger logs.`);
-            } else if(modeType === 'remove') {
-                adjustFinancePool(0, targetAmount);
-                alert(`Successfully extracted $${targetAmount} for expense: "${adjustmentReason}"`);
-            }
-            
-            document.getElementById('overrideAmount').value = '';
-            document.getElementById('overrideReason').value = '';
+        async function executeVaultOverride(modeType) {
+            const amt = parseFloat(document.getElementById('overrideAmount').value);
+            if(isNaN(amt)) return alert("Specify valid number.");
+            if(modeType === 'add') await adjustFinancePool(amt, 0);
+            if(modeType === 'remove') await adjustFinancePool(0, amt);
+            document.getElementById('overrideAmount').value = ''; document.getElementById('overrideReason').value = '';
         }
 
-        function adjustFinancePool(grossInflow, payoutOutflow) {
+        async function adjustFinancePool(grossInflow, payoutOutflow) {
             totalGrossSales += grossInflow;
             totalStaffExpenses += payoutOutflow;
-            recalculateFinancialDashboard();
+            recalculateDashboardUI(true);
         }
 
-        function recalculateFinancialDashboard() {
-            const trueNetProfitLoss = totalGrossSales - totalStaffExpenses;
-            
+        function recalculateDashboardUI(shouldSaveBackend) {
+            const trueNet = totalGrossSales - totalStaffExpenses;
             document.getElementById('statGross').innerText = `$${totalGrossSales}`;
             document.getElementById('statPayouts').innerText = `-$${totalStaffExpenses}`;
-            document.getElementById('statNet').innerText = `${trueNetProfitLoss < 0 ? '-' : ''}$${Math.abs(trueNetProfitLoss)}`;
-            
-            document.getElementById('statNet').style.color = trueNetProfitLoss < 0 ? 'var(--pos-red)' : 'var(--pos-green)';
+            document.getElementById('statNet').innerText = `${trueNet < 0 ? '-' : ''}$${Math.abs(trueNet)}`;
+            document.getElementById('statNet').style.color = trueNet < 0 ? 'var(--pos-red)' : 'var(--pos-green)';
+            if(shouldSaveBackend) saveFinancesToDatabase();
         }
     </script>
 </body>
