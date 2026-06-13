@@ -126,6 +126,39 @@
             padding-bottom: 12px;
         }
 
+        /* Order Type Segmented Control */
+        .order-type-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .type-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-glow);
+            background: #ffffff;
+            color: var(--text-secondary);
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .type-btn.active {
+            background: var(--accent-brand);
+            color: #ffffff;
+            border-color: var(--accent-brand);
+        }
+
+        .delivery-fields {
+            display: none;
+            background: var(--bg-main);
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-glow);
+            margin-bottom: 16px;
+        }
+
         input {
             width: 100%;
             padding: 12px;
@@ -135,7 +168,10 @@
             border-radius: 10px;
             box-sizing: border-box;
             font-size: 14px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+        }
+        input:last-child {
+            margin-bottom: 0;
         }
 
         input:focus {
@@ -148,7 +184,7 @@
             background: var(--bg-main);
             border-radius: 10px;
             padding: 12px;
-            max-height: 200px;
+            max-height: 180px;
             overflow-y: auto;
             margin-bottom: 16px;
             border: 1px solid var(--border-glow);
@@ -205,7 +241,6 @@
         .btn-order:hover { opacity: 0.9; }
         .btn-order:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
 
-        /* TRACKER DRAWER */
         .tracker-toggle {
             margin-top: 20px;
             background: var(--bg-darker);
@@ -293,8 +328,19 @@
             <div class="checkout-panel">
                 <h2>Your Order Manifest</h2>
                 
-                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; display:block; margin-bottom:6px;">Your Order Name:</label>
+                <div class="order-type-container">
+                    <button id="typePickup" class="type-btn active" onclick="setOrderType('Pickup')">🚶 Pickup</button>
+                    <button id="typeDelivery" class="type-btn" onclick="setOrderType('Delivery')">🚗 Delivery</button>
+                </div>
+
+                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; display:block; margin-bottom:6px;">Your Name:</label>
                 <input type="text" id="custNameInput" placeholder="Enter your name...">
+
+                <div id="deliverySection" class="delivery-fields">
+                    <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; display:block; margin-bottom:6px;">Delivery Destination Details:</label>
+                    <input type="text" id="deliveryAddress" placeholder="Street Address, Suburb">
+                    <input type="text" id="deliveryPhone" placeholder="Contact Phone Number">
+                </div>
 
                 <div class="cart-list" id="cartContainer">
                     <div style="color:var(--text-secondary); text-align:center; font-style:italic; padding-top:20px; font-size:13px;">Your tray is empty.</div>
@@ -317,6 +363,24 @@
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
         let shoppingCart = [];
         let totalBillValue = 0;
+        let selectedOrderType = "Pickup";
+
+        function setOrderType(type) {
+            selectedOrderType = type;
+            const pickupBtn = document.getElementById('typePickup');
+            const deliveryBtn = document.getElementById('typeDelivery');
+            const deliverySec = document.getElementById('deliverySection');
+
+            if (type === 'Delivery') {
+                deliveryBtn.classList.add('active');
+                pickupBtn.classList.remove('active');
+                deliverySec.style.display = 'block';
+            } else {
+                pickupBtn.classList.add('active');
+                deliveryBtn.classList.remove('active');
+                deliverySec.style.display = 'none';
+            }
+        }
 
         function addToCart(itemName, price) {
             shoppingCart.push({ name: itemName, price: price });
@@ -356,6 +420,18 @@
             const nameInput = document.getElementById('custNameInput').value.trim();
             if (!nameInput) return alert("Please enter a name for the order ticket.");
 
+            let internalNotes = `Kiosk Order (${selectedOrderType})`;
+
+            if (selectedOrderType === 'Delivery') {
+                const address = document.getElementById('deliveryAddress').value.trim();
+                const phone = document.getElementById('deliveryPhone').value.trim();
+                
+                if (!address || !phone) {
+                    return alert("Please fill out both your address and phone number for delivery.");
+                }
+                internalNotes = `DELIVERY -> Addr: ${address} | Phone: ${phone}`;
+            }
+
             const submitBtn = document.getElementById('submitOrderBtn');
             submitBtn.disabled = true;
 
@@ -371,7 +447,7 @@
                 status: 'Pending',
                 paid: 'No',
                 eta: 'Asap',
-                notes: 'Kiosk Order',
+                notes: internalNotes,
                 chef_notes: ''
             };
 
@@ -385,6 +461,9 @@
                     alert(`Sent! Ticket ${orderPayload.id} is cooking.`);
                     shoppingCart = []; totalBillValue = 0;
                     document.getElementById('custNameInput').value = '';
+                    document.getElementById('deliveryAddress').value = '';
+                    document.getElementById('deliveryPhone').value = '';
+                    setOrderType('Pickup');
                     renderCartUI();
                     fetchPastOrders();
                 }
