@@ -311,7 +311,7 @@
             return false;
         }
 
-        async function submitCustomerOrder() {
+     async function submitCustomerOrder() {
             const name = document.getElementById('custName').value.trim();
             const orderNotes = document.getElementById('chefNotesInput').value.trim();
 
@@ -319,30 +319,41 @@
                 return alert("Please type your name and pick your treats first!");
             }
 
-            // FIX: disable button during submission to prevent double-posting
+            // Disable button during submission to prevent double-posting
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
 
             if (await checkUserBan(name)) return;
 
+            // RESTRUCTURED PAYLOAD: Match the Apps Script Action and Row Rules
             const payload = {
-                action: 'submitOrder',
-                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                customer: name,
-                items: selectedItems.join(', '),
-                total: currentTotal,
-                status: 'Pending',
-                paid: 'No',
-                eta: '',
-                notes: orderNotes,
-                chef_notes: ''
+                action: 'insert',
+                sheet: 'Sheet1',
+                row: {
+                    id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                    customer: name,
+                    items: selectedItems.join(', '),
+                    total: currentTotal,
+                    status: 'Pending',
+                    paid: 'No',
+                    eta: '',
+                    notes: orderNotes,
+                    chef_notes: ''
+                }
             };
 
             try {
-                await fetch(BASE_API_URL, {
+                const response = await fetch(BASE_API_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
                 });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    alert("Database Error: " + result.error);
+                    return;
+                }
 
                 alert("Order sent straight to the barista station!");
 
@@ -356,7 +367,7 @@
 
                 updateCustomerData();
             } catch (e) {
-                alert("Failed to send order. Please try again.");
+                alert("Failed to send order. Please check network connections.");
             } finally {
                 btn.disabled = false;
             }
