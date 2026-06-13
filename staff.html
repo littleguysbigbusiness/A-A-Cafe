@@ -463,6 +463,7 @@
                         <input type="number" id="financeAmount" placeholder="0.00" min="0.01" step="0.01">
                         <label>Reference Label / Memo Description:</label>
                         <input type="text" id="financeMemo" placeholder="e.g., Electric Bill">
+                        <input type="text" id="financeMemo" placeholder="e.g., Electric Bill">
                         <button class="btn-action" style="background:var(--accent-brand); color:var(--bg-darker);" onclick="submitFinancialAdjustment()">Post Balancing Entry</button>
                     </div>
 
@@ -496,7 +497,8 @@
     </div>
 
     <script>
-        const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
+        // PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL HERE:
+        const BASE_API_URL = "https://script.google.com/macros/s/AKfycbyPI4uOkf-bPEZkQs1fYDAuDlZnZn0cABe5AxwqDD4qVoVvrpOe1Y9XH_kR6MHxxd63/exec";
         
         let manualSelectedItems = [];
         let manualCurrentTotal = 0;
@@ -536,17 +538,19 @@
             isClockedIn = !isClockedIn;
             
             const payload = {
-                condition: { name: activeStaffName },
-                set: {
+                action: 'update',
+                sheet: 'staff',
+                keyField: 'name',
+                keyValue: activeStaffName,
+                updates: {
                     clocked_in: isClockedIn ? nowString : "",
                     clocked_out: isClockedIn ? "" : nowString
                 }
             };
 
             try {
-                await fetch(`${BASE_API_URL}/staff`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
+                await fetch(BASE_API_URL, {
+                    method: 'POST',
                     body: JSON.stringify(payload)
                 });
                 
@@ -581,7 +585,7 @@
 
         async function fetchLiveRosterData() {
             try {
-                const res = await fetch(`${BASE_API_URL}/staff`);
+                const res = await fetch(`${BASE_API_URL}?sheet=staff`);
                 const catalog = await res.json();
                 if(!catalog || catalog.error) return;
                 
@@ -638,7 +642,7 @@
             });
         }, 1000);
 
-        setInterval(fetchLiveRosterData, 10000);
+        setInterval(fetchLiveRosterData, 15000); // Optimized roster poll
 
         function routeTo(panelId) {
             if(panelId !== 'kitchenView' && activeStaffRank < 10) {
@@ -658,7 +662,7 @@
             const user = document.getElementById('staffUser').value.trim();
             const pass = document.getElementById('staffPass').value.trim();
             try {
-                const res = await fetch(`${BASE_API_URL}/staff`);
+                const res = await fetch(`${BASE_API_URL}?sheet=staff`);
                 const catalog = await res.json();
                 systemStaffList = catalog;
                 const matched = catalog.find(s => s.name.toLowerCase() === user.toLowerCase() && String(s.code) === pass);
@@ -683,7 +687,7 @@
                     pushInternalNotification(`Staff session established: ${activeStaffName}`);
                     fetchLiveKitchenOrders();
                     await fetchLiveRosterData();
-                    setInterval(fetchLiveKitchenOrders, 5000);
+                    setInterval(fetchLiveKitchenOrders, 10000); // Efficient production loop
                 } else { alert("Verification mismatch configuration."); }
             } catch(e){ alert("Database baseline unresponsive."); }
         }
@@ -703,25 +707,28 @@
             if(!name || manualSelectedItems.length === 0) return alert("Missing entry data.");
             document.getElementById('manualSubmitBtn').disabled = true;
 
-            const ticket = {
-                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                customer: name,
-                items: manualSelectedItems.join(', '),
-                total: manualCurrentTotal,
-                status: 'Pending',
-                paid: 'No',
-                eta: 'Asap',
-                notes: `Counter Order: ${activeStaffName}`,
-                chef_notes: ''
+            const payload = {
+                action: 'insert',
+                sheet: 'Sheet1',
+                row: {
+                    id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                    customer: name,
+                    items: manualSelectedItems.join(', '),
+                    total: manualCurrentTotal,
+                    status: 'Pending',
+                    paid: 'No',
+                    eta: 'Asap',
+                    notes: `Counter Order: ${activeStaffName}`,
+                    chef_notes: ''
+                }
             };
 
-            await fetch(`${BASE_API_URL}/Sheet1`, {
+            await fetch(BASE_API_URL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([ticket])
+                body: JSON.stringify(payload)
             });
 
-            pushInternalNotification(`Ticket ${ticket.id} placed for ${name}`);
+            pushInternalNotification(`Ticket ${payload.row.id} placed for ${name}`);
             document.getElementById('manualCustName').value = '';
             document.querySelectorAll('.pos-item').forEach(i => i.classList.remove('selected'));
             manualSelectedItems = []; manualCurrentTotal = 0; document.getElementById('manualTotal').innerText = 0;
@@ -730,14 +737,17 @@
         }
 
         async function updateOrderField(orderId, field, value) {
+            const payload = {
+                action: 'update',
+                sheet: 'Sheet1',
+                keyField: 'id',
+                keyValue: orderId,
+                updates: { [field]: value }
+            };
             try {
-                await fetch(`${BASE_API_URL}/Sheet1`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        condition: { id: orderId },
-                        set: { [field]: value }
-                    })
+                await fetch(BASE_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
                 });
                 pushInternalNotification(`Ticket ${orderId}: Changed ${field} to "${value}"`);
                 fetchLiveKitchenOrders();
@@ -747,11 +757,17 @@
         async function triggerPaymentToggle(orderId, currentPaidStatus) {
             const nextPaidStatus = currentPaidStatus === 'Yes' ? 'No' : 'Yes';
             const order = currentLiveOrders.find(o => o.id === orderId);
+            
             if (order && order.status === 'Completed' && nextPaidStatus === 'Yes') {
-                await fetch(`${BASE_API_URL}/Sheet1`, {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ condition: { id: orderId } })
+                const payload = {
+                    action: 'delete',
+                    sheet: 'Sheet1',
+                    keyField: 'id',
+                    keyValue: orderId
+                };
+                await fetch(BASE_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
                 });
                 pushInternalNotification(`Ticket ${orderId} fully cleared off screen (Paid & Completed).`);
                 fetchLiveKitchenOrders();
@@ -765,34 +781,46 @@
             if(!order) return;
             
             try {
-                await fetch(`${BASE_API_URL}/record_keeping`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify([{
+                const archivePayload = {
+                    action: 'insert',
+                    sheet: 'record_keeping',
+                    row: {
                         id: order.id,
                         customer: order.customer,
                         items: order.items,
                         total: order.total,
                         status: 'Completed',
                         paid: order.paid === 'Yes' ? 'Yes' : 'No'
-                    }])
+                    }
+                };
+                await fetch(BASE_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(archivePayload)
                 });
 
                 if (order.paid === 'Yes') {
-                    await fetch(`${BASE_API_URL}/Sheet1`, {
-                        method: 'DELETE',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ condition: { id: orderId } })
+                    const deletePayload = {
+                        action: 'delete',
+                        sheet: 'Sheet1',
+                        keyField: 'id',
+                        keyValue: orderId
+                    };
+                    await fetch(BASE_API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(deletePayload)
                     });
                     pushInternalNotification(`Ticket ${orderId} completely processed & archived.`);
                 } else {
-                    await fetch(`${BASE_API_URL}/Sheet1`, {
-                        method: 'PUT',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            condition: { id: orderId },
-                            set: { status: 'Completed' }
-                        })
+                    const updatePayload = {
+                        action: 'update',
+                        sheet: 'Sheet1',
+                        keyField: 'id',
+                        keyValue: orderId,
+                        updates: { status: 'Completed' }
+                    };
+                    await fetch(BASE_API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(updatePayload)
                     });
                     pushInternalNotification(`Ticket ${orderId} marked Completed but held on queue for pending payment.`);
                 }
@@ -802,7 +830,7 @@
 
         async function fetchLiveKitchenOrders() {
             try {
-                const res = await fetch(`${BASE_API_URL}/Sheet1`);
+                const res = await fetch(`${BASE_API_URL}?sheet=Sheet1`);
                 const pipeline = await res.json();
                 if(pipeline && !pipeline.error) currentLiveOrders = pipeline;
 
@@ -855,7 +883,7 @@
 
         async function fetchArchiveLogs() {
             try {
-                const res = await fetch(`${BASE_API_URL}/record_keeping`);
+                const res = await fetch(`${BASE_API_URL}?sheet=record_keeping`);
                 const logs = await res.json();
                 const tbody = document.getElementById('archiveLogsTableBody');
                 tbody.innerHTML = '';
@@ -869,7 +897,7 @@
 
         async function fetchFinancialData() {
             try {
-                const res = await fetch(`${BASE_API_URL}/record_keeping`);
+                const res = await fetch(`${BASE_API_URL}?sheet=record_keeping`);
                 const logs = await res.json();
                 const tbody = document.getElementById('financeTableBody');
                 tbody.innerHTML = '';
@@ -895,10 +923,22 @@
             if(!amount || amount <= 0) return;
             if(type === 'SUBTRACT') amount = -amount;
 
-            await fetch(`${BASE_API_URL}/record_keeping`, {
+            const payload = {
+                action: 'insert',
+                sheet: 'record_keeping',
+                row: {
+                    id: type === 'ADD' ? 'REV-ADJ' : 'EXP-BILL',
+                    customer: memo,
+                    items: 'Manual Ledger Modification',
+                    total: amount,
+                    status: 'Completed',
+                    paid: 'Yes'
+                }
+            };
+
+            await fetch(BASE_API_URL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([{ id: type==='ADD'?'REV-ADJ':'EXP-BILL', customer: memo, items: 'Manual Ledger Modification', total: amount, status: 'Completed', paid: 'Yes' }])
+                body: JSON.stringify(payload)
             });
             document.getElementById('financeAmount').value = ''; document.getElementById('financeMemo').value = '';
             fetchFinancialData();
@@ -908,7 +948,7 @@
             try {
                 const select = document.getElementById('financeStaffDropdown');
                 select.innerHTML = '<option value="">-- Choose Staff Target --</option>';
-                const res = await fetch(`${BASE_API_URL}/staff`);
+                const res = await fetch(`${BASE_API_URL}?sheet=staff`);
                 const catalog = await res.json();
                 catalog.forEach(s => { select.innerHTML += `<option value="${s.name}">${s.name}</option>`; });
             } catch(e){}
@@ -920,10 +960,22 @@
             const type = document.getElementById('payoutType').value;
             if(!staffName || !amount || amount <= 0) return alert("Validation inputs error.");
 
-            await fetch(`${BASE_API_URL}/record_keeping`, {
+            const payload = {
+                action: 'insert',
+                sheet: 'record_keeping',
+                row: {
+                    id: 'PAY-DISB',
+                    customer: `Staff: ${staffName}`,
+                    items: `Payout: ${type}`,
+                    total: -amount,
+                    status: 'Completed',
+                    paid: 'Yes'
+                }
+            };
+
+            await fetch(BASE_API_URL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([{ id: 'PAY-DISB', customer: `Staff: ${staffName}`, items: `Payout: ${type}`, total: -amount, status: 'Completed', paid: 'Yes' }])
+                body: JSON.stringify(payload)
             });
             document.getElementById('payoutAmount').value = '';
             fetchFinancialData();
@@ -934,7 +986,7 @@
             if(!searchName) return;
             currentInspectedCustomer = searchName;
             try {
-                const res = await fetch(`${BASE_API_URL}/customers?search={"customer":"${searchName}"}`);
+                const res = await fetch(`${BASE_API_URL}?sheet=customers&customer=${encodeURIComponent(searchName)}`);
                 const data = await res.json();
                 document.getElementById('crmResultBox').style.display = 'block';
                 document.getElementById('crmNameHeader').innerText = `Profile: ${searchName}`;
@@ -952,11 +1004,21 @@
 
         async function commitProfileNotes() {
             const notes = document.getElementById('crmNotesInput').value.trim();
+            const payload = {
+                action: 'upsert',
+                sheet: 'customers',
+                keyField: 'customer',
+                keyValue: currentInspectedCustomer,
+                row: {
+                    customer: currentInspectedCustomer,
+                    status: 'Active',
+                    notes: notes
+                }
+            };
             try {
-                await fetch(`${BASE_API_URL}/customers`, {
+                await fetch(BASE_API_URL, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify([{ customer: currentInspectedCustomer, status: 'Active', notes: notes }])
+                    body: JSON.stringify(payload)
                 });
                 alert("Dossier saved.");
             } catch(e){}
@@ -965,11 +1027,23 @@
         async function triggerAccountBan() {
             const label = document.getElementById('crmStatusLabel').innerText;
             const targetStatus = label === 'Banned' ? 'Active' : 'Banned';
+            const notes = document.getElementById('crmNotesInput').value.trim();
+            
+            const payload = {
+                action: 'upsert',
+                sheet: 'customers',
+                keyField: 'customer',
+                keyValue: currentInspectedCustomer,
+                row: {
+                    customer: currentInspectedCustomer,
+                    status: targetStatus,
+                    notes: notes
+                }
+            };
             try {
-                await fetch(`${BASE_API_URL}/customers`, {
+                await fetch(BASE_API_URL, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify([{ customer: currentInspectedCustomer, status: targetStatus, notes: '' }])
+                    body: JSON.stringify(payload)
                 });
                 alert(`Status flipped: ${targetStatus}`);
                 runSecurityProfileLookup();
@@ -978,7 +1052,7 @@
 
         async function fetchStaffDirectory() {
             try {
-                const res = await fetch(`${BASE_API_URL}/staff`);
+                const res = await fetch(`${BASE_API_URL}?sheet=staff`);
                 const staff = await res.json();
                 const list = document.getElementById('staffDirectoryList');
                 list.innerHTML = '';
@@ -991,11 +1065,22 @@
             const code = document.getElementById('newStaffCode').value.trim();
             const rank = document.getElementById('newStaffRank').value.trim();
             if(!name || !code || !rank) return;
+            
+            const payload = {
+                action: 'insert',
+                sheet: 'staff',
+                row: {
+                    name: name,
+                    code: code,
+                    rank: rank,
+                    clocked_in: '',
+                    clocked_out: ''
+                }
+            };
             try {
-                await fetch(`${BASE_API_URL}/staff`, {
+                await fetch(BASE_API_URL, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify([{ name, code, rank, clocked_in: '', clocked_out: '' }])
+                    body: JSON.stringify(payload)
                 });
                 document.getElementById('newStaffName').value = ''; document.getElementById('newStaffCode').value = ''; document.getElementById('newStaffRank').value = '';
                 fetchStaffDirectory();
