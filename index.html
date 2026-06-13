@@ -197,6 +197,10 @@
                 </div>
 
                 <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
+
+                <label><strong>Special Notes for the Chef / Barista Team:</strong></label>
+                <input type="text" id="chefNotesInput" placeholder="e.g., Extra hot, oat milk, allergy warnings...">
+
                 <button class="action-btn" id="submitBtn" onclick="submitCustomerOrder()">Send to Kitchen Barista</button>
             </div>
 
@@ -259,6 +263,7 @@
 
         async function submitCustomerOrder() {
             const name = document.getElementById('custName').value.trim();
+            const orderNotes = document.getElementById('chefNotesInput').value.trim();
             if(!name || selectedItems.length === 0) return alert("Please type your name and pick your treats first!");
 
             if(await checkUserBan(name)) return;
@@ -271,7 +276,7 @@
                 status: 'Pending',
                 paid: 'No',
                 eta: '',
-                notes: '',
+                notes: orderNotes,
                 chef_notes: ''
             };
 
@@ -284,6 +289,7 @@
             alert("Order sent straight to the barista station!");
             selectedItems = []; currentTotal = 0;
             document.getElementById('totalPrice').innerText = 0;
+            document.getElementById('chefNotesInput').value = '';
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
             updateCustomerData();
         }
