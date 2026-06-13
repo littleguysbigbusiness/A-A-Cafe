@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ A&A Cafe | Complete Portal</title>
+    <title>☕ A&A Cafe | Customer Portal</title>
     <style>
         :root {
-            --bg-main: #f1f5f9; /* Crisp light gray-blue background */
-            --surface: #ffffff; /* Pure White panels */
-            --border: #cbd5e1;  /* Light slate structural borders */
-            --text-main: #0f172a; /* Dark slate prose */
-            --text-muted: #64748b; /* Muted subtext gray */
-            --accent: #2563eb; /* Radiant Royal Blue */
+            --bg-main: #f1f5f9;
+            --surface: #ffffff;
+            --border: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #2563eb;
             --accent-hover: #1d4ed8;
             --success: #10b981;
-            --warning: #f59e0b;
         }
 
         body { 
@@ -44,15 +43,13 @@
 
         h2, h3, h4 { margin-top: 0; padding-bottom: 12px; border-bottom: 2px solid var(--bg-main); color: var(--text-main); }
 
-        /* SECURITY ACCESS GATEWAY */
+        /* ACCESS GATEWAY */
         .auth-card { max-width: 400px; margin: 100px auto; text-align: center; }
-        .auth-toggle { margin-top: 15px; font-size: 13px; color: var(--text-muted); cursor: pointer; text-decoration: underline; }
-        .auth-toggle:hover { color: var(--accent); }
-
-        input, select {
+        
+        input {
             width: 100%; padding: 12px; margin: 8px 0 16px 0; box-sizing: border-box;
             border: 1px solid var(--border); border-radius: 8px; background: var(--bg-main);
-            color: var(--text-main); font-size: 14px; transition: all 0.2s;
+            color: var(--text-main); font-size: 14px;
         }
         input:focus { border-color: var(--accent); outline: none; background: var(--surface); }
 
@@ -63,14 +60,13 @@
         }
         .btn-action:hover { background: var(--accent-hover); }
 
-        /* MENU SELECTION KIOSK */
+        /* KIOSK */
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin: 20px 0; }
         .menu-item {
             padding: 15px 10px; border: 1px solid var(--border); border-radius: 8px;
             cursor: pointer; text-align: center; background: var(--bg-main);
-            font-weight: 600; font-size: 13px; color: var(--text-main); transition: 0.2s;
+            font-weight: 600; font-size: 13px; color: var(--text-main);
         }
-        .menu-item:hover { border-color: var(--accent); background: var(--surface); transform: translateY(-1px); }
         .menu-item.selected { background-color: var(--accent); color: var(--surface); border-color: var(--accent); }
 
         .total-box {
@@ -79,14 +75,13 @@
             margin: 15px 0; border: 1px solid #bfdbfe;
         }
 
-        /* CREDIT CARD WALLET PANEL */
-        .credit-card-ui {
+        /* VIP WALLET GRAPHIC */
+        .vip-card-ui {
             background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-            color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;
-            position: relative; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+            color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); text-align: center;
         }
 
-        /* SYSTEM PIPELINE CARDS */
         .order-card, .notif-card {
             background: var(--surface); border: 1px solid var(--border);
             border-left: 4px solid var(--accent); padding: 15px; margin-bottom: 15px; border-radius: 8px;
@@ -98,33 +93,27 @@
         .badge.unpaid { background: #fee2e2; color: #ef4444; }
 
         .logout-btn { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
-        .logout-btn:hover { background: #fca5a5; }
     </style>
 </head>
 <body>
 
     <div id="authContainer">
         <div class="panel auth-card">
-            <h2 id="authTitle">Customer Login</h2>
+            <h2>Cafe Portal Access</h2>
             <div style="text-align: left; margin-top: 20px;">
                 <label><strong>Roblox Username:</strong></label>
                 <input type="text" id="authName" placeholder="Player123">
-                
-                <label><strong>Password:</strong></label>
-                <input type="password" id="authPass" placeholder="••••••••">
-                
-                <button class="btn-action" id="authSubmitBtn" onclick="handleAuth()">Log In</button>
+                <button class="btn-action" onclick="handleAuth()">Open Dashboard</button>
             </div>
-            <div class="auth-toggle" id="authSwitch" onclick="toggleAuthMode()">New customer? Create an account here</div>
         </div>
     </div>
 
     <div id="appContainer" style="display: none;">
         <header>
-            <h1>☕ A&A Cafe Portal</h1>
+            <h1>☕ A&A Cafe Customer Hub</h1>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <span id="userGreeting" style="font-size: 14px; font-weight: 600; color: white;"></span>
-                <button class="logout-btn" onclick="logOutSession()">Sign Out</button>
+                <button class="logout-btn" onclick="location.reload()">Sign Out</button>
             </div>
         </header>
 
@@ -145,50 +134,41 @@
                 </div>
 
                 <div class="panel">
-                    <h3>💳 Payments Wallet</h3>
+                    <h3>💰 Cafe VIP Account Balance</h3>
                     
-                    <div id="walletDisplay">
-                        <p style="color: var(--text-muted); font-size: 14px;">No payment card link active on profile.</p>
+                    <div class="vip-card-ui">
+                        <div style="font-size: 11px; letter-spacing: 2px; opacity: 0.8; margin-bottom: 5px;">CURRENT CAFE BALANCE</div>
+                        <div style="font-size: 36px; font-weight: 800; margin-bottom: 5px;">$<span id="vipBalanceDisplay">0</span></div>
+                        <div style="font-size: 12px; opacity: 0.9;" id="vipUserCard">ACCOUNT ACTIVE</div>
                     </div>
+
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; text-align: center;">
+                        Want a pre-paid account? Donate money directly to the staff in Bloxburg, and they will top up your portal tab balance so you can order seamlessly next time!
+                    </p>
 
                     <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
 
-                    <h4>Link Registry Card</h4>
-                    <label style="font-size: 11px; font-weight: bold;">Cardholder Name</label>
-                    <input type="text" id="cardName" placeholder="Player123">
-                    
-                    <label style="font-size: 11px; font-weight: bold;">Card Number</label>
-                    <input type="text" id="cardNumber" placeholder="4111 2222 3333 4444" maxlength="19">
-                    
-                    <div style="display: flex; gap: 10px;">
-                        <div style="flex: 1;">
-                            <label style="font-size: 11px; font-weight: bold;">Expiry</label>
-                            <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="font-size: 11px; font-weight: bold;">CVC</label>
-                            <input type="password" id="cardCvc" placeholder="•••" maxlength="3">
-                        </div>
+                    <h4>📋 Store Price Quick Reference</h4>
+                    <div style="font-size: 13px; line-height: 1.8;">
+                        <div style="display:flex; justify-content:space-between;"><span>☕ Fresh Brewed Coffee</span><strong>$4</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>🍵 Premium Matcha Latte</span><strong>$9</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>🧁 Gourmet Cupcake</span><strong>$2</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>🍩 Fresh Muffin</span><strong>$2</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>🥧 Whole Cafe Pie</span><strong>$10</strong></div>
                     </div>
-                    <button class="btn-action" onclick="savePaymentMethod()" style="background: var(--text-main);">Securely Link Card</button>
                 </div>
 
                 <div>
                     <div class="panel">
                         <h3>🔔 Notification Center</h3>
                         <div id="notifList">
-                            <p style="color: var(--text-muted); font-size: 13px;">No new payroll or shift alerts.</p>
+                            <p style="color: var(--text-muted); font-size: 13px;">No new alerts.</p>
                         </div>
                     </div>
 
                     <div class="panel">
                         <h3>Active Progress</h3>
                         <div id="customerTrackerList">No active orders processing.</div>
-                    </div>
-
-                    <div class="panel">
-                        <h3>📜 My Past Orders</h3>
-                        <div id="pastHistoryList">No archived orders found.</div>
                     </div>
                 </div>
 
@@ -198,45 +178,22 @@
 
     <script>
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
-        let isRegisterMode = false;
         let loggedInUser = null;
         let selectedItems = [];
         let currentTotal = 0;
-        let hasActiveCard = false;
-        let maskedCardString = "";
-
-        function toggleAuthMode() {
-            isRegisterMode = !isRegisterMode;
-            document.getElementById('authTitle').innerText = isRegisterMode ? "Create Customer Account" : "Customer Login";
-            document.getElementById('authSubmitBtn').innerText = isRegisterMode ? "Register Account" : "Log In";
-            document.getElementById('authSwitch').innerText = isRegisterMode ? "Already have an account? Log in here" : "New customer? Create an account here";
-        }
 
         async function handleAuth() {
             const name = document.getElementById('authName').value.trim();
-            const pass = document.getElementById('authPass').value.trim();
-
-            if(!name || !pass) return alert("Please complete credentials criteria.");
-
+            if(!name) return alert("Please enter your Roblox username.");
             loggedInUser = name; 
-            localStorage.setItem('activeSessionUser', loggedInUser);
-            launchApplication();
-        }
-
-        function launchApplication() {
+            
             document.getElementById('authContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
-            document.getElementById('userGreeting').innerText = `👤 Customer: ${loggedInUser}`;
+            document.getElementById('userGreeting').innerText = `👤 Player: ${loggedInUser}`;
+            document.getElementById('vipUserCard').innerText = `${loggedInUser.toUpperCase()} // REGULAR`;
             
-            checkSavedPaymentMethod();
             updateCustomerData();
             setInterval(updateCustomerData, 5000);
-        }
-
-        function logOutSession() {
-            localStorage.removeItem('activeSessionUser');
-            loggedInUser = null;
-            location.reload();
         }
 
         function toggleItem(el, name, price) {
@@ -247,76 +204,24 @@
             document.getElementById('totalPrice').innerText = currentTotal;
         }
 
-        async function checkSavedPaymentMethod() {
-            try {
-                const res = await fetch(`${BASE_API_URL}/payment_methods?search={"customer":"${loggedInUser}"}`);
-                const data = await res.json();
-                const display = document.getElementById('walletDisplay');
-                
-                if (data && data.length > 0 && !data.error) {
-                    hasActiveCard = true;
-                    maskedCardString = data[data.length - 1].masked_card;
-                    display.innerHTML = `
-                        <div class="credit-card-ui">
-                            <div style="font-size: 11px; letter-spacing: 2px; opacity: 0.8; margin-bottom: 15px;">LINKED PAYMENT PROFILE</div>
-                            <div style="font-size: 18px; letter-spacing: 3px; font-family: monospace; margin-bottom: 15px;">${maskedCardString}</div>
-                            <div style="display:flex; justify-content:space-between; font-size:12px;">
-                                <span>${data[data.length - 1].holder.toUpperCase()}</span>
-                                <span>${data[data.length - 1].expiry}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-            } catch(e) {}
-        }
-
-        async function savePaymentMethod() {
-            const holder = document.getElementById('cardName').value.trim();
-            const rawCard = document.getElementById('cardNumber').value.trim();
-            const expiry = document.getElementById('cardExpiry').value.trim();
-            const cvc = document.getElementById('cardCvc').value.trim();
-
-            if(!holder || !rawCard || !expiry || !cvc) return alert("All fields must be filled.");
-
-            const masked = "•••• •••• •••• " + rawCard.slice(-4);
-            const mockToken = "tok_" + Math.random().toString(36).substr(2, 9);
-
-            await fetch(`${BASE_API_URL}/payment_methods`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([{ customer: loggedInUser, holder, masked_card: masked, expiry, token: mockToken }])
-            });
-
-            alert("Payment method profile linked!");
-            document.getElementById('cardName').value = '';
-            document.getElementById('cardNumber').value = '';
-            document.getElementById('cardExpiry').value = '';
-            document.getElementById('cardCvc').value = '';
-            checkSavedPaymentMethod();
-        }
-
         async function submitCustomerOrder() {
             if(selectedItems.length === 0) return alert("Select items before ordering.");
-
-            const payload = {
-                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                customer: loggedInUser,
-                items: selectedItems.join(', '),
-                total: currentTotal,
-                status: 'Pending',
-                paid: 'No',
-                eta: '',
-                notes: hasActiveCard ? `Card Linked: ${maskedCardString}` : 'Pay at counter',
-                chef_notes: ''
-            };
 
             await fetch(`${BASE_API_URL}/Sheet1`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify([payload])
+                body: JSON.stringify([{
+                    id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                    customer: loggedInUser,
+                    items: selectedItems.join(', '),
+                    total: currentTotal,
+                    status: 'Pending',
+                    paid: 'No',
+                    notes: 'Pay Cashier at Counter'
+                }])
             });
 
-            alert("Ticket dispatched to terminal!");
+            alert("Ticket sent to the kitchen! Head to the counter to complete payment.");
             selectedItems = []; currentTotal = 0;
             document.getElementById('totalPrice').innerText = 0;
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
@@ -326,7 +231,7 @@
         async function updateCustomerData() {
             if(!loggedInUser) return;
             try {
-                // Orders Tracker Pipeline
+                // Fetch active order tracking rows
                 const activeRes = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${loggedInUser}"}`);
                 const activeOrders = await activeRes.json();
                 const container = document.getElementById('customerTrackerList');
@@ -348,7 +253,7 @@
                     });
                 }
 
-                // Alerts / Shift Payroll Hub Notification Engine
+                // Fetch Alert Feeds (Payout confirmation logs, etc.)
                 const notifRes = await fetch(`${BASE_API_URL}/alerts?search={"target":"${loggedInUser}"}`);
                 const alertsData = await notifRes.json();
                 const notifTarget = document.getElementById('notifList');
@@ -356,16 +261,11 @@
                     notifTarget.innerHTML = alertsData.reverse().map(n => `
                         <div class="notif-card">
                             <strong>📬 ${n.title}</strong>
-                            <p style="margin:5px 0 0; font-size:12px; color:var(--text-main); line-height:1.4;">${n.message}</p>
+                            <p style="margin:5px 0 0; font-size:12px; color:var(--text-main);">${n.message}</p>
                         </div>
                     `).join('');
                 }
             } catch(e){}
-        }
-
-        if(localStorage.getItem('activeSessionUser')) {
-            loggedInUser = localStorage.getItem('activeSessionUser');
-            launchApplication();
         }
     </script>
 </body>
