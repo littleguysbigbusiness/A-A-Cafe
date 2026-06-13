@@ -3,511 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A&A Cafe — Interactive Kiosk</title>
+    <title>☕ Cozy Beans Cafe</title>
     <style>
         :root {
-            --bg-main: #f0f7ff;
-            --bg-card: #ffffff;
-            --bg-darker: #e1effe;
-            --border-glow: #b4d6fa;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --accent-brand: #0284c7;
-            --accent-light: #e0f2fe;
-            --color-success: #0ea5e9;
-            --radius-main: 16px;
-            --shadow-lg: 0 10px 25px -5px rgba(2, 132, 199, 0.1);
+            --bg-main: #f0f4f8;
+            --surface: #ffffff;
+            --border: #d9e2ec;
+            --text-main: #102a43;
+            --text-muted: #486581;
+            --accent: #0066cc; /* Electric Tech Blue */
+            --accent-hover: #004b99;
+            --badge-bg: #f59e0b;
         }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 0;
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
         }
 
-        .hero-banner {
-            background: linear-gradient(135deg, #bae6fd 0%, #e0f2fe 100%);
-            padding: 40px 20px;
+        header {
+            background-color: var(--accent);
+            color: var(--surface);
+            padding: 20px;
             text-align: center;
-            border-bottom: 2px solid var(--border-glow);
+            box-shadow: 0 2px 10px rgba(0, 102, 204, 0.2);
         }
+        
+        header h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
 
-        .hero-banner h1 {
-            margin: 0;
-            font-size: 36px;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: var(--accent-brand);
-        }
-
-        .hero-banner p {
-            color: var(--text-secondary);
-            margin-top: 8px;
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .kiosk-container {
-            max-width: 1400px;
-            margin: 30px auto;
+        .container {
+            max-width: 1140px;
+            margin: 40px auto;
             padding: 0 20px;
+        }
+
+        .grid-2 {
             display: grid;
-            grid-template-columns: 1.6fr 1fr;
+            grid-template-columns: 1.2fr 0.8fr;
             gap: 30px;
         }
 
-        .menu-section-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin: 25px 0 12px 0;
-            color: var(--accent-brand);
-            border-left: 4px solid var(--accent-brand);
-            padding-left: 10px;
+        .panel {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+            font-weight: 600;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--bg-main);
+            color: var(--text-main);
         }
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin: 24px 0;
         }
 
-        .menu-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glow);
-            border-radius: var(--radius-main);
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: var(--shadow-lg);
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .menu-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-brand);
-            background: var(--accent-light);
-        }
-
-        .menu-card h3 {
-            margin: 0 0 6px 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .menu-card .price {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--accent-brand);
-            margin-top: auto;
-        }
-
-        .checkout-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glow);
-            border-radius: var(--radius-main);
-            padding: 24px;
-            position: sticky;
-            top: 20px;
-            box-shadow: var(--shadow-lg);
-            height: fit-content;
-        }
-
-        .checkout-panel h2 {
-            margin-top: 0;
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--text-primary);
-            border-bottom: 2px solid var(--border-glow);
-            padding-bottom: 12px;
-        }
-
-        /* Order Type Segmented Control */
-        .order-type-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .type-btn {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid var(--border-glow);
-            background: #ffffff;
-            color: var(--text-secondary);
-            font-weight: 700;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-        .type-btn.active {
-            background: var(--accent-brand);
-            color: #ffffff;
-            border-color: var(--accent-brand);
-        }
-
-        .delivery-fields {
-            display: none;
-            background: var(--bg-main);
-            padding: 14px;
+        .menu-item {
+            padding: 16px 10px;
+            border: 1px solid var(--border);
             border-radius: 12px;
-            border: 1px solid var(--border-glow);
-            margin-bottom: 16px;
+            cursor: pointer;
+            text-align: center;
+            background: var(--bg-main);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:hover { 
+            background: var(--surface);
+            border-color: var(--accent);
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(0,102,204,0.1);
+        }
+        
+        .menu-item.selected {
+            background-color: var(--accent);
+            color: var(--surface);
+            border-color: var(--accent);
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            background: #ffffff;
-            border: 1px solid var(--border-glow);
-            color: var(--text-primary);
-            border-radius: 10px;
+            padding: 14px;
+            margin: 8px 0 20px 0;
             box-sizing: border-box;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-        input:last-child {
-            margin-bottom: 0;
-        }
-
-        input:focus {
-            border-color: var(--accent-brand);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-        }
-
-        .cart-list {
-            background: var(--bg-main);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 12px;
-            max-height: 180px;
-            overflow-y: auto;
-            margin-bottom: 16px;
-            border: 1px solid var(--border-glow);
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border-glow);
+            background: var(--bg-main);
             font-size: 14px;
+            color: var(--text-main);
+            transition: border 0.2s;
         }
+        input:focus { border-color: var(--accent); outline: none; background: var(--surface); }
 
-        .cart-item:last-child {
-            border-bottom: none;
-        }
-
-        .cart-item-remove {
-            background: #fee2e2;
-            color: #ef4444;
+        .action-btn {
+            background: var(--accent);
+            color: white;
+            padding: 16px;
             border: none;
-            padding: 4px 8px;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
+            width: 100%;
+            font-size: 15px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover { background: var(--accent-hover); }
+        .action-btn:disabled { background: #e9ecef; color: #adb5bd; cursor: not-allowed; }
+
+        .total-box {
+            background: #e1f0ff;
+            color: var(--accent);
+            padding: 18px;
+            border-radius: 10px;
+            text-align: right;
+            font-size: 22px;
+            font-weight: 700;
+            margin: 20px 0;
+            border: 1px solid #b3d7ff;
+        }
+
+        .order-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+        }
+
+        .status-badge {
+            background: var(--badge-bg);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
             font-size: 11px;
             font-weight: 700;
         }
 
-        .total-box {
-            display: flex;
-            justify-content: space-between;
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--accent-brand);
-            margin: 16px 0;
-            padding-top: 12px;
-            border-top: 2px solid var(--border-glow);
-        }
-
-        .btn-order {
-            background: var(--color-success);
-            color: #fff;
-            border: none;
-            width: 100%;
-            padding: 14px;
-            font-size: 15px;
-            font-weight: 700;
+        .error-msg {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
             border-radius: 10px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .btn-order:hover { opacity: 0.9; }
-        .btn-order:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
-
-        .tracker-toggle {
-            margin-top: 20px;
-            background: var(--bg-darker);
-            border: 1px solid var(--border-glow);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--accent-brand);
-            cursor: pointer;
-        }
-        .tracker-panel {
+            font-weight: 600;
+            margin-bottom: 15px;
             display: none;
-            margin-top: 12px;
-            background: var(--bg-main);
-            border: 1px solid var(--border-glow);
-            border-radius: 8px;
-            padding: 12px;
-            max-height: 200px;
-            overflow-y: auto;
         }
-        .tracker-item {
-            font-size: 12px;
-            padding: 6px;
-            border-bottom: 1px solid var(--border-glow);
-        }
-        .tracker-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
 
-    <div class="hero-banner">
-        <h1>A&A CAFE KIOSK</h1>
-        <p>Select your items, customize your order, and beam it directly to the kitchen line</p>
-    </div>
+    <header>
+        <h1>☕ Cozy Beans Cafe</h1>
+    </header>
 
-    <div class="kiosk-container">
-        <div>
-            <div class="menu-section-title">🍰 Fresh Bakery & Desserts</div>
-            <div class="menu-grid">
-                <div class="menu-card" onclick="addToCart('Muffin', 2)"><h3>Muffin</h3><div class="price">$2</div></div>
-                <div class="menu-card" onclick="addToCart('Red Velvet Cupcake', 2)"><h3>Red Velvet Cupcake</h3><div class="price">$2</div></div>
-                <div class="menu-card" onclick="addToCart('Pies Whole', 10)"><h3>Pies Whole</h3><div class="price">$10</div></div>
-                <div class="menu-card" onclick="addToCart('Donut', 3)"><h3>Donut</h3><div class="price">$3</div></div>
-                <div class="menu-card" onclick="addToCart('Whole Cheesecake', 11)"><h3>Whole Cheesecake</h3><div class="price">$11</div></div>
-                <div class="menu-card" onclick="addToCart('Whole Cake', 11)"><h3>Whole Cake</h3><div class="price">$11</div></div>
-            </div>
-
-            <div class="menu-section-title">☕ Hot Brew Bar</div>
-            <div class="menu-grid">
-                <div class="menu-card" onclick="addToCart('Coffee', 4)"><h3>Coffee</h3><div class="price">$4</div></div>
-                <div class="menu-card" onclick="addToCart('Tea', 4)"><h3>Tea</h3><div class="price">$4</div></div>
-                <div class="menu-card" onclick="addToCart('Espresso', 5)"><h3>Espresso</h3><div class="price">$5</div></div>
-                <div class="menu-card" onclick="addToCart('Cappuccino', 5)"><h3>Cappuccino</h3><div class="price">$5</div></div>
-            </div>
-
-            <div class="menu-section-title">🥤 Ice Blends & Specialty Drinks</div>
-            <div class="menu-grid">
-                <div class="menu-card" onclick="addToCart('Matcha', 9)"><h3>Matcha</h3><div class="price">$9</div></div>
-                <div class="menu-card" onclick="addToCart('Ice Matcha', 10)"><h3>Ice Matcha</h3><div class="price">$10</div></div>
-                <div class="menu-card" onclick="addToCart('Milkshakes', 6)"><h3>Milkshakes</h3><div class="price">$6</div></div>
-                <div class="menu-card" onclick="addToCart('Fruit Smoothie', 5)"><h3>Fruit Smoothie</h3><div class="price">$5</div></div>
-                <div class="menu-card" onclick="addToCart('Smoothie Super Edition', 8)"><h3>Smoothie Super Edition</h3><div class="price">$8</div></div>
-            </div>
-
-            <div class="menu-section-title">🍳 Kitchen Specialties</div>
-            <div class="menu-grid">
-                <div class="menu-card" onclick="addToCart('Pancakes', 9)"><h3>Pancakes</h3><div class="price">$9</div></div>
-                <div class="menu-card" onclick="addToCart('Fairy Bread', 8)"><h3>Fairy Bread</h3><div class="price">$8</div></div>
-            </div>
-
-            <div class="menu-section-title">🍊 Cold Refreshments</div>
-            <div class="menu-grid">
-                <div class="menu-card" onclick="addToCart('Orange Juice', 0)"><h3>Orange Juice</h3><div class="price">$0</div></div>
-                <div class="menu-card" onclick="addToCart('Water', 0)"><h3>Water</h3><div class="price">$0</div></div>
-                <div class="menu-card" onclick="addToCart('Grape Juice', 1)"><h3>Grape Juice</h3><div class="price">$1</div></div>
-                <div class="menu-card" onclick="addToCart('Ice Tea', 1)"><h3>Ice Tea</h3><div class="price">$1</div></div>
-                <div class="menu-card" onclick="addToCart('Milk', 1)"><h3>Milk</h3><div class="price">$1</div></div>
-                <div class="menu-card" onclick="addToCart('Lemonade', 1)"><h3>Lemonade</h3><div class="price">$1</div></div>
-            </div>
-        </div>
-
-        <div>
-            <div class="checkout-panel">
-                <h2>Your Order Manifest</h2>
+    <div class="container">
+        <div class="grid-2">
+            <div class="panel">
+                <h2>Fresh Daily Menu</h2>
+                <div id="banAlert" class="error-msg">🚫 Order Blocked: Profile suspended. Please see the barista counter.</div>
                 
-                <div class="order-type-container">
-                    <button id="typePickup" class="type-btn active" onclick="setOrderType('Pickup')">🚶 Pickup</button>
-                    <button id="typeDelivery" class="type-btn" onclick="setOrderType('Delivery')">🚗 Delivery</button>
+                <label><strong>Your Name:</strong></label>
+                <input type="text" id="custName" placeholder="Type your name to link orders..." oninput="onNameChange()">
+
+                <div class="menu-grid" id="menuGridBox">
+                    <div class="menu-item" onclick="toggleItem(this, 'Muffin', 2)">Muffin ($2)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Cupcake', 2)">Cupcake ($2)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Whole Pie', 10)">Whole Pie ($10)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Donut', 3)">Donut ($3)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Cheesecake', 11)">Cheesecake ($11)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Coffee', 4)">Coffee ($4)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Tea', 4)">Tea ($4)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Matcha Latte', 9)">Matcha ($9)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Espresso Shot', 5)">Espresso ($5)</div>
+                    <div class="menu-item" onclick="toggleItem(this, 'Milkshake', 6)">Milkshake ($6)</div>
                 </div>
 
-                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; display:block; margin-bottom:6px;">Your Name:</label>
-                <input type="text" id="custNameInput" placeholder="Enter your name...">
+                <div class="total-box">Order Total: $<span id="totalPrice">0</span></div>
+                <button class="action-btn" id="submitBtn" onclick="submitCustomerOrder()">Send to Kitchen Barista</button>
+            </div>
 
-                <div id="deliverySection" class="delivery-fields">
-                    <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; display:block; margin-bottom:6px;">Delivery Destination Details:</label>
-                    <input type="text" id="deliveryAddress" placeholder="Street Address, Suburb">
-                    <input type="text" id="deliveryPhone" placeholder="Contact Phone Number">
+            <div>
+                <div class="panel">
+                    <h2>Live Order Status</h2>
+                    <div id="customerTrackerList">Enter your name to see active live track updates.</div>
                 </div>
 
-                <div class="cart-list" id="cartContainer">
-                    <div style="color:var(--text-secondary); text-align:center; font-style:italic; padding-top:20px; font-size:13px;">Your tray is empty.</div>
+                <div class="panel">
+                    <h2>📜 My Past Order History Logs</h2>
+                    <div id="pastHistoryList">History records will load here once a name is entered.</div>
                 </div>
-
-                <div class="total-box">
-                    <span>Total:</span>
-                    <span>$<span id="cartTotalDisplay">0</span></span>
-                </div>
-
-                <button class="btn-order" id="submitOrderBtn" onclick="sendTrayToKitchen()" disabled>Send to Kitchen</button>
-
-                <div class="tracker-toggle" onclick="togglePastOrdersTracker()">🔍 Check/Track Past Orders</div>
-                <div class="tracker-panel" id="pastOrdersTray">Loading live queue tracking...</div>
             </div>
         </div>
     </div>
 
     <script>
         const BASE_API_URL = "https://api.steinhq.com/v1/storages/6a2c070092b1163e97066729";
-        let shoppingCart = [];
-        let totalBillValue = 0;
-        let selectedOrderType = "Pickup";
+        let selectedItems = [];
+        let currentTotal = 0;
 
-        function setOrderType(type) {
-            selectedOrderType = type;
-            const pickupBtn = document.getElementById('typePickup');
-            const deliveryBtn = document.getElementById('typeDelivery');
-            const deliverySec = document.getElementById('deliverySection');
+        if(localStorage.getItem('cafeCustomerName')) {
+            document.getElementById('custName').value = localStorage.getItem('cafeCustomerName');
+        }
 
-            if (type === 'Delivery') {
-                deliveryBtn.classList.add('active');
-                pickupBtn.classList.remove('active');
-                deliverySec.style.display = 'block';
-            } else {
-                pickupBtn.classList.add('active');
-                deliveryBtn.classList.remove('active');
-                deliverySec.style.display = 'none';
+        function toggleItem(el, name, price) {
+            if(document.getElementById('submitBtn').disabled) return;
+            el.classList.toggle('selected');
+            const idx = selectedItems.indexOf(name);
+            if(idx > -1) { selectedItems.splice(idx, 1); currentTotal -= price; }
+            else { selectedItems.push(name); currentTotal += price; }
+            document.getElementById('totalPrice').innerText = currentTotal;
+        }
+
+        function onNameChange() {
+            const name = document.getElementById('custName').value.trim();
+            if(name) {
+                localStorage.setItem('cafeCustomerName', name);
+                checkUserBan(name);
+                updateCustomerData();
             }
         }
 
-        function addToCart(itemName, price) {
-            shoppingCart.push({ name: itemName, price: price });
-            totalBillValue += price;
-            renderCartUI();
-        }
-
-        function removeFromCart(index) {
-            totalBillValue -= shoppingCart[index].price;
-            shoppingCart.splice(index, 1);
-            renderCartUI();
-        }
-
-        function renderCartUI() {
-            const container = document.getElementById('cartContainer');
-            const submitBtn = document.getElementById('submitOrderBtn');
-            document.getElementById('cartTotalDisplay').innerText = totalBillValue;
-
-            if (shoppingCart.length === 0) {
-                container.innerHTML = `<div style="color:var(--text-secondary); text-align:center; font-style:italic; padding-top:20px; font-size:13px;">Your tray is empty.</div>`;
-                submitBtn.disabled = true;
-                return;
-            }
-
-            submitBtn.disabled = false;
-            container.innerHTML = '';
-            shoppingCart.forEach((item, idx) => {
-                container.innerHTML += `
-                    <div class="cart-item">
-                        <div><strong>${item.name}</strong> <span style="color:var(--accent-brand); font-weight:700;">$${item.price}</span></div>
-                        <button class="cart-item-remove" onclick="removeFromCart(${idx})">Remove</button>
-                    </div>`;
-            });
-        }
-
-        async function sendTrayToKitchen() {
-            const nameInput = document.getElementById('custNameInput').value.trim();
-            if (!nameInput) return alert("Please enter a name for the order ticket.");
-
-            let internalNotes = `Kiosk Order (${selectedOrderType})`;
-
-            if (selectedOrderType === 'Delivery') {
-                const address = document.getElementById('deliveryAddress').value.trim();
-                const phone = document.getElementById('deliveryPhone').value.trim();
-                
-                if (!address || !phone) {
-                    return alert("Please fill out both your address and phone number for delivery.");
+        async function checkUserBan(name) {
+            try {
+                const res = await fetch(`${BASE_API_URL}/customers?search={"customer":"${name}"}`);
+                const data = await res.json();
+                if(data.length > 0 && data[0].status === 'Banned') {
+                    document.getElementById('banAlert').style.display = 'block';
+                    document.getElementById('submitBtn').disabled = true;
+                    document.getElementById('customerTrackerList').innerText = "Suspended profiles cannot pull tracking telemetry.";
+                    return true;
                 }
-                internalNotes = `DELIVERY -> Addr: ${address} | Phone: ${phone}`;
-            }
+            } catch(e){}
+            document.getElementById('banAlert').style.display = 'none';
+            document.getElementById('submitBtn').disabled = false;
+            return false;
+        }
 
-            const submitBtn = document.getElementById('submitOrderBtn');
-            submitBtn.disabled = true;
+        async function submitCustomerOrder() {
+            const name = document.getElementById('custName').value.trim();
+            if(!name || selectedItems.length === 0) return alert("Please type your name and pick your treats first!");
 
-            const itemCounts = {};
-            shoppingCart.forEach(item => { itemCounts[item.name] = (itemCounts[item.name] || 0) + 1; });
-            const formattedSummary = Object.entries(itemCounts).map(([item, count]) => `${count}x ${item}`).join(', ');
+            if(await checkUserBan(name)) return;
 
-            const orderPayload = {
+            const payload = {
                 id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                customer: nameInput,
-                items: formattedSummary,
-                total: totalBillValue,
+                customer: name,
+                items: selectedItems.join(', '),
+                total: currentTotal,
                 status: 'Pending',
                 paid: 'No',
-                eta: 'Asap',
-                notes: internalNotes,
+                eta: '',
+                notes: '',
                 chef_notes: ''
             };
 
-            try {
-                const res = await fetch(`${BASE_API_URL}/Sheet1`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify([orderPayload])
-                });
-                if (res.ok) {
-                    alert(`Sent! Ticket ${orderPayload.id} is cooking.`);
-                    shoppingCart = []; totalBillValue = 0;
-                    document.getElementById('custNameInput').value = '';
-                    document.getElementById('deliveryAddress').value = '';
-                    document.getElementById('deliveryPhone').value = '';
-                    setOrderType('Pickup');
-                    renderCartUI();
-                    fetchPastOrders();
-                }
-            } catch (error) { alert("Error sending order."); }
+            await fetch(`${BASE_API_URL}/Sheet1`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify([payload])
+            });
+
+            alert("Order sent straight to the barista station!");
+            selectedItems = []; currentTotal = 0;
+            document.getElementById('totalPrice').innerText = 0;
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
+            updateCustomerData();
         }
 
-        async function togglePastOrdersTracker() {
-            const tray = document.getElementById('pastOrdersTray');
-            if(tray.style.display === "block") {
-                tray.style.display = "none";
-            } else {
-                tray.style.display = "block";
-                fetchPastOrders();
-            }
+        async function updateCustomerData() {
+            const user = document.getElementById('custName').value.trim();
+            if(!user) return;
+
+            try {
+                const activeRes = await fetch(`${BASE_API_URL}/Sheet1?search={"customer":"${user}"}`);
+                const activeOrders = await activeRes.json();
+                const container = document.getElementById('customerTrackerList');
+                
+                if(!activeOrders || activeOrders.length === 0 || activeOrders.error) {
+                    container.innerText = "No active orders in the current queue.";
+                } else {
+                    container.innerHTML = '';
+                    activeOrders.reverse().forEach(o => {
+                        const displayEta = o.eta ? o.eta : 'Calculating...';
+                        const displayChefNotes = o.chef_notes ? o.chef_notes : 'Preparing your items...';
+                        const displayStaffNotes = o.notes ? o.notes : '';
+
+                        container.innerHTML += `
+                            <div class="order-card">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <strong>ID: ${o.id}</strong>
+                                    <span class="status-badge">${o.status}</span>
+                                </div>
+                                <p style="font-size:13px; margin:8px 0; font-weight: 500;">Items: ${o.items}</p>
+                                <div style="background: var(--bg-main); padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; margin-top: 5px;">
+                                    <div style="color:var(--accent); font-weight:bold; margin-bottom: 4px;">⏱️ Est. Wait Time: ${displayEta}</div>
+                                    <div style="color:#555;"><strong style="color:var(--text-main);">👨‍🍳 Barista Note:</strong> ${displayChefNotes}</div>
+                                    ${displayStaffNotes ? `<div style="color:#777; font-size:11px; margin-top:4px; font-style:italic;">Memo: ${displayStaffNotes}</div>` : ''}
+                                </div>
+                            </div>`;
+                    });
+                }
+            } catch(e){}
+
+            try {
+                const archiveRes = await fetch(`${BASE_API_URL}/record_keeping?search={"customer":"${user}"}`);
+                const passedData = await archiveRes.json();
+                const historyBox = document.getElementById('pastHistoryList');
+                if(!passedData || passedData.length === 0 || passedData.error) {
+                    historyBox.innerText = "No archived receipts found under this profile identity.";
+                } else {
+                    historyBox.innerHTML = '';
+                    passedData.reverse().forEach(h => {
+                        historyBox.innerHTML += `
+                            <div style="padding:10px 0; border-bottom:1px solid var(--border); font-size:13px;">
+                                ✅ Order <strong>${h.id}</strong> — ${h.items} <span style="color:var(--accent); font-weight:bold;">($${h.total})</span>
+                            </div>`;
+                    });
+                }
+            } catch(e){}
         }
 
-        async function fetchPastOrders() {
-            try {
-                const res = await fetch(`${BASE_API_URL}/Sheet1`);
-                const orders = await res.json();
-                const tray = document.getElementById('pastOrdersTray');
-                
-                if(!orders || orders.length === 0 || orders.error) {
-                    tray.innerHTML = '<div style="font-size:12px; color:var(--text-secondary);">No orders on the active queue line.</div>';
-                    return;
-                }
-                
-                tray.innerHTML = '';
-                orders.reverse().slice(0, 10).forEach(o => {
-                    tray.innerHTML += `
-                        <div class="tracker-item">
-                            <div style="display:flex; justify-content:space-between; font-weight:700;">
-                                <span style="color:var(--accent-brand);">${o.id} - ${o.customer}</span>
-                                <span>$${o.total}</span>
-                            </div>
-                            <div style="color:var(--text-secondary); margin:4px 0;">${o.items}</div>
-                            <div style="font-size:11px; display:flex; gap:10px;">
-                                <span>Status: <strong style="color:var(--accent-brand);">${o.status}</strong></span>
-                                <span>ETA: <strong>${o.eta || 'Pending'}</strong></span>
-                            </div>
-                        </div>`;
-                });
-            } catch(e) {}
+        const existingDeviceUser = document.getElementById('custName').value.trim();
+        if(existingDeviceUser) {
+            checkUserBan(existingDeviceUser);
+            updateCustomerData();
         }
+        setInterval(updateCustomerData, 5000);
     </script>
 </body>
 </html>
