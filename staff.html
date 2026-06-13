@@ -804,59 +804,15 @@
             } catch(e) { alert("Archival pipeline dropped connection."); }
         }
 
-        async function fetchLiveKitchenOrders() {
-            try {
-                const res = await fetch(`${BASE_API_URL}?sheet=Sheet1`);
-                const pipeline = await res.json();
-                if(pipeline && !pipeline.error) currentLiveOrders = pipeline;
+      // ... existing authentication logic inside authenticateStaff() ...
+pushInternalNotification(`Staff session established: ${activeStaffName}`);
 
-                const target = document.getElementById('liveOrdersList');
-                target.innerHTML = '';
-                
-                if(!pipeline || pipeline.length === 0 || pipeline.error) {
-                    target.innerHTML = '<p style="color:var(--text-secondary); font-style:italic;">Production environment clear.</p>'; return;
-                }
+fetchLiveKitchenOrders();
+fetchStaffMenuReference(); // <-- ADD THIS LINE HERE TO TRIGGER THE RUN
 
-                pipeline.reverse().forEach(o => {
-                    const isCompleted = o.status === 'Completed';
-                    const isUnpaidCompleted = isCompleted && o.paid === 'No';
-                    
-                    target.innerHTML += `
-                        <div class="kitchen-card ${isUnpaidCompleted ? 'status-unpaid-completed' : ''}">
-                            <div>
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                                    <strong style="color:var(--accent-brand); font-size:16px;">${o.id}</strong>
-                                    <span class="price-tag">$${o.total || 0}</span>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                                    <h3 style="border:none; margin:0; font-size:18px;">${o.customer}</h3>
-                                    <div style="display:flex; gap:6px;">
-                                        <span class="badge ${isCompleted ? 'status-done' : 'status-pending'}">${o.status}</span>
-                                        <span class="badge ${o.paid === 'Yes' ? 'paid' : 'unpaid'}" style="cursor:pointer;" onclick="triggerPaymentToggle('${o.id}', '${o.paid}')">
-                                            ${o.paid === 'Yes' ? 'Paid' : 'Unpaid'}
-                                        </span>
-                                    </div>
-                                </div>
-                                <p style="margin:12px 0; font-size:14px; color:var(--text-secondary); line-height:1.5;">${o.items}</p>
-                            </div>
-                            
-                            <div style="margin-top:14px;">
-                                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Custom Wait/ETA Time:</label>
-                                <input type="text" value="${o.eta || ''}" placeholder="e.g., 7 mins, next, done" style="margin-bottom:10px; padding:10px;" onchange="updateOrderField('${o.id}', 'eta', this.value)">
-
-                                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Barista Kitchen Note:</label>
-                                <input type="text" value="${o.chef_notes || ''}" placeholder="Add update..." style="margin-bottom:14px; padding:10px;" onchange="updateOrderField('${o.id}', 'chef_notes', this.value)">
-                                
-                                ${isCompleted ? 
-                                    `<div style="text-align:center; color:var(--color-alert); font-size:12px; font-weight:bold; padding:12px; border:1px dashed var(--color-alert); border-radius:8px; background:rgba(251,191,36,0.02)">⚠️ Collect Payment to Clear Ticket</div>` : 
-                                    `<button class="btn-action" style="background:var(--color-success); color:white;" onclick="completeKitchenOrder('${o.id}')">Fulfill & Archive</button>`
-                                }
-                            </div>
-                        </div>`;
-                });
-            } catch(e){}
-        }
-
+await fetchLiveRosterData();
+setInterval(fetchLiveKitchenOrders, 10000);
+// ... remaining authentication code ...
         async function fetchArchiveLogs() {
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=record_keeping`);
