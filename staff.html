@@ -675,10 +675,31 @@
         function disconnectSession() { location.reload(); }
 
         function selectManualItem(el, name, price) {
-            el.classList.toggle('selected');
-            const idx = manualSelectedItems.indexOf(name);
-            if(idx > -1) { manualSelectedItems.splice(idx, 1); manualCurrentTotal -= price; }
-            else { manualSelectedItems.push(name); manualCurrentTotal += price; }
+            let qtyStr = prompt(`How many ${name}(s)?\n(Type 0 to remove)`, "1");
+            if (qtyStr === null) return;
+            
+            let qty = parseInt(qtyStr);
+            if (isNaN(qty) || qty < 0) return;
+
+            // Remove existing instances to prevent math overlaps
+            for(let i = manualSelectedItems.length - 1; i >= 0; i--) {
+                if(manualSelectedItems[i] === name) {
+                    manualSelectedItems.splice(i, 1);
+                    manualCurrentTotal -= price;
+                }
+            }
+
+            // Apply the newly requested amount
+            if (qty > 0) {
+                el.classList.add('selected');
+                for(let i = 0; i < qty; i++) {
+                    manualSelectedItems.push(name);
+                    manualCurrentTotal += price;
+                }
+            } else {
+                el.classList.remove('selected');
+            }
+            
             document.getElementById('manualTotal').innerText = manualCurrentTotal.toFixed(2);
         }
 
@@ -842,6 +863,7 @@
                                     </div>
                                 </div>
                                 <p style="margin:12px 0; font-size:14px; color:var(--text-secondary); line-height:1.5;">${o.items}</p>
+                                ${o.notes ? `<div style="background: rgba(56, 189, 248, 0.1); padding: 8px; border-radius: 6px; font-size: 13px; color: var(--accent-brand); margin-bottom: 12px; border-left: 3px solid var(--accent-brand);"><strong>📋 Special Notes:</strong> ${o.notes}</div>` : ''}
                             </div>
                             
                             <div style="margin-top:14px;">
