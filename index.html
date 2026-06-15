@@ -83,7 +83,9 @@
             margin-bottom: 24px;
         }
 
+        /* Updated menu item relative positioning for quantity badge */
         .menu-item {
+            position: relative;
             padding: 16px 10px;
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -113,6 +115,25 @@
         .menu-item.disabled {
             pointer-events: none;
             opacity: 0.5;
+        }
+        
+        /* Quantity Badge CSS */
+        .menu-item[data-qty]::after {
+            content: attr(data-qty);
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         input {
@@ -238,7 +259,6 @@
         let updateInterval = null;
         let isBanned = false;
 
-        // Restore saved name on initialization load
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('cafeCustomerName');
             if (savedName) {
@@ -248,36 +268,30 @@
             fetchGoogleDocMenu();
         });
 
-        function toggleItem(el, name, price) {
+        // Updated function to handle add/remove seamlessly
+        function modifyItem(el, name, price, action) {
             if (isBanned) return;
             
-            // Prompt the customer for how many they want
-            let qtyStr = prompt(`How many ${name}(s) would you like to add?\n(Type 0 to remove this item completely)`, "1");
-            if (qtyStr === null) return; // User clicked cancel
-            
-            let qty = parseInt(qtyStr);
-            if (isNaN(qty) || qty < 0) return;
-
-            // First, scrub any existing instances of this item to recalculate cleanly
-            for(let i = selectedItems.length - 1; i >= 0; i--) {
-                if(selectedItems[i] === name) {
-                    selectedItems.splice(i, 1);
-                    currentTotal -= selectedPrices[name] || price;
+            if (action === 'add') {
+                selectedItems.push(name);
+                selectedPrices[name] = price;
+                currentTotal += price;
+            } else if (action === 'remove') {
+                const idx = selectedItems.indexOf(name);
+                if (idx > -1) {
+                    selectedItems.splice(idx, 1);
+                    currentTotal -= price;
                 }
             }
 
-            // Apply the new quantity
-            if (qty > 0) {
+            const count = selectedItems.filter(i => i === name).length;
+            if (count > 0) {
                 el.classList.add('selected');
-                selectedPrices[name] = price;
-                for(let i = 0; i < qty; i++) {
-                    selectedItems.push(name);
-                    currentTotal += price;
-                }
+                el.setAttribute('data-qty', count);
             } else {
-                // If 0, remove selection styling
                 el.classList.remove('selected');
                 delete selectedPrices[name];
+                el.removeAttribute('data-qty');
             }
             
             document.getElementById('totalPrice').innerText = currentTotal.toFixed(2);
@@ -315,6 +329,7 @@
                     document.querySelectorAll('.menu-item').forEach(m => {
                         m.classList.add('disabled');
                         m.classList.remove('selected');
+                        m.removeAttribute('data-qty');
                     });
                     selectedItems = [];
                     selectedPrices = {};
@@ -377,13 +392,17 @@
 
                 alert("Order sent straight to the barista station!");
 
-                // Reset order dynamic window selections
+                // Clear selection states
+                document.querySelectorAll('.menu-item').forEach(m => {
+                    m.classList.remove('selected');
+                    m.removeAttribute('data-qty');
+                });
+                
                 selectedItems = [];
                 selectedPrices = {};
                 currentTotal = 0;
                 document.getElementById('totalPrice').innerText = 0;
                 document.getElementById('chefNotesInput').value = '';
-                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
 
                 updateCustomerData();
             } catch (e) {
@@ -397,7 +416,6 @@
             const user = document.getElementById('custName').value.trim();
             if (!user) return;
 
-            // Active Queue Tracker fetch request loop
             try {
                 const activeRes = await fetch(`${BASE_API_URL}?sheet=Sheet1&customer=${encodeURIComponent(user)}`);
                 const activeOrders = await activeRes.json();
@@ -431,7 +449,6 @@
                 console.error("Error fetching engine queue updates:", e);
             }
 
-            // Historical Receipt database fetch logs loop
             try {
                 const archiveRes = await fetch(`${BASE_API_URL}?sheet=record_keeping&customer=${encodeURIComponent(user)}`);
                 const passedData = await archiveRes.json();
@@ -473,9 +490,11 @@
                     const el = document.createElement('div');
                     el.className = 'menu-item';
                     el.innerText = `${itemName} ($${itemPrice})`;
-                    el.onclick = function() { toggleItem(this, itemName, itemPrice); };
                     
-                    if(typeof selectedItems !== 'undefined' && selectedItems.includes(itemName)) el.classList.add('selected');
+                    // Left click to Add, Right click to Remove
+                    el.onclick = function(e) { e.preventDefault(); modifyItem(this, itemName, itemPrice, 'add'); };
+                    el.oncontextmenu = function(e) { e.preventDefault(); modifyItem(this, itemName, itemPrice, 'remove'); };
+                    
                     if(typeof isBanned !== 'undefined' && isBanned) el.classList.add('disabled');
                     
                     gridBox.appendChild(el);
