@@ -103,7 +103,10 @@
         }
 
         .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+        
+        /* Updated POS item relative positioning for quantity badge */
         .pos-item {
+            position: relative;
             background: var(--bg-darker);
             border: 1px solid var(--border-glow);
             padding: 18px 10px;
@@ -118,6 +121,7 @@
             flex-direction: column;
             gap: 4px;
             justify-content: center;
+            user-select: none;
         }
         .pos-item .item-price {
             font-size: 11px;
@@ -135,6 +139,24 @@
         }
         .pos-item.selected .item-price {
             color: #fff;
+        }
+        /* Quantity Badge CSS */
+        .pos-item[data-qty]::after {
+            content: attr(data-qty);
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--color-danger);
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
         }
 
         input, textarea, select {
@@ -473,7 +495,6 @@
     </div>
 
     <script>
-        // URL 1: Main Backend Database Core System
         const BASE_API_URL = "https://script.google.com/macros/s/AKfycbxuT5QyTj2kSnLOHdvdYSyzUZrILN3gn9jBVxpbEj0n-kzSxZlpiRFyAv9v34x-QM2T/exec";
         
         let manualSelectedItems = [];
@@ -662,7 +683,6 @@
                     
                     pushInternalNotification(`Staff session established: ${activeStaffName}`);
                     
-                    // Bootstrapping Core Interface Elements
                     fetchLiveKitchenOrders();
                     fetchStaffMenuReference(); 
                     
@@ -674,30 +694,26 @@
 
         function disconnectSession() { location.reload(); }
 
-        function selectManualItem(el, name, price) {
-            let qtyStr = prompt(`How many ${name}(s)?\n(Type 0 to remove)`, "1");
-            if (qtyStr === null) return;
-            
-            let qty = parseInt(qtyStr);
-            if (isNaN(qty) || qty < 0) return;
-
-            // Remove existing instances to prevent math overlaps
-            for(let i = manualSelectedItems.length - 1; i >= 0; i--) {
-                if(manualSelectedItems[i] === name) {
-                    manualSelectedItems.splice(i, 1);
+        // Updated function to handle add/remove seamlessly
+        function modifyManualItem(el, name, price, action) {
+            if (action === 'add') {
+                manualSelectedItems.push(name);
+                manualCurrentTotal += price;
+            } else if (action === 'remove') {
+                const idx = manualSelectedItems.indexOf(name);
+                if (idx > -1) {
+                    manualSelectedItems.splice(idx, 1);
                     manualCurrentTotal -= price;
                 }
             }
 
-            // Apply the newly requested amount
-            if (qty > 0) {
+            const count = manualSelectedItems.filter(i => i === name).length;
+            if (count > 0) {
                 el.classList.add('selected');
-                for(let i = 0; i < qty; i++) {
-                    manualSelectedItems.push(name);
-                    manualCurrentTotal += price;
-                }
+                el.setAttribute('data-qty', count);
             } else {
                 el.classList.remove('selected');
+                el.removeAttribute('data-qty');
             }
             
             document.getElementById('manualTotal').innerText = manualCurrentTotal.toFixed(2);
@@ -731,7 +747,13 @@
 
             pushInternalNotification(`Ticket ${payload.row.id} placed for ${name}`);
             document.getElementById('manualCustName').value = '';
-            document.querySelectorAll('.pos-item').forEach(i => i.classList.remove('selected'));
+            
+            // Clear selection states
+            document.querySelectorAll('.pos-item').forEach(i => {
+                i.classList.remove('selected');
+                i.removeAttribute('data-qty');
+            });
+            
             manualSelectedItems = []; manualCurrentTotal = 0; document.getElementById('manualTotal').innerText = 0;
             document.getElementById('manualSubmitBtn').disabled = false;
             fetchLiveKitchenOrders();
@@ -1062,7 +1084,6 @@
             } catch(e){}
         }
 
-        // URL 2: Dedicated Menu Rendering Engine (Google Docs Document API)
         async function fetchStaffMenuReference() {
             const staffGridBox = document.getElementById('menuGridBox');
             if (!staffGridBox) return; 
@@ -1087,7 +1108,11 @@
                     
                     const el = document.createElement('div');
                     el.className = "pos-item";
-                    el.setAttribute("onclick", `selectManualItem(this, "${itemName.replace(/"/g, '&quot;')}", ${itemPrice})`);
+                    
+                    // Left click to Add, Right click to Remove
+                    el.setAttribute("onclick", `modifyManualItem(this, "${itemName.replace(/"/g, '&quot;')}", ${itemPrice}, 'add')`);
+                    el.setAttribute("oncontextmenu", `event.preventDefault(); modifyManualItem(this, "${itemName.replace(/"/g, '&quot;')}", ${itemPrice}, 'remove')`);
+                    
                     el.innerHTML = `
                         <span>${itemName}</span>
                         <span class="item-price">$${itemPrice.toFixed(2)}</span>
