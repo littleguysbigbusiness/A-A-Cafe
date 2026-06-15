@@ -250,19 +250,37 @@
 
         function toggleItem(el, name, price) {
             if (isBanned) return;
+            
+            // Prompt the customer for how many they want
+            let qtyStr = prompt(`How many ${name}(s) would you like to add?\n(Type 0 to remove this item completely)`, "1");
+            if (qtyStr === null) return; // User clicked cancel
+            
+            let qty = parseInt(qtyStr);
+            if (isNaN(qty) || qty < 0) return;
 
-            el.classList.toggle('selected');
-            const idx = selectedItems.indexOf(name);
-            if (idx > -1) {
-                selectedItems.splice(idx, 1);
-                currentTotal -= selectedPrices[name] || price;
-                delete selectedPrices[name];
-            } else {
-                selectedItems.push(name);
-                selectedPrices[name] = price;
-                currentTotal += price;
+            // First, scrub any existing instances of this item to recalculate cleanly
+            for(let i = selectedItems.length - 1; i >= 0; i--) {
+                if(selectedItems[i] === name) {
+                    selectedItems.splice(i, 1);
+                    currentTotal -= selectedPrices[name] || price;
+                }
             }
-            document.getElementById('totalPrice').innerText = currentTotal;
+
+            // Apply the new quantity
+            if (qty > 0) {
+                el.classList.add('selected');
+                selectedPrices[name] = price;
+                for(let i = 0; i < qty; i++) {
+                    selectedItems.push(name);
+                    currentTotal += price;
+                }
+            } else {
+                // If 0, remove selection styling
+                el.classList.remove('selected');
+                delete selectedPrices[name];
+            }
+            
+            document.getElementById('totalPrice').innerText = currentTotal.toFixed(2);
         }
 
         function onNameChange() {
