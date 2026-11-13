@@ -330,10 +330,10 @@
         <div class="topbar">
             <h1 id="operatorCallout">⚡ A&A CAFE MONITOR</h1>
             <div class="tab-menu">
-                <button class="tab-btn active" onclick="routeTo('kitchenView')">🍳 Live Kitchen Stack</button>
-                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('archiveView')">📜 Record Keeping Logs</button>
-                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('crmView')">🛡️ CRM Control Profile</button>
-                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('financeView')">💰 Finances Center</button>
+                <button class="tab-btn active" onclick="routeTo('kitchenView', this)">🍳 Live Kitchen Stack</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('archiveView', this)">📜 Record Keeping Logs</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('crmView', this)">🛡️ CRM Control Profile</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('financeView', this)">💰 Finances Center</button>
             </div>
             <button onclick="disconnectSession()" style="background:rgba(244,63,94,0.1); color:var(--color-danger); border:1px solid rgba(244,63,94,0.2); padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer; font-size:13px; transition:all 0.2s;">Exit Terminal</button>
         </div>
@@ -641,14 +641,14 @@
 
         setInterval(fetchLiveRosterData, 15000);
 
-        function routeTo(panelId) {
+        function routeTo(panelId, triggerBtn) {
             if(panelId !== 'kitchenView' && activeStaffRank < 10) {
                 alert("Unauthorized Access Clearance."); return;
             }
             document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-menu .tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(panelId).classList.add('active');
-            event?.target?.classList?.add('active');
+            if(triggerBtn) triggerBtn.classList.add('active');
             
             if(panelId === 'archiveView') fetchArchiveLogs();
             if(panelId === 'crmView') fetchStaffDirectory();
@@ -722,7 +722,8 @@
         async function dispatchManualOrder() {
             const name = document.getElementById('manualCustName').value.trim();
             if(!name || manualSelectedItems.length === 0) return alert("Missing entry data.");
-            document.getElementById('manualSubmitBtn').disabled = true;
+            const btn = document.getElementById('manualSubmitBtn');
+            btn.disabled = true;
 
             const payload = {
                 action: 'insert',
@@ -740,23 +741,28 @@
                 }
             };
 
-            await fetch(BASE_API_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
+            try {
+                await fetch(BASE_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
 
-            pushInternalNotification(`Ticket ${payload.row.id} placed for ${name}`);
-            document.getElementById('manualCustName').value = '';
-            
-            // Clear selection states
-            document.querySelectorAll('.pos-item').forEach(i => {
-                i.classList.remove('selected');
-                i.removeAttribute('data-qty');
-            });
-            
-            manualSelectedItems = []; manualCurrentTotal = 0; document.getElementById('manualTotal').innerText = 0;
-            document.getElementById('manualSubmitBtn').disabled = false;
-            fetchLiveKitchenOrders();
+                pushInternalNotification(`Ticket ${payload.row.id} placed for ${name}`);
+                document.getElementById('manualCustName').value = '';
+
+                // Clear selection states
+                document.querySelectorAll('.pos-item').forEach(i => {
+                    i.classList.remove('selected');
+                    i.removeAttribute('data-qty');
+                });
+
+                manualSelectedItems = []; manualCurrentTotal = 0; document.getElementById('manualTotal').innerText = 0;
+                fetchLiveKitchenOrders();
+            } catch(e) {
+                alert("Failed to post ticket. Please check network connection.");
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         async function updateOrderField(orderId, field, value) {
@@ -914,7 +920,7 @@
                 if(!logs || logs.length === 0 || logs.error) return;
 
                 logs.reverse().forEach(l => {
-                    tbody.innerHTML += `<tr><td>${l.id}</td><td>${l.customer}</td><td>${l.items}</td><td style="color:var(--accent-brand); font-weight:bold;">$${l.total || 0}</td><td><span class="badge paid">${l.status || 'Completed'}</span></td><td><span class="badge paid">Paid</span></td></tr>`;
+                    tbody.innerHTML += `<tr><td>${l.id}</td><td>${l.customer}</td><td>${l.items}</td><td style="color:var(--accent-brand); font-weight:bold;">$${l.total || 0}</td><td><span class="badge paid">${l.status || 'Completed'}</span></td><td><span class="badge ${l.paid === 'Yes' ? 'paid' : 'unpaid'}">${l.paid === 'Yes' ? 'Paid' : 'Unpaid'}</span></td></tr>`;
                 });
             } catch(e){}
         }

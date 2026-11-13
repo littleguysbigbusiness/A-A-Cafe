@@ -359,25 +359,28 @@
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
 
-            if (await checkUserBan(name)) return;
-
-            const payload = {
-                action: 'insert',
-                sheet: 'Sheet1',
-                row: {
-                    id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                    customer: name,
-                    items: selectedItems.join(', '),
-                    total: currentTotal,
-                    status: 'Pending',
-                    paid: 'No',
-                    eta: '',
-                    notes: orderNotes,
-                    chef_notes: ''
-                }
-            };
-
             try {
+                if (await checkUserBan(name)) {
+                    // User is banned — checkUserBan already updated the UI; leave button disabled
+                    return;
+                }
+
+                const payload = {
+                    action: 'insert',
+                    sheet: 'Sheet1',
+                    row: {
+                        id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                        customer: name,
+                        items: selectedItems.join(', '),
+                        total: currentTotal,
+                        status: 'Pending',
+                        paid: 'No',
+                        eta: '',
+                        notes: orderNotes,
+                        chef_notes: ''
+                    }
+                };
+
                 const response = await fetch(BASE_API_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
@@ -397,7 +400,7 @@
                     m.classList.remove('selected');
                     m.removeAttribute('data-qty');
                 });
-                
+
                 selectedItems = [];
                 selectedPrices = {};
                 currentTotal = 0;
@@ -408,7 +411,8 @@
             } catch (e) {
                 alert("Failed to send order. Please check network connections.");
             } finally {
-                btn.disabled = false;
+                // Always re-enable unless the user is confirmed banned (checkUserBan disables it)
+                if (!isBanned) btn.disabled = false;
             }
         }
 
