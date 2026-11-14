@@ -748,22 +748,16 @@
             const nowString = new Date().toLocaleString();
             isClockedIn = !isClockedIn;
             
-            const payload = {
-                action: 'update',
-                sheet: 'staff',
-                keyField: 'name',
-                keyValue: activeStaffName,
-                updates: {
-                    clocked_in: isClockedIn ? nowString : "",
-                    clocked_out: isClockedIn ? "" : nowString
-                }
-            };
+            // GAS has no update — delete existing staff row then re-insert with updated clock fields
+            const staffRow = systemStaffList.find(s => s.name === activeStaffName);
+            const updatedStaffRow = Object.assign({}, staffRow || { name: activeStaffName }, {
+                clocked_in: isClockedIn ? nowString : "",
+                clocked_out: isClockedIn ? "" : nowString
+            });
 
             try {
-                await fetch(BASE_API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
+                await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', sheet: 'staff', keyField: 'name', keyValue: activeStaffName }) });
+                await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'staff', row: updatedStaffRow }) });
                 
                 updateLocalShiftUI();
                 pushInternalNotification(`ATTENDANCE: ${activeStaffName} logged ${isClockedIn ? 'IN' : 'OUT'} to database.`);
@@ -1198,18 +1192,15 @@
         }
 
         async function updateOrderField(orderId, field, value) {
-            const payload = {
-                action: 'update',
-                sheet: 'Sheet1',
-                keyField: 'id',
-                keyValue: orderId,
-                updates: { [field]: value }
-            };
+            // GAS has no update action — delete the row then re-insert with the changed field
+            const order = currentLiveOrders.find(o => o.id === orderId);
+            if (!order) return;
+            const updatedRow = Object.assign({}, order, { [field]: value });
             try {
-                await fetch(BASE_API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
+                // 1. delete existing row
+                await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', sheet: 'Sheet1', keyField: 'id', keyValue: orderId }) });
+                // 2. re-insert with updated field
+                await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'Sheet1', row: updatedRow }) });
                 pushInternalNotification(`Ticket ${orderId}: Changed ${field} to "${value}"`);
                 fetchLiveKitchenOrders();
             } catch(e){}
@@ -1272,17 +1263,10 @@
                     });
                     pushInternalNotification(`Ticket ${orderId} completely processed & archived.`);
                 } else {
-                    const updatePayload = {
-                        action: 'update',
-                        sheet: 'Sheet1',
-                        keyField: 'id',
-                        keyValue: orderId,
-                        updates: { status: 'Completed' }
-                    };
-                    await fetch(BASE_API_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(updatePayload)
-                    });
+                    // Use delete+re-insert since GAS has no update action
+                    const completedRow = Object.assign({}, order, { status: 'Completed' });
+                    await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', sheet: 'Sheet1', keyField: 'id', keyValue: orderId }) });
+                    await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'Sheet1', row: completedRow }) });
                     pushInternalNotification(`Ticket ${orderId} marked Completed but held on queue for pending payment.`);
                 }
                 fetchLiveKitchenOrders();
