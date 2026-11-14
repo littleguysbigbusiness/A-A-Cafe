@@ -730,12 +730,34 @@
             }
         }
 
+        // ── ROBLOX AVATAR HELPER ──
+        const rblxAvatarCache = {};
+        async function fetchRobloxAvatar(username) {
+            if (rblxAvatarCache[username]) return rblxAvatarCache[username];
+            try {
+                const res = await fetch('https://users.roblox.com/v1/usernames/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usernames: [username], excludeBannedUsers: false })
+                });
+                const data = await res.json();
+                if (!data.data || !data.data.length) return null;
+                const userId = data.data[0].id;
+                const thumbRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
+                const thumbData = await thumbRes.json();
+                if (!thumbData.data || !thumbData.data.length) return null;
+                const url = thumbData.data[0].imageUrl;
+                rblxAvatarCache[username] = url;
+                return url;
+            } catch { return null; }
+        }
+
         async function fetchLiveRosterData() {
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=staff`);
                 const catalog = await res.json();
                 if(!catalog || catalog.error) return;
-                
+
                 systemStaffList = catalog;
                 const container = document.getElementById('activeDutyRosterBox');
                 container.innerHTML = '';
@@ -747,20 +769,36 @@
                     return;
                 }
 
-                activeWorkers.forEach(worker => {
+                activeWorkers.forEach(async worker => {
                     let durationText = "Calculating...";
                     const safeDateStr = safeParseSpreadsheetDate(worker.clocked_in);
                     const startTime = new Date(safeDateStr).getTime();
-                    
+
                     if(!isNaN(startTime)) {
                         const diffMs = Date.now() - startTime;
                         durationText = formatElapsed(diffMs);
                     }
+
+                    const cardId = `roster-card-${worker.name.replace(/\s+/g,'-')}`;
                     container.innerHTML += `
-                        <div class="roster-card">
-                            <div style="font-weight:600;">🟢 ${worker.name}</div>
-                            <div>Shift Time: <span class="roster-time" data-start="${worker.clocked_in}">${durationText}</span></div>
+                        <div class="roster-card" id="${cardId}" style="display:flex;align-items:center;gap:12px;">
+                            <img class="rblx-roster-pfp" src="" alt="" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--border-active);object-fit:cover;display:none;flex-shrink:0;">
+                            <div>
+                                <div style="font-weight:600;">🟢 ${worker.name}</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">Shift Time: <span class="roster-time" data-start="${worker.clocked_in}">${durationText}</span></div>
+                            </div>
                         </div>`;
+
+                    // async: load avatar after card is inserted
+                    const avatarUrl = await fetchRobloxAvatar(worker.name);
+                    if (avatarUrl) {
+                        const card = document.getElementById(cardId);
+                        if (card) {
+                            const img = card.querySelector('.rblx-roster-pfp');
+                            img.src = avatarUrl;
+                            img.style.display = 'block';
+                        }
+                    }
                 });
             } catch(e){}
         }
@@ -887,6 +925,24 @@
                     document.getElementById('authGate').style.display = 'none';
                     document.getElementById('mainConsole').style.display = 'block';
                     document.getElementById('operatorCallout').innerText = `⚡ OPERATOR: ${activeStaffName.toUpperCase()} [RANK ${activeStaffRank}]`;
+
+                    // Load operator's Roblox avatar for topbar
+                    fetchRobloxAvatar(activeStaffName).then(url => {
+                        if (url) {
+                            const existing = document.getElementById('operatorRblxPfp');
+                            if (!existing) {
+                                const img = document.createElement('img');
+                                img.id = 'operatorRblxPfp';
+                                img.src = url;
+                                img.alt = activeStaffName;
+                                img.style.cssText = 'width:34px;height:34px;border-radius:50%;border:2px solid var(--accent-brand);object-fit:cover;margin-left:10px;vertical-align:middle;flex-shrink:0;';
+                                const callout = document.getElementById('operatorCallout');
+                                callout.style.display = 'flex';
+                                callout.style.alignItems = 'center';
+                                callout.appendChild(img);
+                            }
+                        }
+                    });
                     
                     if(activeStaffRank >= 10) {
                         document.querySelectorAll('.MGR-ONLY').forEach(el => el.style.display = 'block');

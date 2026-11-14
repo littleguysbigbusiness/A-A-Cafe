@@ -153,6 +153,42 @@
             white-space: nowrap;
         }
 
+        /* ── ROBLOX AVATAR ── */
+        .rblx-avatar {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            background: var(--blue-light);
+            border: 1px solid var(--blue-mid);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            animation: rblxFadeIn 0.35s ease both;
+        }
+        @keyframes rblxFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(-4px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .rblx-avatar img {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--blue-mid);
+            object-fit: cover;
+            background: var(--surface-alt);
+        }
+        .rblx-avatar .rblx-name { font-weight: 700; color: var(--blue-dark); font-size: 14px; }
+        .rblx-avatar .rblx-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .rblx-avatar .rblx-badge {
+            margin-left: auto;
+            background: var(--blue);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
         label {
             display: block;
             font-size: 11px;
@@ -436,6 +472,15 @@
                         <div id="nameGreeting" style="display:none;" class="name-greeting">👋 Hey!</div>
                     </div>
 
+                    <div class="rblx-avatar" id="rblxAvatarBox">
+                        <img id="rblxAvatarImg" src="" alt="avatar">
+                        <div>
+                            <div class="rblx-name" id="rblxAvatarName"></div>
+                            <div class="rblx-sub">Roblox Player</div>
+                        </div>
+                        <span class="rblx-badge">ROBLOX</span>
+                    </div>
+
                     <div class="help-tip">
                         💡 <span>Left-click to add an item · Right-click to remove one</span>
                     </div>
@@ -549,6 +594,25 @@
             }
         }
 
+        // ── ROBLOX AVATAR HELPER ──
+        let rblxDebounce = null;
+        async function fetchRobloxAvatar(username) {
+            try {
+                const res = await fetch('https://users.roblox.com/v1/usernames/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usernames: [username], excludeBannedUsers: false })
+                });
+                const data = await res.json();
+                if (!data.data || !data.data.length) return null;
+                const userId = data.data[0].id;
+                const thumbRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
+                const thumbData = await thumbRes.json();
+                if (!thumbData.data || !thumbData.data.length) return null;
+                return thumbData.data[0].imageUrl;
+            } catch { return null; }
+        }
+
         function onNameChange() {
             const name = document.getElementById('custName').value.trim();
             const greeting = document.getElementById('nameGreeting');
@@ -556,6 +620,21 @@
                 greeting.style.display = 'flex';
                 greeting.textContent = '👋 Hey, ' + name.split(' ')[0] + '!';
                 localStorage.setItem('cafeCustomerName', name);
+                // Roblox avatar lookup (debounced)
+                clearTimeout(rblxDebounce);
+                rblxDebounce = setTimeout(async () => {
+                    const avatarBox = document.getElementById('rblxAvatarBox');
+                    const avatarImg = document.getElementById('rblxAvatarImg');
+                    const avatarName = document.getElementById('rblxAvatarName');
+                    const url = await fetchRobloxAvatar(name);
+                    if (url) {
+                        avatarImg.src = url;
+                        avatarName.textContent = name;
+                        avatarBox.style.display = 'flex';
+                    } else {
+                        avatarBox.style.display = 'none';
+                    }
+                }, 700);
                 checkUserBan(name);
                 updateCustomerData();
                 if (!updateInterval) {
@@ -563,6 +642,8 @@
                 }
             } else {
                 greeting.style.display = 'none';
+                clearTimeout(rblxDebounce);
+                document.getElementById('rblxAvatarBox').style.display = 'none';
                 isBanned = false;
                 document.getElementById('banAlert').style.display = 'none';
                 document.getElementById('submitBtn').disabled = false;
