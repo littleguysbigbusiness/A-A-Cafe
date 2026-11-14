@@ -354,13 +354,11 @@
         .clock-history-box {
             display: none;
             margin-top: 10px;
-            max-height: 240px;
-            overflow-y: auto;
         }
         .clock-history-box.open { display: block; }
         .clock-row {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1.2fr 1fr 1fr 0.9fr;
             gap: 8px;
             padding: 8px 10px;
             border-bottom: 1px solid var(--border-glow);
@@ -856,59 +854,99 @@
             if (isOpen) renderClockHistory();
         }
 
-        function renderClockHistory() {
+        async function renderClockHistory() {
             const box = document.getElementById('clockHistoryBox');
-            if (!systemStaffList || systemStaffList.length === 0) {
-                box.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:8px 0;">No history available.</div>';
-                return;
+            box.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:12px 0;text-align:center;">Loading history…</div>';
+
+            let entries = [];
+
+            // Try fetching dedicated clock history sheet first
+            try {
+                const res = await fetch(`${BASE_API_URL}?sheet=clockhistory`);
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    entries = data;
+                }
+            } catch(e) {}
+
+            // Fallback: use systemStaffList (one entry per person)
+            if (entries.length === 0 && systemStaffList && systemStaffList.length > 0) {
+                systemStaffList.forEach(s => {
+                    if (s.clocked_in || s.clocked_out) {
+                        entries.push({ name: s.name, clocked_in: s.clocked_in, clocked_out: s.clocked_out });
+                    }
+                });
             }
 
-            // Build rows from all staff with any clock data
-            const rows = [];
-            systemStaffList.forEach(s => {
-                if (s.clocked_in || s.clocked_out) {
-                    const inSafe = safeParseSpreadsheetDate(s.clocked_in);
-                    const outSafe = safeParseSpreadsheetDate(s.clocked_out);
-                    const inTime = inSafe ? new Date(inSafe) : null;
-                    const outTime = outSafe && outSafe.trim() ? new Date(outSafe) : null;
-
-                    let durText = '—';
-                    let isOngoing = false;
-                    if (inTime && !isNaN(inTime)) {
-                        if (outTime && !isNaN(outTime)) {
-                            durText = formatElapsed(outTime - inTime);
-                        } else {
-                            durText = formatElapsed(Date.now() - inTime) + ' ▶';
-                            isOngoing = true;
-                        }
-                    }
-
-                    const inStr = inTime && !isNaN(inTime)
-                        ? inTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + ' ' + inTime.toLocaleDateString([], {month:'short',day:'numeric'})
-                        : '—';
-                    const outStr = outTime && !isNaN(outTime)
-                        ? outTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
-                        : (isOngoing ? 'On shift' : '—');
-
-                    rows.push({ name: s.name, inStr, outStr, durText, isOngoing });
-                }
-            });
-
-            if (rows.length === 0) {
+            if (entries.length === 0) {
                 box.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:8px 0;">No clock records found.</div>';
                 return;
             }
 
-            box.innerHTML = `
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-secondary);border-bottom:1px solid var(--border-glow);">
-                    <span>Staff</span><span>In → Out</span><span>Duration</span>
-                </div>` +
-                rows.map(r => `
-                <div class="clock-row">
+            // Parse and sort by clocked_in descending (most recent first)
+            const rows = entries.map(e => {
+                const inSafe = safeParseSpreadsheetDate(e.clocked_in);
+                const outSafe = safeParseSpreadsheetDate(e.clocked_out);
+                const inTime = inSafe ? new Date(inSafe) : null;
+                const outTime = outSafe && outSafe.trim() ? new Date(outSafe) : null;
+
+                let durText = '—';
+                let durMs = 0;
+                let isOngoing = false;
+
+                if (inTime && !isNaN(inTime)) {
+                    if (outTime && !isNaN(outTime)) {
+                        durMs = outTime - inTime;
+                        durText = formatElapsed(durMs);
+                    } else {
+                        durMs = Date.now() - inTime;
+                        durText = formatElapsed(durMs) + ' ▶';
+                        isOngoing = true;
+                    }
+                }
+
+                const inDate = inTime && !isNaN(inTime) ? inTime.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'}) : null;
+                const inClock = inTime && !isNaN(inTime) ? inTime.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '—';
+                const outClock = outTime && !isNaN(outTime)
+                    ? outTime.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+                    : (isOngoing ? 'On shift' : '—');
+
+                return { name: e.name || '?', inTime, inDate, inClock, outClock, durText, durMs, isOngoing };
+            }).filter(r => r.inTime && !isNaN(r.inTime))
+              .sort((a, b) => b.inTime - a.inTime);
+
+            if (rows.length === 0) {
+                box.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:8px 0;">No valid clock records found.</div>';
+                return;
+            }
+
+            // Group by date label for timeline feel
+            let lastDate = null;
+            const html = rows.map(r => {
+                let dateSep = '';
+                if (r.inDate !== lastDate) {
+                    lastDate = r.inDate;
+                    dateSep = `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent-brand);padding:10px 10px 4px;border-top:1px solid var(--border-glow);margin-top:4px;">${r.inDate}</div>`;
+                }
+                return dateSep + `
+                <div class="clock-row" style="grid-template-columns:1.2fr 1fr 1fr 0.9fr;">
                     <span class="who">${r.name}</span>
-                    <span class="when">${r.inStr}<br><span style="color:var(--text-secondary)">${r.outStr}</span></span>
+                    <span class="when" style="font-size:12px;font-weight:600;color:var(--text-primary);">${r.inClock}</span>
+                    <span class="when" style="font-size:12px;color:${r.isOngoing ? 'var(--green)' : 'var(--text-secondary)'};">${r.outClock}</span>
                     <span class="dur${r.isOngoing ? ' ongoing' : ''}">${r.durText}</span>
-                </div>`).join('');
+                </div>`;
+            }).join('');
+
+            box.innerHTML = `
+                <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 0.9fr;gap:8px;padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-secondary);border-bottom:1px solid var(--border-glow);">
+                    <span>Staff</span><span>Clocked In</span><span>Clocked Out</span><span>Duration</span>
+                </div>
+                <div style="max-height:340px;overflow-y:auto;overflow-x:hidden;">
+                    ${html}
+                </div>
+                <div style="padding:8px 10px;font-size:10px;color:var(--text-secondary);border-top:1px solid var(--border-glow);margin-top:4px;">
+                    ${rows.length} session${rows.length !== 1 ? 's' : ''} · ${[...new Set(rows.map(r => r.name))].length} staff members
+                </div>`;
         }
 
         function routeTo(panelId, triggerBtn) {
