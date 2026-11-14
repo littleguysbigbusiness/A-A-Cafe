@@ -9,14 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #09090f;
-            --bg-card: #111118;
-            --border: #1e1e2e;
-            --text: #f2f2f8;
-            --text-muted: #7a7a9a;
-            --text-dim: #3a3a5a;
-            --gold: #f5c842;
-            --green: #3ecf8e;
+            --bg: #f7f8fc;
+            --bg-card: #ffffff;
+            --border: #e4e8f0;
+            --text: #0d1b2a;
+            --text-muted: #6b7a94;
+            --text-dim: #aab4c8;
+            --gold: #d4960a;
+            --green: #0d9e6e;
             --radius: 18px;
         }
 
@@ -86,10 +86,7 @@
             font-weight: 900;
             letter-spacing: -0.03em;
             line-height: 1;
-            background: linear-gradient(135deg, #fff 20%, var(--gold) 80%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text);
             margin-bottom: 10px;
         }
 
@@ -144,7 +141,7 @@
         .shop-btn-steak::before   { background: linear-gradient(135deg, rgba(192,80,28,0.1), transparent); }
         .shop-btn-chinese::before { background: linear-gradient(135deg, rgba(192,28,28,0.1), transparent); }
 
-        .shop-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,0.5); }
+        .shop-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
         .shop-btn:hover::before { opacity: 1; }
         .shop-btn-cafe:hover    { border-color: rgba(59,158,255,0.4); }
         .shop-btn-steak:hover   { border-color: rgba(192,80,28,0.5); }
@@ -210,8 +207,8 @@
             gap: 12px;
             padding: 12px 14px;
             border-radius: 12px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.04);
+            background: rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.05);
             opacity: 0.5;
         }
         .closed-item-icon { font-size: 20px; }
@@ -223,9 +220,9 @@
             text-transform: uppercase;
             padding: 3px 9px;
             border-radius: 20px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.04);
             color: var(--text-dim);
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(0,0,0,0.06);
         }
 
         /* ── FOOTER ── */
@@ -297,7 +294,7 @@
     </div>
 
     <div class="hub-footer">
-        <a href="staff.html">Staff Terminal</a> &nbsp;·&nbsp; A&amp;A Group © 2026
+        A&amp;A Group © 2026
     </div>
 </div>
 
