@@ -852,14 +852,16 @@
                             </div>
                         </div>`;
 
-                    // async: load avatar after card is inserted
-                    const avatarUrl = await fetchRobloxAvatar(worker.name);
-                    if (avatarUrl) {
-                        const card = document.getElementById(cardId);
-                        if (card) {
-                            const img = card.querySelector('.rblx-roster-pfp');
-                            img.src = avatarUrl;
-                            img.style.display = 'block';
+                    // load avatar only if worker has a roblox_username field
+                    if (worker.roblox_username) {
+                        const avatarUrl = await fetchRobloxAvatar(worker.roblox_username);
+                        if (avatarUrl) {
+                            const card = document.getElementById(cardId);
+                            if (card) {
+                                const img = card.querySelector('.rblx-roster-pfp');
+                                img.src = avatarUrl;
+                                img.style.display = 'block';
+                            }
                         }
                     }
                 });
