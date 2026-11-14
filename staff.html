@@ -756,7 +756,7 @@
             });
 
             try {
-                await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', sheet: 'staff', keyField: 'name', keyValue: activeStaffName }) });
+                // Append-only: insert new row; fetchLiveRosterData de-dups by name
                 await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'staff', row: updatedStaffRow }) });
                 
                 updateLocalShiftUI();
@@ -815,7 +815,10 @@
                 const catalog = await res.json();
                 if(!catalog || catalog.error) return;
 
-                systemStaffList = catalog;
+                // De-duplicate by name: keep last row per name (append-only pattern)
+                const seen = new Map();
+                catalog.forEach(s => { if (s.name) seen.set(s.name, s); });
+                systemStaffList = Array.from(seen.values());
                 const container = document.getElementById('activeDutyRosterBox');
                 container.innerHTML = '';
 
@@ -1192,14 +1195,13 @@
         }
 
         async function updateOrderField(orderId, field, value) {
-            // GAS has no update action — delete the row then re-insert with the changed field
+            // GAS only supports insert — append a new row with the updated field.
+            // fetchLiveKitchenOrders() de-duplicates by id keeping the last row, so
+            // the latest insert always wins (append-only / last-write-wins pattern).
             const order = currentLiveOrders.find(o => o.id === orderId);
             if (!order) return;
             const updatedRow = Object.assign({}, order, { [field]: value });
             try {
-                // 1. delete existing row
-                await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', sheet: 'Sheet1', keyField: 'id', keyValue: orderId }) });
-                // 2. re-insert with updated field
                 await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'Sheet1', row: updatedRow }) });
                 pushInternalNotification(`Ticket ${orderId}: Changed ${field} to "${value}"`);
                 fetchLiveKitchenOrders();
@@ -1208,23 +1210,15 @@
 
         async function triggerPaymentToggle(orderId, currentPaidStatus) {
             const nextPaidStatus = currentPaidStatus === 'Yes' ? 'No' : 'Yes';
-            const order = currentLiveOrders.find(o => o.id === orderId);
-            
-            if (order && order.status === 'Completed' && nextPaidStatus === 'Yes') {
-                const payload = {
-                    action: 'delete',
-                    sheet: 'Sheet1',
-                    keyField: 'id',
-                    keyValue: orderId
-                };
-                await fetch(BASE_API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                pushInternalNotification(`Ticket ${orderId} fully cleared off screen (Paid & Completed).`);
-                fetchLiveKitchenOrders();
-            } else {
-                await updateOrderField(orderId, 'paid', nextPaidStatus);
+            // updateOrderField inserts a new row with updated paid status.
+            // renderKitchenOrders filters out status=Completed+paid=Yes so it
+            // disappears from the screen automatically once both flags are set.
+            await updateOrderField(orderId, 'paid', nextPaidStatus);
+            if (nextPaidStatus === 'Yes') {
+                const order = currentLiveOrders.find(o => o.id === orderId);
+                if (order && order.status === 'Completed') {
+                    pushInternalNotification(`Ticket ${orderId} fully cleared off screen (Paid & Completed).`);
+                }
             }
         }
 
@@ -1250,23 +1244,12 @@
                     body: JSON.stringify(archivePayload)
                 });
 
+                // Insert a new row with status=Completed (append-only; de-dup keeps latest)
+                const completedRow = Object.assign({}, order, { status: 'Completed' });
+                await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'Sheet1', row: completedRow }) });
                 if (order.paid === 'Yes') {
-                    const deletePayload = {
-                        action: 'delete',
-                        sheet: 'Sheet1',
-                        keyField: 'id',
-                        keyValue: orderId
-                    };
-                    await fetch(BASE_API_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(deletePayload)
-                    });
                     pushInternalNotification(`Ticket ${orderId} completely processed & archived.`);
                 } else {
-                    // Use delete+re-insert since GAS has no update action
-                    const completedRow = Object.assign({}, order, { status: 'Completed' });
-                    await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', sheet: 'Sheet1', keyField: 'id', keyValue: orderId }) });
-                    await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'Sheet1', row: completedRow }) });
                     pushInternalNotification(`Ticket ${orderId} marked Completed but held on queue for pending payment.`);
                 }
                 fetchLiveKitchenOrders();
@@ -1284,9 +1267,11 @@
                 return;
             }
 
+            // Hide orders that are both Completed AND Paid — they've been archived
+            const active = pipeline.filter(o => !(o.status === 'Completed' && o.paid === 'Yes'));
             const filtered = kitchenShopFilter === 'all'
-                ? [...pipeline].reverse()
-                : [...pipeline].reverse().filter(o => (o.shop || '').toLowerCase() === kitchenShopFilter);
+                ? [...active].reverse()
+                : [...active].reverse().filter(o => (o.shop || '').toLowerCase() === kitchenShopFilter);
 
             if (filtered.length === 0) {
                 target.innerHTML = `<p style="color:var(--text-secondary); font-style:italic;">No active orders for ${SHOP_LABELS[kitchenShopFilter] || kitchenShopFilter}.</p>`;
@@ -1369,7 +1354,14 @@
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=Sheet1`);
                 const pipeline = await res.json();
-                if (pipeline && !pipeline.error) currentLiveOrders = pipeline;
+                if (pipeline && !pipeline.error) {
+                    // De-duplicate by id: keep the LAST row for each id (append-only pattern,
+                    // latest insert wins). The sheet accumulates rows over time; only the
+                    // most recent version of each order id is live.
+                    const seen = new Map();
+                    pipeline.forEach(o => { if (o.id) seen.set(o.id, o); });
+                    currentLiveOrders = Array.from(seen.values());
+                }
                 renderKitchenOrders(currentLiveOrders);
             } catch(e){}
         }
