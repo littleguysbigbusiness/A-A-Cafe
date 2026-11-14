@@ -892,7 +892,7 @@
             });
         }, 1000);
 
-        setInterval(fetchLiveRosterData, 15000);
+        // roster interval is started post-login (see authenticateStaff)
 
         function toggleClockHistory() {
             const toggle = document.getElementById('clockHistoryToggle');
@@ -1064,6 +1064,7 @@
                     
                     await fetchLiveRosterData();
                     setInterval(fetchLiveKitchenOrders, 10000);
+                    setInterval(fetchLiveRosterData, 15000);
                 } else { alert("Verification mismatch configuration."); }
             } catch(e){ alert("Database baseline unresponsive."); }
         }
