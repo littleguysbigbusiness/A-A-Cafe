@@ -631,7 +631,7 @@
         const name = document.getElementById('custName').value.trim();
         if (!name) return;
         try {
-            const res = await fetch(`${BASE_API_URL}?sheet=orders&customer=${encodeURIComponent(name)}&shop=${SHOP_KEY}`);
+            const res = await fetch(`${BASE_API_URL}?sheet=Sheet1&customer=${encodeURIComponent(name)}&shop=${SHOP_KEY}`);
             const data = await res.json();
             renderTracker(data || []);
         } catch {}
@@ -672,9 +672,11 @@
         selectedItems.forEach(i => counts[i] = (counts[i]||0)+1);
         const itemStr = Object.entries(counts).map(([k,v]) => v > 1 ? `${k} x${v}` : k).join(', ');
         const delivAddr = currentOrderType === 'delivery' ? (document.getElementById('deliveryAddress').value.trim() || '') : '';
-        const payload = { customer: name, items: itemStr, total: Math.max(0,currentTotal).toFixed(2), shop: SHOP_KEY, sheet: 'orders', order_type: currentOrderType, delivery_address: delivAddr, roblox_username: document.getElementById('rblxUsername').value.trim(), bloxburg_street: document.getElementById('bloxburgStreet').value.trim() };
+        const payload = { action: 'insert', sheet: 'Sheet1', row: { id: 'ORD-' + Math.floor(1000 + Math.random() * 9000), customer: name, items: itemStr, total: Math.max(0,currentTotal).toFixed(2), status: 'Pending', paid: 'No', eta: '', notes: '', chef_notes: '', shop: SHOP_KEY, order_type: currentOrderType, delivery_address: delivAddr, roblox_username: document.getElementById('rblxUsername').value.trim(), bloxburg_street: document.getElementById('bloxburgStreet').value.trim() } };
         try {
-            await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const res = await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const result = await res.json();
+            if (result.error) { alert('Order error: ' + result.error); btn.disabled = false; btn.textContent = 'Send Order to Kitchen'; return; }
             btn.textContent = '✅ Order Sent!';
             selectedItems = []; selectedPrices = {}; currentTotal = 0;
             document.getElementById('totalPrice').innerText = '0.00';
