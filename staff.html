@@ -212,6 +212,9 @@
         }
 
         .kitchen-stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+        .k-filter-btn { padding:6px 14px; border-radius:20px; border:1px solid var(--border-glow); background:var(--bg-darker); color:var(--text-secondary); font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+        .k-filter-btn:hover { border-color:var(--accent-brand); color:var(--accent-brand); }
+        .k-filter-btn.active { background:var(--accent-brand); color:#000; border-color:var(--accent-brand); }
         .kitchen-card {
             background: var(--bg-card);
             border: 1px solid var(--border-glow);
@@ -515,7 +518,7 @@
                                 </div>
                                 <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-darker); border:1px solid var(--border-glow); border-radius:10px; padding:10px 14px;">
                                     <span style="font-size:13px; font-weight:600;">🥩 A&amp;A Steakhouse</span>
-                                    <button class="shop-toggle-btn" id="shopBtn-steak" data-shop="steak" onclick="toggleShop('steak')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
+                                    <button class="shop-toggle-btn" id="shopBtn-steakhouse" data-shop="steakhouse" onclick="toggleShop('steakhouse')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
                                 </div>
                                 <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-darker); border:1px solid var(--border-glow); border-radius:10px; padding:10px 14px;">
                                     <span style="font-size:13px; font-weight:600;">🥡 A&amp;A Chinese</span>
@@ -539,10 +542,17 @@
                         <h3>Counter POS Entry</h3>
                         <label>Walk-In Customer Name:</label>
                         <input type="text" id="manualCustName" placeholder="Enter name...">
-                        
+
+                        <label style="margin-top:10px;">Shop:</label>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="posShopPicker">
+                            <button class="k-filter-btn active" data-shop="cafe"       onclick="setPosShop('cafe')">☕ Cafe</button>
+                            <button class="k-filter-btn"        data-shop="steakhouse" onclick="setPosShop('steakhouse')">🥩 Steakhouse</button>
+                            <button class="k-filter-btn"        data-shop="chinese"    onclick="setPosShop('chinese')">🥡 Chinese</button>
+                        </div>
+
                         <div id="menuGridBox" class="pos-grid">
                             <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); font-style: italic; padding: 20px;">
-                                🔄 Fetching current menu directly from Google Docs list...
+                                Select a shop above to load its menu.
                             </div>
                         </div>
 
@@ -552,6 +562,12 @@
 
                     <div>
                         <h3>Live Production Queue</h3>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="kitchenShopFilters">
+                            <button class="k-filter-btn active" data-shop="all"     onclick="setKitchenFilter('all')">🍽️ All Shops</button>
+                            <button class="k-filter-btn"        data-shop="cafe"        onclick="setKitchenFilter('cafe')">☕ Cafe</button>
+                            <button class="k-filter-btn"        data-shop="steakhouse"  onclick="setKitchenFilter('steakhouse')">🥩 Steakhouse</button>
+                            <button class="k-filter-btn"        data-shop="chinese"     onclick="setKitchenFilter('chinese')">🥡 Chinese</button>
+                        </div>
                         <div id="liveOrdersList" class="kitchen-stack">Syncing with kitchen lines...</div>
                     </div>
                 </div>
@@ -671,6 +687,15 @@
         let isClockedIn = false;
         let currentInspectedCustomer = "";
         let currentLiveOrders = [];
+        let kitchenShopFilter = 'all';
+
+        function setKitchenFilter(shop) {
+            kitchenShopFilter = shop;
+            document.querySelectorAll('.k-filter-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.shop === shop);
+            });
+            renderKitchenOrders(currentLiveOrders);
+        }
         let systemStaffList = [];
 
         function pushInternalNotification(message) {
@@ -1040,7 +1065,7 @@
         }
 
         function renderShopButtons() {
-            ['cafe','steak','chinese'].forEach(key => {
+            ['cafe','steakhouse','chinese'].forEach(key => {
                 const btn = document.getElementById('shopBtn-' + key);
                 if (!btn) return;
                 const isOpen = shopStatus[key] === true;
@@ -1111,6 +1136,7 @@
                     status: 'Pending',
                     paid: 'No',
                     eta: 'Asap',
+                    shop: currentPosShop,
                     notes: `Counter Order: ${activeStaffName}`,
                     chef_notes: ''
                 }
@@ -1232,57 +1258,76 @@
             } catch(e) { alert("Archival pipeline dropped connection."); }
         }
 
+        const SHOP_LABELS = { cafe: '☕ Cafe', steakhouse: '🥩 Steakhouse', chinese: '🥡 Chinese' };
+
+        function renderKitchenOrders(pipeline) {
+            const target = document.getElementById('liveOrdersList');
+            target.innerHTML = '';
+
+            if (!pipeline || pipeline.length === 0 || pipeline.error) {
+                target.innerHTML = '<p style="color:var(--text-secondary); font-style:italic;">Production environment clear.</p>';
+                return;
+            }
+
+            const filtered = kitchenShopFilter === 'all'
+                ? [...pipeline].reverse()
+                : [...pipeline].reverse().filter(o => (o.shop || '').toLowerCase() === kitchenShopFilter);
+
+            if (filtered.length === 0) {
+                target.innerHTML = `<p style="color:var(--text-secondary); font-style:italic;">No active orders for ${SHOP_LABELS[kitchenShopFilter] || kitchenShopFilter}.</p>`;
+                return;
+            }
+
+            filtered.forEach(o => {
+                const isCompleted = o.status === 'Completed';
+                const isUnpaidCompleted = isCompleted && o.paid === 'No';
+                const shopLabel = SHOP_LABELS[(o.shop || '').toLowerCase()] || o.shop || '';
+
+                target.innerHTML += `
+                    <div class="kitchen-card ${isUnpaidCompleted ? 'status-unpaid-completed' : ''}">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                                <strong style="color:var(--accent-brand); font-size:16px;">${o.id}</strong>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    ${shopLabel ? `<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(56,189,248,0.1);color:var(--accent-brand);border:1px solid rgba(56,189,248,0.2);">${shopLabel}</span>` : ''}
+                                    <span class="price-tag">$${o.total || 0}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                                <h3 style="border:none; margin:0; font-size:18px;">${o.customer}</h3>
+                                <div style="display:flex; gap:6px;">
+                                    <span class="badge ${isCompleted ? 'status-done' : 'status-pending'}">${o.status}</span>
+                                    <span class="badge ${o.paid === 'Yes' ? 'paid' : 'unpaid'}" style="cursor:pointer;" onclick="triggerPaymentToggle('${o.id}', '${o.paid}')">
+                                        ${o.paid === 'Yes' ? 'Paid' : 'Unpaid'}
+                                    </span>
+                                </div>
+                            </div>
+                            <p style="margin:12px 0; font-size:14px; color:var(--text-secondary); line-height:1.5;">${o.items}</p>
+                            ${o.notes ? `<div style="background: rgba(56, 189, 248, 0.1); padding: 8px; border-radius: 6px; font-size: 13px; color: var(--accent-brand); margin-bottom: 12px; border-left: 3px solid var(--accent-brand);"><strong>📋 Special Notes:</strong> ${o.notes}</div>` : ''}
+                        </div>
+
+                        <div style="margin-top:14px;">
+                            <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Custom Wait/ETA Time:</label>
+                            <input type="text" value="${o.eta || ''}" placeholder="e.g., 7 mins, next, done" style="margin-bottom:10px; padding:10px;" onchange="updateOrderField('${o.id}', 'eta', this.value)">
+
+                            <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Kitchen Note:</label>
+                            <input type="text" value="${o.chef_notes || ''}" placeholder="Add update..." style="margin-bottom:14px; padding:10px;" onchange="updateOrderField('${o.id}', 'chef_notes', this.value)">
+
+                            ${isCompleted ?
+                                `<div style="text-align:center; color:var(--color-alert); font-size:12px; font-weight:bold; padding:12px; border:1px dashed var(--color-alert); border-radius:8px; background:rgba(251,191,36,0.02)">⚠️ Collect Payment to Clear Ticket</div>` :
+                                `<button class="btn-action" style="background:var(--color-success); color:white;" onclick="completeKitchenOrder('${o.id}')">Fulfill & Archive</button>`
+                            }
+                        </div>
+                    </div>`;
+            });
+        }
+
         async function fetchLiveKitchenOrders() {
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=Sheet1`);
                 const pipeline = await res.json();
-                if(pipeline && !pipeline.error) currentLiveOrders = pipeline;
-
-                const target = document.getElementById('liveOrdersList');
-                target.innerHTML = '';
-                
-                if(!pipeline || pipeline.length === 0 || pipeline.error) {
-                    target.innerHTML = '<p style="color:var(--text-secondary); font-style:italic;">Production environment clear.</p>'; return;
-                }
-
-                pipeline.reverse().forEach(o => {
-                    const isCompleted = o.status === 'Completed';
-                    const isUnpaidCompleted = isCompleted && o.paid === 'No';
-                    
-                    target.innerHTML += `
-                        <div class="kitchen-card ${isUnpaidCompleted ? 'status-unpaid-completed' : ''}">
-                            <div>
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                                    <strong style="color:var(--accent-brand); font-size:16px;">${o.id}</strong>
-                                    <span class="price-tag">$${o.total || 0}</span>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                                    <h3 style="border:none; margin:0; font-size:18px;">${o.customer}</h3>
-                                    <div style="display:flex; gap:6px;">
-                                        <span class="badge ${isCompleted ? 'status-done' : 'status-pending'}">${o.status}</span>
-                                        <span class="badge ${o.paid === 'Yes' ? 'paid' : 'unpaid'}" style="cursor:pointer;" onclick="triggerPaymentToggle('${o.id}', '${o.paid}')">
-                                            ${o.paid === 'Yes' ? 'Paid' : 'Unpaid'}
-                                        </span>
-                                    </div>
-                                </div>
-                                <p style="margin:12px 0; font-size:14px; color:var(--text-secondary); line-height:1.5;">${o.items}</p>
-                                ${o.notes ? `<div style="background: rgba(56, 189, 248, 0.1); padding: 8px; border-radius: 6px; font-size: 13px; color: var(--accent-brand); margin-bottom: 12px; border-left: 3px solid var(--accent-brand);"><strong>📋 Special Notes:</strong> ${o.notes}</div>` : ''}
-                            </div>
-                            
-                            <div style="margin-top:14px;">
-                                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Custom Wait/ETA Time:</label>
-                                <input type="text" value="${o.eta || ''}" placeholder="e.g., 7 mins, next, done" style="margin-bottom:10px; padding:10px;" onchange="updateOrderField('${o.id}', 'eta', this.value)">
-
-                                <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Barista Kitchen Note:</label>
-                                <input type="text" value="${o.chef_notes || ''}" placeholder="Add update..." style="margin-bottom:14px; padding:10px;" onchange="updateOrderField('${o.id}', 'chef_notes', this.value)">
-                                
-                                ${isCompleted ? 
-                                    `<div style="text-align:center; color:var(--color-alert); font-size:12px; font-weight:bold; padding:12px; border:1px dashed var(--color-alert); border-radius:8px; background:rgba(251,191,36,0.02)">⚠️ Collect Payment to Clear Ticket</div>` : 
-                                    `<button class="btn-action" style="background:var(--color-success); color:white;" onclick="completeKitchenOrder('${o.id}')">Fulfill & Archive</button>`
-                                }
-                            </div>
-                        </div>`;
-                });
+                if (pipeline && !pipeline.error) currentLiveOrders = pipeline;
+                renderKitchenOrders(currentLiveOrders);
             } catch(e){}
         }
 
@@ -1465,45 +1510,73 @@
             } catch(e){}
         }
 
+        // ── POS SHOP MENUS ──────────────────────────────────────────
+        const POS_MENUS = {
+            cafe: [
+                { name: 'Flat White', price: 5.50 }, { name: 'Latte', price: 5.00 },
+                { name: 'Cappuccino', price: 5.00 }, { name: 'Long Black', price: 4.50 },
+                { name: 'Espresso', price: 3.50 }, { name: 'Mocha', price: 5.50 },
+                { name: 'Hot Chocolate', price: 5.00 }, { name: 'Chai Latte', price: 5.50 },
+                { name: 'Matcha Latte', price: 6.00 }, { name: 'Iced Coffee', price: 6.50 },
+                { name: 'Iced Latte', price: 6.00 }, { name: 'Cold Brew', price: 6.50 },
+                { name: 'Croissant', price: 5.00 }, { name: 'Banana Bread', price: 5.50 },
+                { name: 'Muffin', price: 4.50 }, { name: 'Toastie', price: 9.00 },
+                { name: 'Acai Bowl', price: 14.00 }, { name: 'Smashed Avo Toast', price: 16.00 },
+            ],
+            steakhouse: [
+                { name: 'Ribeye Steak', price: 28.00 }, { name: 'NY Strip', price: 24.00 },
+                { name: 'Filet Mignon', price: 34.00 }, { name: 'T-Bone Steak', price: 30.00 },
+                { name: 'Wagyu Burger', price: 18.00 }, { name: 'Beef Short Ribs', price: 26.00 },
+                { name: 'Caesar Salad', price: 11.00 }, { name: 'Chicken Wings', price: 13.00 },
+                { name: 'Prawn Cocktail', price: 12.00 }, { name: 'Garlic Bread', price: 5.50 },
+                { name: 'Loaded Fries', price: 9.00 }, { name: 'Onion Rings', price: 7.00 },
+                { name: 'Creamy Mashed Potato', price: 7.50 }, { name: 'Steakhouse Corn', price: 6.00 },
+                { name: 'NY Cheesecake', price: 9.00 }, { name: 'Choc Lava Cake', price: 10.00 },
+            ],
+            chinese: [
+                { name: 'Fried Rice', price: 11.00 }, { name: 'Chow Mein', price: 12.00 },
+                { name: 'Yang Chow Fried Rice', price: 13.00 }, { name: 'Beef Ho Fun', price: 13.50 },
+                { name: "General Tso's Chicken", price: 15.00 }, { name: 'Sweet & Sour Pork', price: 14.00 },
+                { name: 'Kung Pao Chicken', price: 14.00 }, { name: 'Honey Sesame Beef', price: 16.00 },
+                { name: 'Peking Duck (Half)', price: 24.00 }, { name: 'Mapo Tofu', price: 12.00 },
+                { name: 'Pork Dumplings (6pc)', price: 9.00 }, { name: 'Prawn Spring Rolls', price: 8.00 },
+                { name: 'Sesame Prawn Toast', price: 8.50 }, { name: 'Wonton Soup', price: 10.00 },
+                { name: 'Jasmine Tea', price: 4.00 }, { name: 'Lychee Juice', price: 5.50 },
+            ]
+        };
+
+        let currentPosShop = 'cafe';
+
+        function setPosShop(shop) {
+            currentPosShop = shop;
+            document.querySelectorAll('#posShopPicker .k-filter-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.shop === shop);
+            });
+            // Clear selection
+            manualSelectedItems = [];
+            manualCurrentTotal = 0;
+            document.getElementById('manualTotal').innerText = 0;
+            renderPosMenu(shop);
+        }
+
+        function renderPosMenu(shop) {
+            const grid = document.getElementById('menuGridBox');
+            const items = POS_MENUS[shop] || [];
+            grid.innerHTML = '';
+            items.forEach(m => {
+                const el = document.createElement('div');
+                el.className = 'pos-item';
+                const safeName = m.name.replace(/"/g, '&quot;');
+                el.setAttribute('onclick', `modifyManualItem(this, "${safeName}", ${m.price}, 'add')`);
+                el.setAttribute('oncontextmenu', `event.preventDefault(); modifyManualItem(this, "${safeName}", ${m.price}, 'remove')`);
+                el.innerHTML = `<span>${m.name}</span><span class="item-price">$${m.price.toFixed(2)}</span>`;
+                grid.appendChild(el);
+            });
+        }
+
         async function fetchStaffMenuReference() {
-            const staffGridBox = document.getElementById('menuGridBox');
-            if (!staffGridBox) return; 
-            
-            try {
-                const targetUrl = "https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec?sheet=menu&type=menu&_=" + Date.now();
-                
-                const response = await fetch(targetUrl);
-                const rawText = await response.text();
-                const menuItems = JSON.parse(rawText);
-                
-                if (!menuItems || menuItems.length === 0 || menuItems.error) {
-                    staffGridBox.innerHTML = `<div style="color: #f43f5e; font-size: 13px; padding: 20px; text-align: center;">⚠️ Error rendering layout layout profile: ${menuItems ? menuItems.error : 'Empty.'}</div>`;
-                    return;
-                }
-                
-                staffGridBox.innerHTML = '';
-                
-                menuItems.forEach(m => {
-                    const itemName = m.item;
-                    const itemPrice = parseFloat(m.price) || 0;
-                    
-                    const el = document.createElement('div');
-                    el.className = "pos-item";
-                    
-                    // Left click to Add, Right click to Remove
-                    el.setAttribute("onclick", `modifyManualItem(this, "${itemName.replace(/"/g, '&quot;')}", ${itemPrice}, 'add')`);
-                    el.setAttribute("oncontextmenu", `event.preventDefault(); modifyManualItem(this, "${itemName.replace(/"/g, '&quot;')}", ${itemPrice}, 'remove')`);
-                    
-                    el.innerHTML = `
-                        <span>${itemName}</span>
-                        <span class="item-price">$${itemPrice.toFixed(2)}</span>
-                    `;
-                    staffGridBox.appendChild(el);
-                });
-            } catch(e) {
-                console.error("Staff menu load error:", e);
-                staffGridBox.innerHTML = '<div style="color: #f43f5e; font-size: 13px; padding: 20px; text-align: center;">⚠️ System Menu Pipeline Disconnected</div>';
-            }
+            // Now replaced by renderPosMenu; load default shop on init
+            renderPosMenu(currentPosShop);
         }
 
         async function registerNewStaffProfile() {
