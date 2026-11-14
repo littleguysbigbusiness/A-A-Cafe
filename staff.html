@@ -1083,7 +1083,13 @@
             try {
                 await fetch(BASE_API_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ sheet: 'shopstatus', shop: key, open: newState })
+                    body: JSON.stringify({
+                        action: 'upsert',
+                        sheet: 'shopstatus',
+                        keyField: 'shop',
+                        keyValue: key,
+                        row: { shop: key, open: String(newState) }
+                    })
                 });
                 pushInternalNotification(`Shop status: ${key} set to ${newState ? 'OPEN' : 'CLOSED'} by ${activeStaffName}`);
             } catch {
