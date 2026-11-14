@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍽️ A&A Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #09090f;
+            --bg-card: #111118;
+            --bg-card-hover: #16161f;
+            --border: #1e1e2e;
+            --border-glow: rgba(255,255,255,0.08);
+            --text: #f2f2f8;
+            --text-muted: #7a7a9a;
+            --text-dim: #4a4a6a;
+            --gold: #f5c842;
+            --gold-glow: rgba(245,200,66,0.15);
+            --red: #e85454;
+            --red-glow: rgba(232,84,84,0.12);
+            --green: #3ecf8e;
+            --green-glow: rgba(62,207,142,0.12);
+            --blue: #3b9eff;
+            --blue-glow: rgba(59,158,255,0.12);
+            --radius: 18px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── HEADER ── */
+        header {
+            text-align: center;
+            padding: 64px 20px 48px;
+            position: relative;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: -60px; left: 50%;
+            transform: translateX(-50%);
+            width: 600px; height: 400px;
+            background: radial-gradient(ellipse at center, rgba(245,200,66,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hub-eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 14px;
+            opacity: 0.9;
+        }
+        header h1 {
+            font-size: clamp(38px, 7vw, 68px);
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            background: linear-gradient(135deg, #fff 20%, var(--gold) 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 14px;
+        }
+        header p {
+            color: var(--text-muted);
+            font-size: 16px;
+            max-width: 420px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ── STATUS BAR ── */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto 48px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .status-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ── SHOP GRID ── */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1020px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+        }
+
+        /* ── SHOP CARD ── */
+        .shop-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            animation: cardIn 0.5s ease both;
+            position: relative;
+            cursor: default;
+        }
+        .shop-card:nth-child(1) { animation-delay: 0.05s; }
+        .shop-card:nth-child(2) { animation-delay: 0.12s; }
+        .shop-card:nth-child(3) { animation-delay: 0.19s; }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .shop-card.open {
+            cursor: pointer;
+        }
+        .shop-card.open:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,0.14);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .card-banner {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            position: relative;
+            overflow: hidden;
+        }
+        .cafe-banner    { background: linear-gradient(135deg, #003f7f 0%, #0066cc 100%); }
+        .steak-banner   { background: linear-gradient(135deg, #3d1a0a 0%, #8b3a1a 100%); }
+        .chinese-banner { background: linear-gradient(135deg, #2d0a0a 0%, #8b1a1a 100%); }
+
+        .card-banner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5));
+        }
+
+        /* closed overlay */
+        .closed-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            border-radius: var(--radius);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+        }
+        .shop-card.closed .closed-overlay { opacity: 1; pointer-events: all; }
+        .closed-label {
+            background: rgba(20,20,30,0.9);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .card-body { padding: 22px 22px 20px; }
+
+        .card-toprow {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .card-name {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+        .open-pill {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .pill-open   { background: var(--green-glow); color: var(--green); border: 1px solid rgba(62,207,142,0.3); }
+        .pill-closed { background: rgba(255,255,255,0.04); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.06); }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+        .tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-muted);
+        }
+
+        .order-btn {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.18s;
+            letter-spacing: 0.01em;
+        }
+        .order-btn-cafe    { background: linear-gradient(135deg, #0066cc, #0052a3); color: white; box-shadow: 0 4px 16px rgba(0,102,204,0.3); }
+        .order-btn-steak   { background: linear-gradient(135deg, #c0501c, #8b3a1a); color: white; box-shadow: 0 4px 16px rgba(139,58,26,0.4); }
+        .order-btn-chinese { background: linear-gradient(135deg, #c01c1c, #8b1a1a); color: white; box-shadow: 0 4px 16px rgba(139,26,26,0.4); }
+        .order-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .order-btn:active { transform: translateY(0); }
+        .order-btn.disabled-btn {
+            background: rgba(255,255,255,0.04) !important;
+            color: var(--text-dim) !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+            transform: none !important;
+            filter: none !important;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: var(--text-dim);
+            border-top: 1px solid var(--border);
+        }
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        footer a:hover { color: var(--text); }
+
+        /* ── LOADING SKELETON ── */
+        .skeleton-pill {
+            width: 60px; height: 20px;
+            border-radius: 20px;
+            background: linear-gradient(90deg, var(--border) 25%, rgba(255,255,255,0.05) 50%, var(--border) 75%);
+            background-size: 400px 100%;
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0%   { background-position: -400px 0; }
+            100% { background-position:  400px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="hub-eyebrow">✦ Welcome to</div>
+    <h1>A&amp;A Hub</h1>
+    <p>Order from any of our restaurants. Each kitchen operates on its own schedule.</p>
+</header>
+
+<div class="status-bar">
+    <div class="status-dot"></div>
+    <span id="statusText">Checking shop status…</span>
+</div>
+
+<div class="shop-grid">
+
+    <!-- A&A Cafe -->
+    <div class="shop-card" id="card-cafe">
+        <div class="closed-overlay"><div class="closed-label">Currently Closed</div></div>
+        <div class="card-banner cafe-banner">☕</div>
+        <div class="card-body">
+            <div class="card-toprow">
+                <div class="card-name">A&amp;A Cafe</div>
+                <div class="open-pill skeleton-pill" id="pill-cafe"></div>
+            </div>
+            <div class="card-desc">Hot drinks, fresh bakes, and light bites. The original A&amp;A experience.</div>
+            <div class="card-tags">
+                <span class="tag">☕ Coffee</span>
+                <span class="tag">🧁 Pastries</span>
+                <span class="tag">🥪 Snacks</span>
+            </div>
+            <a id="btn-cafe" class="order-btn order-btn-cafe disabled-btn" href="#">Order from Cafe →</a>
+        </div>
+    </div>
+
+    <!-- A&A Steakhouse -->
+    <div class="shop-card" id="card-steak">
+        <div class="closed-overlay"><div class="closed-label">Currently Closed</div></div>
+        <div class="card-banner steak-banner">🥩</div>
+        <div class="card-body">
+            <div class="card-toprow">
+                <div class="card-name">A&amp;A Steakhouse</div>
+                <div class="open-pill skeleton-pill" id="pill-steak"></div>
+            </div>
+            <div class="card-desc">Premium cuts, smoky sides, and bold flavours. For the serious meat lover.</div>
+            <div class="card-tags">
+                <span class="tag">🥩 Steaks</span>
+                <span class="tag">🍟 Sides</span>
+                <span class="tag">🍰 Desserts</span>
+            </div>
+            <a id="btn-steak" class="order-btn order-btn-steak disabled-btn" href="#">Order from Steakhouse →</a>
+        </div>
+    </div>
+
+    <!-- A&A Chinese -->
+    <div class="shop-card" id="card-chinese">
+        <div class="closed-overlay"><div class="closed-label">Currently Closed</div></div>
+        <div class="card-banner chinese-banner">🥡</div>
+        <div class="card-body">
+            <div class="card-toprow">
+                <div class="card-name">A&amp;A Chinese</div>
+                <div class="open-pill skeleton-pill" id="pill-chinese"></div>
+            </div>
+            <div class="card-desc">Classic Chinese dishes made fresh. From fried rice to dim sum and beyond.</div>
+            <div class="card-tags">
+                <span class="tag">🍜 Noodles</span>
+                <span class="tag">🍚 Rice</span>
+                <span class="tag">🥟 Dim Sum</span>
+            </div>
+            <a id="btn-chinese" class="order-btn order-btn-chinese disabled-btn" href="#">Order from Chinese →</a>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <a href="staff.html">Staff Terminal</a> &nbsp;·&nbsp; A&amp;A Group © 2026
+</footer>
+
+<script>
+    const HUB_API = "https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec";
+
+    const SHOPS = {
+        cafe:    { page: 'index.html',     btnClass: 'order-btn-cafe',    label: 'Order from Cafe →'       },
+        steak:   { page: 'steakhouse.html',btnClass: 'order-btn-steak',   label: 'Order from Steakhouse →' },
+        chinese: { page: 'chinese.html',   btnClass: 'order-btn-chinese', label: 'Order from Chinese →'    },
+    };
+
+    function applyStatus(key, isOpen) {
+        const card = document.getElementById('card-' + key);
+        const pill = document.getElementById('pill-' + key);
+        const btn  = document.getElementById('btn-'  + key);
+        const info = SHOPS[key];
+
+        // remove skeleton
+        pill.classList.remove('skeleton-pill');
+
+        if (isOpen) {
+            card.classList.add('open');
+            card.classList.remove('closed');
+            pill.className = 'open-pill pill-open';
+            pill.textContent = 'Open';
+            btn.href = info.page;
+            btn.className = 'order-btn ' + info.btnClass;
+            btn.textContent = info.label;
+            card.onclick = () => { window.location.href = info.page; };
+        } else {
+            card.classList.add('closed');
+            card.classList.remove('open');
+            pill.className = 'open-pill pill-closed';
+            pill.textContent = 'Closed';
+            btn.href = '#';
+            btn.className = 'order-btn disabled-btn';
+            btn.textContent = info.label.replace('→', '— Closed');
+            btn.onclick = e => e.preventDefault();
+            card.onclick = null;
+        }
+    }
+
+    async function loadShopStatus() {
+        try {
+            const res = await fetch(`${HUB_API}?sheet=shopstatus`);
+            const data = await res.json();
+
+            // data expected: [ { shop: 'cafe', open: true }, ... ]
+            // or an object: { cafe: true, steak: false, chinese: true }
+            let statusMap = {};
+            if (Array.isArray(data)) {
+                data.forEach(row => {
+                    if (row.shop) statusMap[row.shop.toLowerCase()] = String(row.open).toLowerCase() === 'true';
+                });
+            } else if (data && typeof data === 'object') {
+                statusMap = data;
+            }
+
+            let openCount = 0;
+            ['cafe','steak','chinese'].forEach(key => {
+                const isOpen = statusMap[key] === true || statusMap[key] === 'true';
+                applyStatus(key, isOpen);
+                if (isOpen) openCount++;
+            });
+
+            document.getElementById('statusText').textContent =
+                openCount === 0 ? 'All restaurants currently closed' :
+                openCount === 1 ? '1 restaurant open now' :
+                `${openCount} restaurants open now`;
+
+        } catch (e) {
+            // If API fails, show all as closed but don't crash
+            ['cafe','steak','chinese'].forEach(key => applyStatus(key, false));
+            document.getElementById('statusText').textContent = 'Status unavailable — try refreshing';
+        }
+    }
+
+    loadShopStatus();
+    setInterval(loadShopStatus, 30000); // refresh every 30 sec
+</script>
+</body>
+</html>

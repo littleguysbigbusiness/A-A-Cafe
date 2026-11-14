@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🥡 A&A Chinese</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #c01c1c;
+            --accent-dark: #8b1a1a;
+            --accent-deeper: #5c1010;
+            --accent-light: #fdf0f0;
+            --accent-mid: #f5c0c0;
+            --bg: #fdf4f4;
+            --surface: #ffffff;
+            --surface-alt: #fdf8f8;
+            --border: #ecddd5;
+            --border-focus: #c01c1c;
+            --text: #1a0808;
+            --text-muted: #7a4a4a;
+            --text-light: #b08080;
+            --success: #0d9e6e;
+            --success-bg: #e6f7f2;
+            --danger: #d93025;
+            --danger-bg: #fce8e6;
+            --amber: #e8a000;
+            --amber-bg: #fff3cd;
+            --radius: 14px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        header {
+            background: linear-gradient(135deg, #5c1010 0%, #c01c1c 60%, #d43030 100%);
+            overflow: hidden;
+        }
+        header::after {
+            content: '';
+            display: block;
+            height: 48px;
+            background: var(--bg);
+            clip-path: ellipse(55% 100% at 50% 100%);
+            margin-top: -1px;
+        }
+        .header-inner { padding: 32px 20px 16px; text-align: center; position: relative; }
+        .back-link { position:absolute;top:18px;left:18px;color:rgba(255,255,255,0.75);font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px;transition:color 0.15s; }
+        .back-link:hover { color:white; }
+        header h1 { font-size:28px;font-weight:800;color:white;margin:0 0 4px;letter-spacing:-0.02em; }
+        header .sub { font-size:13px;color:rgba(255,255,255,0.75);font-weight:500; }
+        .kitchen-status { display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:white;margin-top:10px; }
+        .status-dot { width:7px;height:7px;border-radius:50%;background:#3ecf8e;box-shadow:0 0 8px rgba(62,207,142,0.8);animation:blink 2s ease-in-out infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        .container { max-width:760px;margin:0 auto;padding:0 16px 40px; }
+        .card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:16px;box-shadow:var(--shadow); }
+
+        label { display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px; }
+        input[type="text"] { width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:var(--surface);outline:none;transition:all 0.15s;margin-bottom:4px; }
+        input:focus { border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(192,28,28,0.12); }
+
+        .name-row { display:flex;gap:10px;align-items:flex-end;margin-bottom:20px; }
+        .name-row .field { flex:1; }
+        .name-greeting { background:var(--accent-light);border:1px solid var(--accent-mid);color:var(--accent-dark);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;white-space:nowrap;display:none; }
+
+        .rblx-avatar { display:none;align-items:center;gap:12px;background:var(--accent-light);border:1px solid var(--accent-mid);border-radius:12px;padding:10px 14px;margin-bottom:16px;animation:rblxFadeIn 0.35s ease both; }
+        @keyframes rblxFadeIn { from{opacity:0;transform:scale(0.95) translateY(-4px)} to{opacity:1;transform:scale(1) translateY(0)} }
+        .rblx-avatar img { width:48px;height:48px;border-radius:50%;border:2px solid var(--accent-mid);object-fit:cover; }
+        .rblx-avatar .rblx-name { font-weight:700;color:var(--accent-dark);font-size:14px; }
+        .rblx-avatar .rblx-sub  { font-size:11px;color:var(--text-muted);margin-top:2px; }
+        .rblx-avatar .rblx-badge { margin-left:auto;background:var(--accent);color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:0.5px; }
+
+        .help-tip { background:var(--accent-light);border:1px solid var(--accent-mid);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text-muted);margin-bottom:18px; }
+        .section-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-light);margin-bottom:12px; }
+        .menu-section-title { font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--accent);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border); }
+        .menu-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:6px; }
+        .menu-item { background:var(--surface-alt);border:1.5px solid var(--border);border-radius:12px;padding:13px 14px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);transition:all 0.15s;user-select:none;position:relative; }
+        .menu-item:hover { border-color:var(--accent);background:var(--accent-light); }
+        .menu-item.selected { background:var(--accent-light);border-color:var(--accent);color:var(--accent-dark); }
+        .menu-item.selected::after { content:attr(data-qty);position:absolute;top:-6px;right:-6px;background:var(--accent);color:white;font-size:10px;font-weight:800;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center; }
+        .item-price { float:right;color:var(--text-muted);font-weight:500; }
+        .item-tray { background:var(--surface-alt);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--text-muted);margin-bottom:16px;min-height:36px; }
+        .panel-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+        .panel-header h2 { font-size:16px;font-weight:700; }
+        .badge-count { background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid var(--accent-mid); }
+        .total-row { display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1.5px solid var(--border);margin-bottom:16px; }
+        .total-label { font-size:14px;font-weight:600;color:var(--text-muted); }
+        .total-amt { font-size:22px;font-weight:800;color:var(--accent-dark);letter-spacing:-0.02em; }
+        .total-amt::before { content:'$';font-size:15px;font-weight:600;vertical-align:super;margin-right:1px; }
+        .btn-primary { background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);color:white;padding:15px;border:none;border-radius:12px;cursor:pointer;width:100%;font-size:15px;font-weight:700;font-family:'Inter',sans-serif;transition:all 0.18s;box-shadow:0 4px 14px rgba(192,28,28,0.3);letter-spacing:0.2px; }
+        .btn-primary:hover { filter:brightness(1.1);transform:translateY(-1px); }
+        .btn-primary:active { transform:translateY(0); }
+        .btn-primary:disabled { background:var(--border);color:var(--text-light);cursor:not-allowed;box-shadow:none;transform:none; }
+        .alert { padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:16px;display:none;gap:8px;align-items:flex-start; }
+        .alert-danger { background:var(--danger-bg);color:var(--danger);border:1px solid #f5c4c0; }
+        .order-card { background:var(--surface-alt);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;font-size:13px; }
+        .order-card .order-name { font-weight:700;margin-bottom:4px; }
+        .order-card .order-items { color:var(--text-muted);font-size:12px; }
+        .status-badge { display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em; }
+        .status-pending  { background:var(--amber-bg);color:var(--amber); }
+        .status-ready    { background:var(--success-bg);color:var(--success); }
+        .status-complete { background:var(--surface-alt);color:var(--text-light); }
+        .empty-state { text-align:center;padding:24px;color:var(--text-light);font-size:13px; }
+        .empty-state .icon { font-size:32px;margin-bottom:8px; }
+        .tab-row { display:flex;border-bottom:1.5px solid var(--border);margin-bottom:18px;gap:2px; }
+        .tab-btn { padding:10px 14px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1.5px;transition:all 0.15s;font-family:'Inter',sans-serif; }
+        .tab-btn.active { color:var(--accent);border-bottom-color:var(--accent); }
+        @media (max-width:520px) { .menu-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <a class="back-link" href="hub.html">← Hub</a>
+        <h1>🥡 A&amp;A Chinese</h1>
+        <div class="sub">Classic Chinese, made fresh</div>
+        <div class="kitchen-status">
+            <div class="status-dot"></div>
+            Kitchen Open
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <div class="panel-header">
+            <h2>Place Your Order</h2>
+            <span class="badge-count" id="itemCount">0 items</span>
+        </div>
+
+        <div id="banAlert" class="alert alert-danger">🚫 This account has been suspended.</div>
+
+        <label>Your Name</label>
+        <div class="name-row">
+            <div class="field">
+                <input type="text" id="custName" placeholder="e.g. Alex..." oninput="onNameChange()" style="margin-bottom:0;">
+            </div>
+            <div id="nameGreeting" class="name-greeting">👋 Hey!</div>
+        </div>
+
+        <div class="rblx-avatar" id="rblxAvatarBox">
+            <img id="rblxAvatarImg" src="" alt="avatar">
+            <div>
+                <div class="rblx-name" id="rblxAvatarName"></div>
+                <div class="rblx-sub">Roblox Player</div>
+            </div>
+            <span class="rblx-badge">ROBLOX</span>
+        </div>
+
+        <div class="help-tip">💡 Left-click to add an item · Right-click to remove one</div>
+
+        <div class="section-label">Menu</div>
+
+        <div class="menu-section-title">🍜 Noodles &amp; Rice</div>
+        <div class="menu-grid" id="noodlesGrid"></div>
+
+        <div class="menu-section-title">🍗 Mains</div>
+        <div class="menu-grid" id="mainsGrid"></div>
+
+        <div class="menu-section-title">🥟 Dim Sum &amp; Starters</div>
+        <div class="menu-grid" id="dimSumGrid"></div>
+
+        <div class="menu-section-title">🥤 Drinks</div>
+        <div class="menu-grid" id="drinksGrid"></div>
+
+        <div style="margin-top:16px;">
+            <div class="section-label">Your Selection</div>
+            <div class="item-tray" id="itemTray">No items selected</div>
+        </div>
+        <div class="total-row">
+            <span class="total-label">Order Total</span>
+            <span class="total-amt" id="totalPrice">0.00</span>
+        </div>
+        <button class="btn-primary" id="submitBtn" onclick="submitOrder()">Send Order to Kitchen</button>
+    </div>
+
+    <div class="card">
+        <div class="tab-row">
+            <button class="tab-btn active" onclick="switchTab('tracker',this)">📡 Live Tracker</button>
+            <button class="tab-btn" onclick="switchTab('history',this)">🗂 Past Orders</button>
+        </div>
+        <div id="trackerPanel">
+            <div id="customerTrackerList">
+                <div class="empty-state"><div class="icon">👤</div><p>Enter your name to track your orders in real time</p></div>
+            </div>
+        </div>
+        <div id="historyPanel" style="display:none;">
+            <div id="pastHistoryList">
+                <div class="empty-state"><div class="icon">🗂️</div><p>Your past orders will appear here</p></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const BASE_API_URL = "https://script.google.com/macros/s/AKfycbwjzyfFJG8ek3zrGvdK3eLnRtDfngs51VXTAzgSb-3bUkKdTeaY-USlI7ZDF8l0eVwO/exec";
+    const SHOP_KEY = 'chinese';
+
+    const MENU = {
+        noodles: [
+            { name: 'Fried Rice', price: 11.00 },
+            { name: 'Chow Mein', price: 12.00 },
+            { name: 'Yang Chow Fried Rice', price: 13.00 },
+            { name: 'Beef Ho Fun', price: 13.50 },
+        ],
+        mains: [
+            { name: "General Tso's Chicken", price: 15.00 },
+            { name: 'Sweet & Sour Pork', price: 14.00 },
+            { name: 'Kung Pao Chicken', price: 14.00 },
+            { name: 'Honey Sesame Beef', price: 16.00 },
+            { name: 'Peking Duck (Half)', price: 24.00 },
+            { name: 'Mapo Tofu', price: 12.00 },
+        ],
+        dimSum: [
+            { name: 'Pork Dumplings (6pc)', price: 9.00 },
+            { name: 'Prawn Spring Rolls', price: 8.00 },
+            { name: 'Sesame Prawn Toast', price: 8.50 },
+            { name: 'Wonton Soup', price: 10.00 },
+        ],
+        drinks: [
+            { name: 'Jasmine Tea', price: 4.00 },
+            { name: 'Coconut Water', price: 5.00 },
+            { name: 'Lychee Juice', price: 5.50 },
+        ]
+    };
+
+    let selectedItems = [], selectedPrices = {}, currentTotal = 0;
+    let isBanned = false, updateInterval = null;
+
+    function buildMenu() {
+        const gridMap = { noodles:'noodlesGrid', mains:'mainsGrid', dimSum:'dimSumGrid', drinks:'drinksGrid' };
+        Object.keys(MENU).forEach(cat => {
+            const grid = document.getElementById(gridMap[cat]);
+            if (!grid) return;
+            MENU[cat].forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'menu-item';
+                el.innerHTML = `${item.name}<span class="item-price">$${item.price.toFixed(2)}</span>`;
+                el.addEventListener('click', () => modifyItem(el, item.name, item.price, 'add'));
+                el.addEventListener('contextmenu', e => { e.preventDefault(); modifyItem(el, item.name, item.price, 'remove'); });
+                grid.appendChild(el);
+            });
+        });
+    }
+
+    function modifyItem(el, name, price, action) {
+        if (isBanned) return;
+        if (action === 'add') { selectedItems.push(name); selectedPrices[name] = price; currentTotal += price; }
+        else { const idx = selectedItems.indexOf(name); if (idx > -1) { selectedItems.splice(idx,1); currentTotal -= price; } }
+        const count = selectedItems.filter(i => i === name).length;
+        if (count > 0) { el.classList.add('selected'); el.setAttribute('data-qty', count); }
+        else { el.classList.remove('selected'); delete selectedPrices[name]; el.removeAttribute('data-qty'); }
+        const t = Math.max(0, currentTotal);
+        document.getElementById('totalPrice').innerText = t.toFixed(2);
+        document.getElementById('itemCount').innerText = selectedItems.length + ' item' + (selectedItems.length !== 1 ? 's' : '');
+        const tray = document.getElementById('itemTray');
+        if (selectedItems.length === 0) { tray.innerText = 'No items selected'; }
+        else { const c={}; selectedItems.forEach(i=>c[i]=(c[i]||0)+1); tray.innerText=Object.entries(c).map(([k,v])=>v>1?`${k} ×${v}`:k).join(', '); }
+    }
+
+    let rblxDebounce = null;
+    async function fetchRobloxAvatar(username) {
+        try {
+            const r1 = await fetch('https://users.roblox.com/v1/usernames/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usernames:[username],excludeBannedUsers:false})});
+            const d1 = await r1.json();
+            if (!d1.data||!d1.data.length) return null;
+            const r2 = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${d1.data[0].id}&size=150x150&format=Png&isCircular=false`);
+            const d2 = await r2.json();
+            return d2.data&&d2.data.length ? d2.data[0].imageUrl : null;
+        } catch { return null; }
+    }
+
+    function onNameChange() {
+        const name = document.getElementById('custName').value.trim();
+        const greeting = document.getElementById('nameGreeting');
+        if (name) {
+            greeting.style.display = 'flex';
+            greeting.textContent = '👋 Hey, ' + name.split(' ')[0] + '!';
+            localStorage.setItem('chineseName', name);
+            clearTimeout(rblxDebounce);
+            rblxDebounce = setTimeout(async () => {
+                const url = await fetchRobloxAvatar(name);
+                const box = document.getElementById('rblxAvatarBox');
+                if (url) { document.getElementById('rblxAvatarImg').src=url; document.getElementById('rblxAvatarName').textContent=name; box.style.display='flex'; }
+                else { box.style.display='none'; }
+            }, 700);
+            if (!updateInterval) updateInterval = setInterval(updateCustomerData, 15000);
+            updateCustomerData();
+        } else {
+            greeting.style.display='none';
+            clearTimeout(rblxDebounce);
+            document.getElementById('rblxAvatarBox').style.display='none';
+            document.getElementById('customerTrackerList').innerHTML='<div class="empty-state"><div class="icon">👤</div><p>Enter your name to track your orders in real time</p></div>';
+            clearInterval(updateInterval); updateInterval=null;
+        }
+    }
+
+    async function updateCustomerData() {
+        const name = document.getElementById('custName').value.trim();
+        if (!name) return;
+        try {
+            const res = await fetch(`${BASE_API_URL}?sheet=orders&customer=${encodeURIComponent(name)}&shop=${SHOP_KEY}`);
+            const data = await res.json();
+            renderTracker(data || []);
+        } catch {}
+    }
+
+    function renderTracker(orders) {
+        const live = document.getElementById('customerTrackerList');
+        const hist = document.getElementById('pastHistoryList');
+        const active = orders.filter(o => o.status !== 'Complete' && o.status !== 'Cancelled');
+        const past   = orders.filter(o => o.status === 'Complete' || o.status === 'Cancelled');
+        live.innerHTML = active.length ? active.map(renderOrderCard).join('') : '<div class="empty-state"><div class="icon">🍳</div><p>No active orders right now</p></div>';
+        hist.innerHTML = past.length  ? past.map(renderOrderCard).join('') : '<div class="empty-state"><div class="icon">📭</div><p>No completed orders yet</p></div>';
+    }
+
+    function renderOrderCard(o) {
+        const sc = o.status==='Pending'?'status-pending':o.status==='Ready'?'status-ready':'status-complete';
+        return `<div class="order-card"><div class="order-name">${o.items||'Order'} <span class="status-badge ${sc}">${o.status||'Pending'}</span></div><div class="order-items">$${parseFloat(o.total||0).toFixed(2)} · ${o.timestamp||''}</div></div>`;
+    }
+
+    function switchTab(tab, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('trackerPanel').style.display=tab==='tracker'?'block':'none';
+        document.getElementById('historyPanel').style.display=tab==='history'?'block':'none';
+    }
+
+    async function submitOrder() {
+        const name = document.getElementById('custName').value.trim();
+        if (!name) return alert('Please enter your name first.');
+        if (selectedItems.length === 0) return alert('Please select at least one item.');
+        const btn = document.getElementById('submitBtn');
+        btn.disabled=true; btn.textContent='⏳ Sending order…';
+        const counts={};
+        selectedItems.forEach(i=>counts[i]=(counts[i]||0)+1);
+        const itemStr=Object.entries(counts).map(([k,v])=>v>1?`${k} x${v}`:k).join(', ');
+        const payload={customer:name,items:itemStr,total:Math.max(0,currentTotal).toFixed(2),shop:SHOP_KEY,sheet:'orders'};
+        try {
+            await fetch(BASE_API_URL,{method:'POST',body:JSON.stringify(payload)});
+            btn.textContent='✅ Order Sent!';
+            selectedItems=[];selectedPrices={};currentTotal=0;
+            document.getElementById('totalPrice').innerText='0.00';
+            document.getElementById('itemCount').innerText='0 items';
+            document.getElementById('itemTray').innerText='No items selected';
+            document.querySelectorAll('.menu-item').forEach(el=>{el.classList.remove('selected');el.removeAttribute('data-qty');});
+            setTimeout(()=>{btn.textContent='Send Order to Kitchen';btn.disabled=false;},3000);
+            updateCustomerData();
+        } catch { btn.textContent='Send Order to Kitchen';btn.disabled=false;alert('Failed to send order.'); }
+    }
+
+    buildMenu();
+    const saved = localStorage.getItem('chineseName');
+    if (saved) { document.getElementById('custName').value=saved; onNameChange(); }
+</script>
+</body>
+</html>

@@ -506,6 +506,25 @@
                         <div class="clock-history-box" id="clockHistoryBox">
                             <div style="color:var(--text-secondary); font-size:12px; font-style:italic; padding:8px 0;">Loading history...</div>
                         </div>
+
+                        <!-- SHOP STATUS PANEL (MGR-ONLY) -->
+                        <div class="MGR-ONLY" style="display:none; margin-top:18px;">
+                            <span style="font-size:11px; color:var(--accent-brand); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">🏪 Shop Status Control</span>
+                            <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;" id="shopStatusControls">
+                                <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-darker); border:1px solid var(--border-glow); border-radius:10px; padding:10px 14px;">
+                                    <span style="font-size:13px; font-weight:600;">☕ A&amp;A Cafe</span>
+                                    <button class="shop-toggle-btn" id="shopBtn-cafe" data-shop="cafe" onclick="toggleShop('cafe')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
+                                </div>
+                                <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-darker); border:1px solid var(--border-glow); border-radius:10px; padding:10px 14px;">
+                                    <span style="font-size:13px; font-weight:600;">🥩 A&amp;A Steakhouse</span>
+                                    <button class="shop-toggle-btn" id="shopBtn-steak" data-shop="steak" onclick="toggleShop('steak')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
+                                </div>
+                                <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-darker); border:1px solid var(--border-glow); border-radius:10px; padding:10px 14px;">
+                                    <span style="font-size:13px; font-weight:600;">🥡 A&amp;A Chinese</span>
+                                    <button class="shop-toggle-btn" id="shopBtn-chinese" data-shop="chinese" onclick="toggleShop('chinese')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <h4 style="margin-bottom:15px; padding-bottom:5px; font-size:14px; color:var(--accent-brand); text-transform:uppercase; letter-spacing:0.05em;">🔔 Internal Activity Feed</h4>
@@ -946,6 +965,7 @@
                     
                     if(activeStaffRank >= 10) {
                         document.querySelectorAll('.MGR-ONLY').forEach(el => el.style.display = 'block');
+                        loadShopStatus();
                     } else {
                         document.getElementById('managerStaffActions').style.display = 'none';
                     }
@@ -962,6 +982,54 @@
         }
 
         function disconnectSession() { location.reload(); }
+
+        // ── SHOP STATUS CONTROL ──
+        const shopStatus = { cafe: null, steak: null, chinese: null };
+
+        async function loadShopStatus() {
+            try {
+                const res = await fetch(`${BASE_API_URL}?sheet=shopstatus`);
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    data.forEach(row => {
+                        if (row.shop) shopStatus[row.shop.toLowerCase()] = String(row.open).toLowerCase() === 'true';
+                    });
+                } else if (data && typeof data === 'object') {
+                    Object.assign(shopStatus, data);
+                }
+            } catch {}
+            renderShopButtons();
+        }
+
+        function renderShopButtons() {
+            ['cafe','steak','chinese'].forEach(key => {
+                const btn = document.getElementById('shopBtn-' + key);
+                if (!btn) return;
+                const isOpen = shopStatus[key] === true;
+                btn.textContent = isOpen ? '🟢 Open' : '🔴 Closed';
+                btn.style.background = isOpen ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.12)';
+                btn.style.color = isOpen ? 'var(--color-success)' : 'var(--color-danger)';
+                btn.style.border = isOpen ? '1px solid rgba(52,211,153,0.3)' : '1px solid rgba(248,113,113,0.25)';
+            });
+        }
+
+        async function toggleShop(key) {
+            const newState = !shopStatus[key];
+            shopStatus[key] = newState;
+            renderShopButtons();
+            try {
+                await fetch(BASE_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ sheet: 'shopstatus', shop: key, open: newState })
+                });
+                pushInternalNotification(`Shop status: ${key} set to ${newState ? 'OPEN' : 'CLOSED'} by ${activeStaffName}`);
+            } catch {
+                // revert on failure
+                shopStatus[key] = !newState;
+                renderShopButtons();
+                alert('Failed to update shop status.');
+            }
+        }
 
         // Updated function to handle add/remove seamlessly
         function modifyManualItem(el, name, price, action) {
