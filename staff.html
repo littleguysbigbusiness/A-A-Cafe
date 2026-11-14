@@ -331,6 +331,130 @@
             border-radius: 4px;
             font-size: 11px;
         }
+
+        /* ── CLOCK HISTORY ── */
+        .clock-history-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 18px;
+            cursor: pointer;
+            user-select: none;
+            padding: 8px 0;
+            border-top: 1px solid var(--border-glow);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .clock-history-toggle:hover { color: var(--accent-brand); }
+        .clock-history-toggle .chevron { transition: transform 0.2s; font-style: normal; }
+        .clock-history-toggle.open .chevron { transform: rotate(180deg); }
+        .clock-history-box {
+            display: none;
+            margin-top: 10px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .clock-history-box.open { display: block; }
+        .clock-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-glow);
+            font-size: 12px;
+            align-items: center;
+            animation: fadeSlideIn 0.25s ease both;
+        }
+        .clock-row:last-child { border-bottom: none; }
+        .clock-row .who { font-weight: 700; color: var(--text-primary); }
+        .clock-row .when { font-family: 'Courier New', monospace; color: var(--accent-brand); font-size: 11px; }
+        .clock-row .dur { color: var(--color-success); font-size: 11px; font-weight: 600; }
+        .clock-row .dur.ongoing { color: var(--color-alert); }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(16px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulseGlow {
+            0%,100% { box-shadow: 0 0 0 0 rgba(56,189,248,0.0); }
+            50%      { box-shadow: 0 0 0 6px rgba(56,189,248,0.08); }
+        }
+        @keyframes shimmer {
+            0%   { background-position: -400px 0; }
+            100% { background-position: 400px 0; }
+        }
+        @keyframes statusPop {
+            0%   { transform: scale(0.85); opacity: 0; }
+            70%  { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes timerTick {
+            0%,100% { opacity: 1; }
+            50%     { opacity: 0.6; }
+        }
+
+        /* Apply fade-in to panels when they become active */
+        .view-panel.active { animation: fadeSlideIn 0.3s ease both; }
+
+        /* Kitchen cards animate in */
+        .kitchen-card { animation: fadeSlideIn 0.3s ease both; }
+        .kitchen-card:nth-child(1) { animation-delay: 0.04s; }
+        .kitchen-card:nth-child(2) { animation-delay: 0.08s; }
+        .kitchen-card:nth-child(3) { animation-delay: 0.12s; }
+        .kitchen-card:nth-child(4) { animation-delay: 0.16s; }
+        .kitchen-card:nth-child(5) { animation-delay: 0.20s; }
+
+        /* Notification items slide in */
+        .notif-item { animation: slideInRight 0.2s ease both; }
+
+        /* Roster cards fade in */
+        .roster-card { animation: fadeSlideIn 0.25s ease both; }
+
+        /* Shift pill pops in on change */
+        .shift-status-pill { animation: statusPop 0.3s ease both; }
+
+        /* Timer text breathes when on-shift */
+        .roster-time { animation: timerTick 2s ease-in-out infinite; }
+
+        /* Metric cards pulse subtly */
+        .metric-card { animation: fadeSlideIn 0.4s ease both; }
+        .metric-card:hover { animation: pulseGlow 1.5s ease-in-out infinite; }
+
+        /* Auth gate animates in */
+        #authGate { animation: fadeSlideIn 0.4s ease both; }
+
+        /* Topbar shimmer line */
+        .topbar::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(56,189,248,0.4) 30%,
+                rgba(56,189,248,0.6) 50%,
+                rgba(56,189,248,0.4) 70%,
+                transparent 100%);
+            background-size: 400px 1px;
+            animation: shimmer 3s linear infinite;
+        }
+        .topbar { position: sticky; overflow: visible; }
+
+        /* POS items stagger in on load */
+        .pos-item { animation: fadeSlideIn 0.2s ease both; }
+        .pos-item:nth-child(1){animation-delay:0.02s} .pos-item:nth-child(2){animation-delay:0.04s}
+        .pos-item:nth-child(3){animation-delay:0.06s} .pos-item:nth-child(4){animation-delay:0.08s}
+        .pos-item:nth-child(5){animation-delay:0.10s} .pos-item:nth-child(6){animation-delay:0.12s}
+        .pos-item:nth-child(7){animation-delay:0.14s} .pos-item:nth-child(8){animation-delay:0.16s}
+        .pos-item:nth-child(9){animation-delay:0.18s} .pos-item:nth-child(10){animation-delay:0.20s}
     </style>
 </head>
 <body>
@@ -373,6 +497,14 @@
                         <span style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">👥 Active Duty Roster</span>
                         <div class="roster-list" id="activeDutyRosterBox">
                             <div style="color:var(--text-secondary); font-size:13px; font-style:italic;">Loading live floor tracking data...</div>
+                        </div>
+
+                        <div class="clock-history-toggle" id="clockHistoryToggle" onclick="toggleClockHistory()">
+                            <span>🕐 Clock-In History</span>
+                            <span class="chevron">▼</span>
+                        </div>
+                        <div class="clock-history-box" id="clockHistoryBox">
+                            <div style="color:var(--text-secondary); font-size:12px; font-style:italic; padding:8px 0;">Loading history...</div>
                         </div>
                     </div>
                     <div>
@@ -658,6 +790,69 @@
         }, 1000);
 
         setInterval(fetchLiveRosterData, 15000);
+
+        function toggleClockHistory() {
+            const toggle = document.getElementById('clockHistoryToggle');
+            const box = document.getElementById('clockHistoryBox');
+            const isOpen = toggle.classList.toggle('open');
+            box.classList.toggle('open', isOpen);
+            if (isOpen) renderClockHistory();
+        }
+
+        function renderClockHistory() {
+            const box = document.getElementById('clockHistoryBox');
+            if (!systemStaffList || systemStaffList.length === 0) {
+                box.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:8px 0;">No history available.</div>';
+                return;
+            }
+
+            // Build rows from all staff with any clock data
+            const rows = [];
+            systemStaffList.forEach(s => {
+                if (s.clocked_in || s.clocked_out) {
+                    const inSafe = safeParseSpreadsheetDate(s.clocked_in);
+                    const outSafe = safeParseSpreadsheetDate(s.clocked_out);
+                    const inTime = inSafe ? new Date(inSafe) : null;
+                    const outTime = outSafe && outSafe.trim() ? new Date(outSafe) : null;
+
+                    let durText = '—';
+                    let isOngoing = false;
+                    if (inTime && !isNaN(inTime)) {
+                        if (outTime && !isNaN(outTime)) {
+                            durText = formatElapsed(outTime - inTime);
+                        } else {
+                            durText = formatElapsed(Date.now() - inTime) + ' ▶';
+                            isOngoing = true;
+                        }
+                    }
+
+                    const inStr = inTime && !isNaN(inTime)
+                        ? inTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + ' ' + inTime.toLocaleDateString([], {month:'short',day:'numeric'})
+                        : '—';
+                    const outStr = outTime && !isNaN(outTime)
+                        ? outTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
+                        : (isOngoing ? 'On shift' : '—');
+
+                    rows.push({ name: s.name, inStr, outStr, durText, isOngoing });
+                }
+            });
+
+            if (rows.length === 0) {
+                box.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:8px 0;">No clock records found.</div>';
+                return;
+            }
+
+            box.innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-secondary);border-bottom:1px solid var(--border-glow);">
+                    <span>Staff</span><span>In → Out</span><span>Duration</span>
+                </div>` +
+                rows.map(r => `
+                <div class="clock-row">
+                    <span class="who">${r.name}</span>
+                    <span class="when">${r.inStr}<br><span style="color:var(--text-secondary)">${r.outStr}</span></span>
+                    <span class="dur${r.isOngoing ? ' ongoing' : ''}">${r.durText}</span>
+                </div>`).join('');
+        }
 
         function routeTo(panelId, triggerBtn) {
             if(panelId !== 'kitchenView' && activeStaffRank < 10) {
