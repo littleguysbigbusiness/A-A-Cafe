@@ -477,6 +477,7 @@
                 <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('archiveView', this)">📜 Record Keeping Logs</button>
                 <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('crmView', this)">🛡️ CRM Control Profile</button>
                 <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('financeView', this)">💰 Finances Center</button>
+                <button class="tab-btn MGR-ONLY" style="display:none;" onclick="routeTo('menuEditorView', this)">🍽️ Menu Editor</button>
             </div>
             <button onclick="disconnectSession()" style="background:rgba(244,63,94,0.1); color:var(--color-danger); border:1px solid rgba(244,63,94,0.2); padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer; font-size:13px; transition:all 0.2s;">Exit Terminal</button>
         </div>
@@ -674,6 +675,26 @@
                 </div>
             </div>
 
+            <!-- MENU EDITOR VIEW -->
+            <div id="menuEditorView" class="view-panel">
+                <div class="panel" style="margin-bottom:20px;">
+                    <h3 style="margin-bottom:16px;">🍽️ Menu Editor</h3>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                        <button class="k-filter-btn active" data-shop="cafe" onclick="setMenuEditorShop('cafe')">☕ Cafe</button>
+                        <button class="k-filter-btn" data-shop="steakhouse" onclick="setMenuEditorShop('steakhouse')">🥩 Steakhouse</button>
+                        <button class="k-filter-btn" data-shop="chinese" onclick="setMenuEditorShop('chinese')">🥡 Chinese</button>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;padding:14px;background:var(--bg-panel);border-radius:10px;border:1px solid var(--border);">
+                        <div style="flex:2;min-width:140px;"><label style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-secondary);">Item Name</label><input type="text" id="newItemName" placeholder="e.g. Latte" style="margin-top:4px;margin-bottom:0;"></div>
+                        <div style="flex:1;min-width:100px;"><label style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-secondary);">Category</label><input type="text" id="newItemCategory" placeholder="e.g. Drinks" style="margin-top:4px;margin-bottom:0;"></div>
+                        <div style="flex:1;min-width:80px;"><label style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-secondary);">Price ($)</label><input type="number" id="newItemPrice" placeholder="0.00" min="0" step="0.01" style="margin-top:4px;margin-bottom:0;"></div>
+                        <button onclick="addMenuItem()" style="background:var(--accent-brand);color:var(--bg-darker);border:none;padding:11px 18px;border-radius:8px;font-weight:700;cursor:pointer;white-space:nowrap;">+ Add Item</button>
+                    </div>
+                    <div id="menuEditorList" style="display:flex;flex-direction:column;gap:8px;"></div>
+                    <div id="menuEditorEmpty" style="text-align:center;padding:24px;color:var(--text-secondary);font-style:italic;display:none;">No items yet for this shop.</div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -688,6 +709,7 @@
         let currentInspectedCustomer = "";
         let currentLiveOrders = [];
         let kitchenShopFilter = 'all';
+        const rblxAvatarCache = {};
 
         function setKitchenFilter(shop) {
             kitchenShopFilter = shop;
@@ -985,6 +1007,7 @@
             
             if(panelId === 'archiveView') fetchArchiveLogs();
             if(panelId === 'crmView') fetchStaffDirectory();
+            if(panelId === 'menuEditorView') loadMenuEditorItems();
             if(panelId === 'financeView') { fetchFinancialData(); populateStaffDropdown(); }
         }
 
@@ -1284,10 +1307,12 @@
                 return;
             }
 
+            const avatarQueue = [];
             filtered.forEach(o => {
                 const isCompleted = o.status === 'Completed';
                 const isUnpaidCompleted = isCompleted && o.paid === 'No';
                 const shopLabel = SHOP_LABELS[(o.shop || '').toLowerCase()] || o.shop || '';
+                if (o.roblox_username) avatarQueue.push({ id: o.id, username: o.roblox_username });
 
                 target.innerHTML += `
                     <div class="kitchen-card ${isUnpaidCompleted ? 'status-unpaid-completed' : ''}">
@@ -1300,7 +1325,14 @@
                                 </div>
                             </div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                                <h3 style="border:none; margin:0; font-size:18px;">${o.customer}</h3>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    ${o.roblox_username ? `<img id="rblx-avatar-${o.id}" src="" alt="" style="width:38px;height:38px;border-radius:50%;background:#1a2235;border:2px solid var(--border-active);" onerror="this.style.display='none'">` : ''}
+                                    <div>
+                                        <h3 style="border:none; margin:0; font-size:18px;">${o.customer}</h3>
+                                        ${o.roblox_username ? `<div style="font-size:11px;color:var(--text-secondary);">@${o.roblox_username}</div>` : ''}
+                                        ${o.bloxburg_street ? `<div style="font-size:11px;color:var(--text-secondary);">📍 ${o.bloxburg_street}</div>` : ''}
+                                    </div>
+                                </div>
                                 <div style="display:flex; gap:6px;">
                                     <span class="badge ${isCompleted ? 'status-done' : 'status-pending'}">${o.status}</span>
                                     <span class="badge ${o.paid === 'Yes' ? 'paid' : 'unpaid'}" style="cursor:pointer;" onclick="triggerPaymentToggle('${o.id}', '${o.paid}')">
@@ -1326,6 +1358,25 @@
                         </div>
                     </div>`;
             });
+            // load roblox avatars async
+            if (avatarQueue.length) {
+                avatarQueue.forEach(async ({ id, username }) => {
+                    const cached = rblxAvatarCache[username];
+                    if (cached) { const img = document.getElementById('rblx-avatar-' + id); if (img) img.src = cached; return; }
+                    try {
+                        const r1 = await fetch('https://users.roblox.com/v1/usernames/users', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ usernames:[username], excludeBannedUsers:false }) });
+                        const d1 = await r1.json();
+                        if (!d1.data || !d1.data.length) return;
+                        const r2 = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${d1.data[0].id}&size=150x150&format=Png&isCircular=false`);
+                        const d2 = await r2.json();
+                        if (!d2.data || !d2.data.length) return;
+                        const url = d2.data[0].imageUrl;
+                        rblxAvatarCache[username] = url;
+                        const img = document.getElementById('rblx-avatar-' + id);
+                        if (img) img.src = url;
+                    } catch {}
+                });
+            }
         }
 
         async function fetchLiveKitchenOrders() {
@@ -1610,6 +1661,100 @@
                 document.getElementById('newStaffName').value = ''; document.getElementById('newStaffCode').value = ''; document.getElementById('newStaffRank').value = '';
                 fetchStaffDirectory();
             } catch(e){}
+        }
+
+        // ── MENU EDITOR ──
+        let menuEditorShop = 'cafe';
+        let menuEditorItems = [];
+
+        function setMenuEditorShop(shop) {
+            menuEditorShop = shop;
+            document.querySelectorAll('#menuEditorView .k-filter-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.shop === shop);
+            });
+            loadMenuEditorItems();
+        }
+
+        async function loadMenuEditorItems() {
+            const list = document.getElementById('menuEditorList');
+            const empty = document.getElementById('menuEditorEmpty');
+            list.innerHTML = '<div style="color:var(--text-secondary);font-style:italic;padding:12px;">Loading…</div>';
+            try {
+                const res = await fetch(`${BASE_API_URL}?sheet=menus&shop=${menuEditorShop}`);
+                menuEditorItems = await res.json();
+                if (!menuEditorItems || menuEditorItems.error) menuEditorItems = [];
+                renderMenuEditorItems();
+            } catch(e) {
+                list.innerHTML = '<div style="color:var(--color-danger);padding:12px;">Failed to load menu.</div>';
+            }
+        }
+
+        function renderMenuEditorItems() {
+            const list = document.getElementById('menuEditorList');
+            const empty = document.getElementById('menuEditorEmpty');
+            if (!menuEditorItems.length) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+            // group by category
+            const groups = {};
+            menuEditorItems.forEach((m, idx) => {
+                const cat = m.category || 'Other';
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push({ ...m, _idx: idx });
+            });
+            list.innerHTML = Object.keys(groups).map(cat => `
+                <div style="margin-bottom:12px;">
+                    <div style="font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:0.07em;color:var(--accent-brand);margin-bottom:6px;">${cat}</div>
+                    ${groups[cat].map(m => `
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">
+                        <div>
+                            <span style="font-weight:600;">${m.name}</span>
+                            <span style="color:var(--text-secondary);margin-left:8px;font-size:13px;">$${parseFloat(m.price||0).toFixed(2)}</span>
+                        </div>
+                        <button onclick="deleteMenuItem('${m.name}', '${m.category}')" style="background:rgba(244,63,94,0.1);color:var(--color-danger);border:1px solid rgba(244,63,94,0.2);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">✕ Remove</button>
+                    </div>`).join('')}
+                </div>
+            `).join('');
+        }
+
+        async function addMenuItem() {
+            const name = document.getElementById('newItemName').value.trim();
+            const category = document.getElementById('newItemCategory').value.trim();
+            const price = parseFloat(document.getElementById('newItemPrice').value) || 0;
+            if (!name || !category) return alert('Please enter item name and category.');
+            try {
+                await fetch(BASE_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'insert',
+                        sheet: 'menus',
+                        row: { shop: menuEditorShop, category, name, price: price.toFixed(2) }
+                    })
+                });
+                document.getElementById('newItemName').value = '';
+                document.getElementById('newItemCategory').value = '';
+                document.getElementById('newItemPrice').value = '';
+                loadMenuEditorItems();
+            } catch(e) { alert('Failed to add item.'); }
+        }
+
+        async function deleteMenuItem(name, category) {
+            if (!confirm(`Remove "${name}" from the menu?`)) return;
+            try {
+                await fetch(BASE_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'delete',
+                        sheet: 'menus',
+                        keyField: 'name',
+                        keyValue: name
+                    })
+                });
+                loadMenuEditorItems();
+            } catch(e) { alert('Failed to delete item.'); }
         }
     </script>
 </body>

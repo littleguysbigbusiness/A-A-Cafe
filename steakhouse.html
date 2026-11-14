@@ -380,13 +380,23 @@
             <div id="nameGreeting" class="name-greeting">👋 Hey!</div>
         </div>
 
-        <div class="rblx-avatar" id="rblxAvatarBox">
+        <label style="margin-top:14px;">Roblox Username</label>
+        <div style="position:relative;margin-bottom:6px;">
+            <input type="text" id="rblxUsername" placeholder="Enter your Roblox username…" oninput="onRblxUsernameChange()" style="margin-bottom:0;padding-right:40px;">
+            <span id="rblxCheckIcon" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;"></span>
+        </div>
+        <div class="rblx-avatar" id="rblxAvatarBox" style="margin-bottom:14px;">
             <img id="rblxAvatarImg" src="" alt="avatar">
             <div>
                 <div class="rblx-name" id="rblxAvatarName"></div>
-                <div class="rblx-sub">Roblox Player</div>
+                <div class="rblx-sub">Roblox Player · Verified ✓</div>
             </div>
             <span class="rblx-badge">ROBLOX</span>
+        </div>
+
+        <div style="margin-bottom:18px;">
+            <label>🏠 Bloxburg Street / Location</label>
+            <input type="text" id="bloxburgStreet" placeholder="e.g. 14 Meadow Lane, near the fountain…">
         </div>
 
         <label style="margin-bottom:8px;">Order Type</label>
@@ -403,7 +413,7 @@
         <div class="help-tip">💡 Left-click to add an item · Right-click to remove one</div>
 
         <div class="section-label">Menu</div>
-
+        <div id="menuContainer">
         <div class="menu-section-title">🥩 Steaks</div>
         <div class="menu-grid" id="steaksGrid"></div>
 
@@ -415,6 +425,7 @@
 
         <div class="menu-section-title">🍰 Desserts</div>
         <div class="menu-grid" id="dessertsGrid"></div>
+        </div>
 
         <div style="margin-top:16px;">
             <div class="section-label">Your Selection</div>
@@ -493,19 +504,45 @@
         document.getElementById('deliveryAddressRow').style.display = type==='delivery'?'block':'none';
     }
 
-    function buildMenu() {
-        Object.keys(MENU).forEach(cat => {
-            const grid = document.getElementById(cat + 'Grid');
-            if (!grid) return;
-            MENU[cat].forEach(item => {
-                const el = document.createElement('div');
-                el.className = 'menu-item';
-                el.innerHTML = `${item.name}<span class="item-price">$${item.price.toFixed(2)}</span>`;
-                el.addEventListener('click',  () => modifyItem(el, item.name, item.price, 'add'));
-                el.addEventListener('contextmenu', e => { e.preventDefault(); modifyItem(el, item.name, item.price, 'remove'); });
-                grid.appendChild(el);
+    async function buildMenu() {
+        try {
+            const res = await fetch(`${BASE_API_URL}?sheet=menus&shop=steakhouse`);
+            const items = await res.json();
+            if (!items || items.error) return;
+            // group by category
+            const groups = {};
+            items.forEach(m => {
+                const cat = (m.category || 'other').toLowerCase();
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(m);
             });
-        });
+            // try to match to existing grid elements
+            Object.keys(groups).forEach(cat => {
+                // map sheet category names to grid IDs
+                const catMap = { steaks: 'steaks', sides: 'sides', starters: 'starters', desserts: 'desserts',
+                                 drinks: 'drinks', sauces: 'sauces' };
+                const gridId = (catMap[cat] || cat) + 'Grid';
+                let grid = document.getElementById(gridId);
+                if (!grid) {
+                    // create a new section
+                    const section = document.createElement('div');
+                    section.innerHTML = `<div class="menu-section-title">${cat.charAt(0).toUpperCase()+cat.slice(1)}</div><div class="menu-grid" id="${gridId}"></div>`;
+                    document.getElementById('menuContainer').appendChild(section);
+                    grid = document.getElementById(gridId);
+                }
+                if (!grid) return;
+                grid.innerHTML = '';
+                groups[cat].forEach(item => {
+                    const price = parseFloat(item.price) || 0;
+                    const el = document.createElement('div');
+                    el.className = 'menu-item';
+                    el.innerHTML = `${item.name}<span class="item-price">$${price.toFixed(2)}</span>`;
+                    el.addEventListener('click', () => modifyItem(el, item.name, price, 'add'));
+                    el.addEventListener('contextmenu', e => { e.preventDefault(); modifyItem(el, item.name, price, 'remove'); });
+                    grid.appendChild(el);
+                });
+            });
+        } catch(e) { console.error('Menu load error:', e); }
     }
 
     function modifyItem(el, name, price, action) {
@@ -535,15 +572,43 @@
 
     // ── ROBLOX AVATAR ──
     let rblxDebounce = null;
+    let verifiedRblxUser = null;
+
     async function fetchRobloxAvatar(username) {
         try {
             const r1 = await fetch('https://users.roblox.com/v1/usernames/users', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usernames:[username],excludeBannedUsers:false}) });
             const d1 = await r1.json();
             if (!d1.data || !d1.data.length) return null;
-            const r2 = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${d1.data[0].id}&size=150x150&format=Png&isCircular=false`);
+            const user = d1.data[0];
+            const r2 = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${user.id}&size=150x150&format=Png&isCircular=false`);
             const d2 = await r2.json();
-            return d2.data && d2.data.length ? d2.data[0].imageUrl : null;
+            if (!d2.data || !d2.data.length) return null;
+            return { url: d2.data[0].imageUrl, displayName: user.displayName || username };
         } catch { return null; }
+    }
+
+    function onRblxUsernameChange() {
+        const username = document.getElementById('rblxUsername').value.trim();
+        const avatarBox = document.getElementById('rblxAvatarBox');
+        const checkIcon = document.getElementById('rblxCheckIcon');
+        verifiedRblxUser = null;
+        clearTimeout(rblxDebounce);
+        if (!username) { avatarBox.style.display = 'none'; checkIcon.textContent = ''; return; }
+        checkIcon.textContent = '⏳';
+        rblxDebounce = setTimeout(async () => {
+            const result = await fetchRobloxAvatar(username);
+            if (result) {
+                verifiedRblxUser = username;
+                document.getElementById('rblxAvatarImg').src = result.url;
+                document.getElementById('rblxAvatarName').textContent = result.displayName;
+                avatarBox.style.display = 'flex';
+                checkIcon.textContent = '✅';
+            } else {
+                verifiedRblxUser = null;
+                avatarBox.style.display = 'none';
+                checkIcon.textContent = '❌';
+            }
+        }, 700);
     }
 
     function onNameChange() {
@@ -553,22 +618,10 @@
             greeting.style.display = 'flex';
             greeting.textContent = '👋 Hey, ' + name.split(' ')[0] + '!';
             localStorage.setItem('steakhouseName', name);
-            clearTimeout(rblxDebounce);
-            rblxDebounce = setTimeout(async () => {
-                const url = await fetchRobloxAvatar(name);
-                const box = document.getElementById('rblxAvatarBox');
-                if (url) {
-                    document.getElementById('rblxAvatarImg').src = url;
-                    document.getElementById('rblxAvatarName').textContent = name;
-                    box.style.display = 'flex';
-                } else { box.style.display = 'none'; }
-            }, 700);
             if (!updateInterval) updateInterval = setInterval(updateCustomerData, 15000);
             updateCustomerData();
         } else {
             greeting.style.display = 'none';
-            clearTimeout(rblxDebounce);
-            document.getElementById('rblxAvatarBox').style.display = 'none';
             document.getElementById('customerTrackerList').innerHTML = '<div class="empty-state"><div class="icon">👤</div><p>Enter your name to track your orders in real time</p></div>';
             clearInterval(updateInterval); updateInterval = null;
         }
@@ -619,7 +672,7 @@
         selectedItems.forEach(i => counts[i] = (counts[i]||0)+1);
         const itemStr = Object.entries(counts).map(([k,v]) => v > 1 ? `${k} x${v}` : k).join(', ');
         const delivAddr = currentOrderType === 'delivery' ? (document.getElementById('deliveryAddress').value.trim() || '') : '';
-        const payload = { customer: name, items: itemStr, total: Math.max(0,currentTotal).toFixed(2), shop: SHOP_KEY, sheet: 'orders', order_type: currentOrderType, delivery_address: delivAddr };
+        const payload = { customer: name, items: itemStr, total: Math.max(0,currentTotal).toFixed(2), shop: SHOP_KEY, sheet: 'orders', order_type: currentOrderType, delivery_address: delivAddr, roblox_username: document.getElementById('rblxUsername').value.trim(), bloxburg_street: document.getElementById('bloxburgStreet').value.trim() };
         try {
             await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
             btn.textContent = '✅ Order Sent!';
