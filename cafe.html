@@ -873,8 +873,11 @@
                     return;
                 }
 
-                // Filter to cafe items only, then group by category
-                const items = all.filter(m => (m.shop || '').toLowerCase() === 'cafe');
+                // Filter to cafe items only, de-dup by name (last row wins), drop tombstones
+                const seen = new Map();
+                all.filter(m => (m.shop||'').toLowerCase() === 'cafe')
+                   .forEach(m => { if (m.name) seen.set(m.name, m); });
+                const items = Array.from(seen.values()).filter(m => m.deleted !== 'true');
                 if (items.length === 0) {
                     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:24px;font-size:13px;">⚠️ No cafe menu items found.</div>';
                     return;

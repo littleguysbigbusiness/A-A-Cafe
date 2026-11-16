@@ -1658,9 +1658,14 @@
             const empty = document.getElementById('menuEditorEmpty');
             list.innerHTML = '<div style="color:var(--text-secondary);font-style:italic;padding:12px;">Loading…</div>';
             try {
-                const res = await fetch(`${BASE_API_URL}?sheet=menus&shop=${menuEditorShop}`);
-                menuEditorItems = await res.json();
-                if (!menuEditorItems || menuEditorItems.error) menuEditorItems = [];
+                const res = await fetch(`${BASE_API_URL}?sheet=menus`);
+                const all = await res.json();
+                if (!all || all.error) { menuEditorItems = []; renderMenuEditorItems(); return; }
+                // Filter by shop, de-duplicate by name (last row wins), drop tombstones
+                const seen = new Map();
+                all.filter(m => (m.shop||'').toLowerCase() === menuEditorShop)
+                   .forEach(m => { if (m.name) seen.set(m.name, m); });
+                menuEditorItems = Array.from(seen.values()).filter(m => m.deleted !== 'true');
                 renderMenuEditorItems();
             } catch(e) {
                 list.innerHTML = '<div style="color:var(--color-danger);padding:12px;">Failed to load menu.</div>';
@@ -1709,7 +1714,7 @@
                     body: JSON.stringify({
                         action: 'insert',
                         sheet: 'menus',
-                        row: { shop: menuEditorShop, category, name, price: price.toFixed(2) }
+                        row: { shop: menuEditorShop, category, name, price: price.toFixed(2), deleted: '' }
                     })
                 });
                 document.getElementById('newItemName').value = '';
@@ -1722,13 +1727,14 @@
         async function deleteMenuItem(name, category) {
             if (!confirm(`Remove "${name}" from the menu?`)) return;
             try {
+                // GAS has no delete — insert a tombstone row (deleted:'true').
+                // loadMenuEditorItems and the shop pages both filter these out.
                 await fetch(BASE_API_URL, {
                     method: 'POST',
                     body: JSON.stringify({
-                        action: 'delete',
+                        action: 'insert',
                         sheet: 'menus',
-                        keyField: 'name',
-                        keyValue: name
+                        row: { shop: menuEditorShop, category, name, price: '0', deleted: 'true' }
                     })
                 });
                 loadMenuEditorItems();
