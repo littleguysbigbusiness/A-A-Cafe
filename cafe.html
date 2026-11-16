@@ -865,25 +865,47 @@
         async function fetchGoogleDocMenu() {
             const grid = document.getElementById('menuGridBox');
             try {
-                const res = await fetch(`${BASE_API_URL}?sheet=menus&shop=cafe`);
-                const items = await res.json();
+                const res = await fetch(`${BASE_API_URL}?sheet=menus`);
+                const all = await res.json();
 
-                if (!items || items.length === 0 || items.error) {
-                    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:24px;font-size:13px;">⚠️ ${items.error || 'Menu unavailable.'}</div>`;
+                if (!all || all.length === 0 || all.error) {
+                    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:24px;font-size:13px;">⚠️ ${all.error || 'Menu unavailable.'}</div>`;
                     return;
                 }
 
-                grid.innerHTML = '';
+                // Filter to cafe items only, then group by category
+                const items = all.filter(m => (m.shop || '').toLowerCase() === 'cafe');
+                if (items.length === 0) {
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:24px;font-size:13px;">⚠️ No cafe menu items found.</div>';
+                    return;
+                }
+
+                const byCategory = {};
                 items.forEach(m => {
-                    const name = m.name;
-                    const price = parseFloat(m.price) || 0;
-                    const el = document.createElement('div');
-                    el.className = 'menu-item';
-                    el.innerHTML = `${name}<span class="item-price">$${price.toFixed(2)}</span>`;
-                    el.onclick = e => { e.preventDefault(); modifyItem(el, name, price, 'add'); };
-                    el.oncontextmenu = e => { e.preventDefault(); modifyItem(el, name, price, 'remove'); };
-                    if (isBanned) el.classList.add('disabled');
-                    grid.appendChild(el);
+                    const cat = m.category || 'Other';
+                    if (!byCategory[cat]) byCategory[cat] = [];
+                    byCategory[cat].push(m);
+                });
+
+                grid.innerHTML = '';
+                Object.entries(byCategory).forEach(([cat, catItems]) => {
+                    // Category header spanning full grid width
+                    const header = document.createElement('div');
+                    header.style.cssText = 'grid-column:1/-1;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);padding:12px 0 4px;border-bottom:1px solid rgba(99,179,237,0.2);margin-top:8px;';
+                    header.textContent = cat;
+                    grid.appendChild(header);
+
+                    catItems.forEach(m => {
+                        const name = m.name;
+                        const price = parseFloat(m.price) || 0;
+                        const el = document.createElement('div');
+                        el.className = 'menu-item';
+                        el.innerHTML = `${name}<span class="item-price">$${price.toFixed(2)}</span>`;
+                        el.onclick = e => { e.preventDefault(); modifyItem(el, name, price, 'add'); };
+                        el.oncontextmenu = e => { e.preventDefault(); modifyItem(el, name, price, 'remove'); };
+                        if (isBanned) el.classList.add('disabled');
+                        grid.appendChild(el);
+                    });
                 });
             } catch(e) {
                 grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:24px;font-size:13px;">⚠️ Could not connect to menu database.</div>';

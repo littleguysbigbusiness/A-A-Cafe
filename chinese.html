@@ -270,9 +270,10 @@
 
     async function buildMenu() {
         try {
-            const res = await fetch(`${BASE_API_URL}?sheet=menus&shop=chinese`);
-            const items = await res.json();
-            if (!items || items.error) return;
+            const res = await fetch(`${BASE_API_URL}?sheet=menus`);
+            const all = await res.json();
+            if (!all || all.error) return;
+            const items = all.filter(m => (m.shop || '').toLowerCase() === 'chinese');
             const catMap = { noodles:'noodlesGrid', mains:'mainsGrid', dimsum:'dimSumGrid', 'dim sum':'dimSumGrid', starters:'dimSumGrid', drinks:'drinksGrid' };
             const groups = {};
             items.forEach(m => {

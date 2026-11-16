@@ -506,9 +506,10 @@
 
     async function buildMenu() {
         try {
-            const res = await fetch(`${BASE_API_URL}?sheet=menus&shop=steakhouse`);
-            const items = await res.json();
-            if (!items || items.error) return;
+            const res = await fetch(`${BASE_API_URL}?sheet=menus`);
+            const all = await res.json();
+            if (!all || all.error) return;
+            const items = all.filter(m => (m.shop || '').toLowerCase() === 'steakhouse');
             // group by category
             const groups = {};
             items.forEach(m => {
