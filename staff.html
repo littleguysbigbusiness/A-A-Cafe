@@ -1475,8 +1475,12 @@
             if(!searchName) return;
             currentInspectedCustomer = searchName;
             try {
-                const res = await fetch(`${BASE_API_URL}?sheet=customers&customer=${encodeURIComponent(searchName)}`);
-                const data = await res.json();
+                const res = await fetch(`${BASE_API_URL}?sheet=customers`);
+                const all = await res.json();
+                const key = searchName.toLowerCase();
+                const mine = (Array.isArray(all) ? all : []).filter(r => String(r.customer || '').trim().toLowerCase() === key);
+                // latest record wins (append-only log)
+                const data = mine.length ? [mine[mine.length - 1]] : [];
                 document.getElementById('crmResultBox').style.display = 'block';
                 document.getElementById('crmNameHeader').innerText = `Profile: ${searchName}`;
                 if(data.length > 0) {
@@ -1493,14 +1497,13 @@
 
         async function commitProfileNotes() {
             const notes = document.getElementById('crmNotesInput').value.trim();
+            const curLabel = document.getElementById('crmStatusLabel').innerText;
             const payload = {
-                action: 'upsert',
+                action: 'insert',
                 sheet: 'customers',
-                keyField: 'customer',
-                keyValue: currentInspectedCustomer,
                 row: {
                     customer: currentInspectedCustomer,
-                    status: 'Active',
+                    status: curLabel === 'Banned' ? 'Banned' : 'Active',
                     notes: notes
                 }
             };
@@ -1519,10 +1522,8 @@
             const notes = document.getElementById('crmNotesInput').value.trim();
             
             const payload = {
-                action: 'upsert',
+                action: 'insert',
                 sheet: 'customers',
-                keyField: 'customer',
-                keyValue: currentInspectedCustomer,
                 row: {
                     customer: currentInspectedCustomer,
                     status: targetStatus,

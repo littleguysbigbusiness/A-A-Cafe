@@ -340,6 +340,7 @@
     }
 
     function onRblxUsernameChange() {
+        queueBanCheck();
         const username = document.getElementById('rblxUsername').value.trim();
         const avatarBox = document.getElementById('rblxAvatarBox');
         const checkIcon = document.getElementById('rblxCheckIcon');
@@ -364,6 +365,7 @@
     }
 
     function onNameChange() {
+        queueBanCheck();
         const name = document.getElementById('custName').value.trim();
         const greeting = document.getElementById('nameGreeting');
         if (name) {
@@ -410,9 +412,73 @@
         document.getElementById('historyPanel').style.display=tab==='history'?'block':'none';
     }
 
+
+    // ── SHOP OPEN/CLOSED GUARD ──
+    let shopClosed = false;
+    async function checkShopOpen() {
+        try {
+            const res = await fetch(`${BASE_API_URL}?sheet=shopstatus`);
+            const rows = await res.json();
+            let open = null;
+            (Array.isArray(rows) ? rows : []).forEach(r => {
+                if (String(r.shop || '').toLowerCase() === 'chinese') open = String(r.open).toLowerCase() === 'true';
+            });
+            shopClosed = open !== true;
+        } catch { shopClosed = false; }
+        let el = document.getElementById('closedAlert');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'closedAlert';
+            el.style.cssText = 'padding:12px 16px;border-radius:10px;font-size:14px;font-weight:700;margin:12px auto;max-width:900px;text-align:center;background:#fdecea;color:#b3261e;border:1px solid #f5c4c0;';
+            el.textContent = '🔴 We are closed right now — ordering is unavailable. Check back soon!';
+            document.body.insertBefore(el, document.body.firstChild);
+        }
+        el.style.display = shopClosed ? 'block' : 'none';
+        const btn = document.getElementById('submitBtn');
+        if (btn) btn.disabled = shopClosed || isBanned;
+        return !shopClosed;
+    }
+
+    // ── BAN CHECK (name or Roblox username, latest record wins) ──
+    let banDebounce = null;
+    function queueBanCheck() { clearTimeout(banDebounce); banDebounce = setTimeout(checkBan, 600); }
+    async function checkBan() {
+        const rb = document.getElementById('rblxUsername');
+        const names = [document.getElementById('custName').value.trim(), rb ? rb.value.trim() : '']
+            .filter(Boolean).map(n => n.toLowerCase());
+        let banned = false;
+        if (names.length) {
+            try {
+                const res = await fetch(`${BASE_API_URL}?sheet=customers`);
+                const rows = await res.json();
+                const latest = new Map();
+                (Array.isArray(rows) ? rows : []).forEach(r => {
+                    if (r.customer) latest.set(String(r.customer).trim().toLowerCase(), r);
+                });
+                banned = names.some(n => latest.has(n) && latest.get(n).status === 'Banned');
+            } catch {}
+        }
+        isBanned = banned;
+        document.getElementById('banAlert').style.display = banned ? 'flex' : 'none';
+        document.getElementById('submitBtn').disabled = banned || shopClosed;
+        document.querySelectorAll('.menu-item').forEach(m => {
+            m.classList.toggle('disabled', banned);
+            if (banned) { m.classList.remove('selected'); m.removeAttribute('data-qty'); }
+        });
+        if (banned) {
+            selectedItems = []; selectedPrices = {}; currentTotal = 0;
+            document.getElementById('totalPrice').innerText = '0.00';
+            document.getElementById('itemCount').innerText = '0 items';
+            const tray = document.getElementById('itemTray'); if (tray) tray.innerText = 'No items selected';
+        }
+        return banned;
+    }
+
     async function submitOrder() {
         const name = document.getElementById('custName').value.trim();
         if (!name) return alert('Please enter your name first.');
+        if (!(await checkShopOpen())) return alert('Sorry, we are closed right now.');
+        if (await checkBan()) return alert('This account has been suspended.');
         if (selectedItems.length === 0) return alert('Please select at least one item.');
         const btn = document.getElementById('submitBtn');
         btn.disabled=true; btn.textContent='⏳ Sending order…';
@@ -439,6 +505,7 @@
     buildMenu();
     const saved = localStorage.getItem('chineseName');
     if (saved) { document.getElementById('custName').value=saved; onNameChange(); }
+    checkShopOpen(); setInterval(checkShopOpen, 30000);
 </script>
 </body>
 </html>
