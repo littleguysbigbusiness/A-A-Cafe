@@ -353,6 +353,19 @@
             liveText.textContent  = openShops.length === 1 ? '1 restaurant open' : `${openShops.length} restaurants open`;
         }
 
+        // Drive-Thru status line
+        let dtLine = document.getElementById('driveThruLine');
+        if (!dtLine) {
+            dtLine = document.createElement('div');
+            dtLine.id = 'driveThruLine';
+            dtLine.style.cssText = 'text-align:center;font-size:13px;font-weight:700;margin:-12px 0 20px;';
+            openList.parentNode.insertBefore(dtLine, openList);
+        }
+        const dtOpen = statusMap.drivethru === true;
+        dtLine.textContent = dtOpen ? '🚗 Drive-Thru is OPEN' : '🚗 Drive-Thru is closed';
+        dtLine.style.color = dtOpen ? '#1e8e3e' : '#999';
+        dtLine.style.display = openShops.length ? 'block' : 'none';
+
         // Render open buttons
         openShops.forEach(s => {
             const a = document.createElement('a');

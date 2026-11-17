@@ -528,6 +528,10 @@
                                     <span style="font-size:13px; font-weight:600;">🥡 A&amp;A Chinese</span>
                                     <button class="shop-toggle-btn" id="shopBtn-chinese" data-shop="chinese" onclick="toggleShop('chinese')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
                                 </div>
+                                <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-darker); border:1px solid var(--border-glow); border-radius:10px; padding:10px 14px;">
+                                    <span style="font-size:13px; font-weight:600;">🚗 Drive-Thru</span>
+                                    <button class="shop-toggle-btn" id="shopBtn-drivethru" data-shop="drivethru" onclick="toggleShop('drivethru')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -834,13 +838,21 @@
                 if(!catalog || catalog.error) return;
 
                 // De-duplicate by name: keep last row per name (append-only pattern)
-                const seen = new Map();
-                catalog.forEach(s => { if (s.name) seen.set(s.name, s); });
-                systemStaffList = Array.from(seen.values());
+                systemStaffList = latestStaff(catalog);
                 const container = document.getElementById('activeDutyRosterBox');
                 container.innerHTML = '';
 
-                let activeWorkers = catalog.filter(s => s.clocked_in && (!s.clocked_out || s.clocked_out.trim() === ""));
+                // Only each person's LATEST row counts — old clock-in rows no longer keep people "on shift"
+                const onShift = s => !!(s.clocked_in && (!s.clocked_out || String(s.clocked_out).trim() === ""));
+                let activeWorkers = systemStaffList.filter(onShift);
+
+                // keep my own Clock In/Out button in sync (e.g. after a manager force-clocks me out)
+                const me = systemStaffList.find(s => String(s.name).trim().toLowerCase() === activeStaffName.toLowerCase());
+                if (me && onShift(me) !== isClockedIn) {
+                    isClockedIn = onShift(me);
+                    updateLocalShiftUI();
+                    if (!isClockedIn) pushInternalNotification(`⏹️ You were clocked out by a manager.`);
+                }
 
                 if(activeWorkers.length === 0) {
                     container.innerHTML = `<div style="color:var(--text-secondary); font-size:13px; font-style:italic;">No operators currently on floor.</div>`;
@@ -857,14 +869,16 @@
                         durationText = formatElapsed(diffMs);
                     }
 
-                    const cardId = `roster-card-${worker.name.replace(/\s+/g,'-')}`;
+                    const cardId = `roster-card-${String(worker.name).replace(/[^a-zA-Z0-9_-]/g,'-')}`;
+                    const canForce = activeStaffRank >= 10;
                     container.innerHTML += `
                         <div class="roster-card" id="${cardId}" style="display:flex;align-items:center;gap:12px;">
                             <img class="rblx-roster-pfp" src="" alt="" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--border-active);object-fit:cover;display:none;flex-shrink:0;">
-                            <div>
-                                <div style="font-weight:600;">🟢 ${worker.name}</div>
-                                <div style="font-size:12px;color:var(--text-secondary);">Shift Time: <span class="roster-time" data-start="${worker.clocked_in}">${durationText}</span></div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;">🟢 ${esc(worker.name)}</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">Shift Time: <span class="roster-time" data-start="${esc(worker.clocked_in)}">${durationText}</span></div>
                             </div>
+                            ${canForce ? `<button onclick="forceClockOut(${esc(JSON.stringify(worker.name))})" style="font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;border:1px solid var(--color-danger);background:transparent;color:var(--color-danger);cursor:pointer;white-space:nowrap;">⏹️ Force Clock Out</button>` : ''}
                         </div>`;
 
                     // load avatar only if worker has a roblox_username field
@@ -881,6 +895,19 @@
                     }
                 });
             } catch(e){}
+        }
+
+        async function forceClockOut(name) {
+            if (activeStaffRank < 10) return;
+            const row = systemStaffList.find(s => s.name === name);
+            if (!row) return;
+            if (!confirm(`Force clock out ${name}?`)) return;
+            const updated = Object.assign({}, row, { clocked_out: new Date().toLocaleString() });
+            try {
+                await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'staff', row: updated }) });
+                pushInternalNotification(`⏹️ ${name} was force clocked out by ${activeStaffName}`);
+                await fetchLiveRosterData();
+            } catch(e) { alert('Failed to clock out ' + name + '.'); }
         }
 
         function formatElapsed(ms) {
@@ -1087,7 +1114,7 @@
         function disconnectSession() { location.reload(); }
 
         // ── SHOP STATUS CONTROL ──
-        const shopStatus = { cafe: null, steakhouse: null, chinese: null };
+        const shopStatus = { cafe: null, steakhouse: null, chinese: null, drivethru: null };
 
         async function loadShopStatus() {
             try {
@@ -1108,7 +1135,7 @@
         }
 
         function renderShopButtons() {
-            ['cafe','steakhouse','chinese'].forEach(key => {
+            ['cafe','steakhouse','chinese','drivethru'].forEach(key => {
                 const btn = document.getElementById('shopBtn-' + key);
                 if (!btn) return;
                 const isOpen = shopStatus[key] === true;
