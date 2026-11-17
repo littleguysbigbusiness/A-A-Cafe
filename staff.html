@@ -1545,44 +1545,10 @@
             } catch(e){}
         }
 
-        // ── POS SHOP MENUS ──────────────────────────────────────────
-        const POS_MENUS = {
-            cafe: [
-                { name: 'Flat White', price: 5.50 }, { name: 'Latte', price: 5.00 },
-                { name: 'Cappuccino', price: 5.00 }, { name: 'Long Black', price: 4.50 },
-                { name: 'Espresso', price: 3.50 }, { name: 'Mocha', price: 5.50 },
-                { name: 'Hot Chocolate', price: 5.00 }, { name: 'Chai Latte', price: 5.50 },
-                { name: 'Matcha Latte', price: 6.00 }, { name: 'Iced Coffee', price: 6.50 },
-                { name: 'Iced Latte', price: 6.00 }, { name: 'Cold Brew', price: 6.50 },
-                { name: 'Croissant', price: 5.00 }, { name: 'Banana Bread', price: 5.50 },
-                { name: 'Muffin', price: 4.50 }, { name: 'Toastie', price: 9.00 },
-                { name: 'Acai Bowl', price: 14.00 }, { name: 'Smashed Avo Toast', price: 16.00 },
-            ],
-            steakhouse: [
-                { name: 'Ribeye Steak', price: 28.00 }, { name: 'NY Strip', price: 24.00 },
-                { name: 'Filet Mignon', price: 34.00 }, { name: 'T-Bone Steak', price: 30.00 },
-                { name: 'Wagyu Burger', price: 18.00 }, { name: 'Beef Short Ribs', price: 26.00 },
-                { name: 'Caesar Salad', price: 11.00 }, { name: 'Chicken Wings', price: 13.00 },
-                { name: 'Prawn Cocktail', price: 12.00 }, { name: 'Garlic Bread', price: 5.50 },
-                { name: 'Loaded Fries', price: 9.00 }, { name: 'Onion Rings', price: 7.00 },
-                { name: 'Creamy Mashed Potato', price: 7.50 }, { name: 'Steakhouse Corn', price: 6.00 },
-                { name: 'NY Cheesecake', price: 9.00 }, { name: 'Choc Lava Cake', price: 10.00 },
-            ],
-            chinese: [
-                { name: 'Fried Rice', price: 11.00 }, { name: 'Chow Mein', price: 12.00 },
-                { name: 'Yang Chow Fried Rice', price: 13.00 }, { name: 'Beef Ho Fun', price: 13.50 },
-                { name: "General Tso's Chicken", price: 15.00 }, { name: 'Sweet & Sour Pork', price: 14.00 },
-                { name: 'Kung Pao Chicken', price: 14.00 }, { name: 'Honey Sesame Beef', price: 16.00 },
-                { name: 'Peking Duck (Half)', price: 24.00 }, { name: 'Mapo Tofu', price: 12.00 },
-                { name: 'Pork Dumplings (6pc)', price: 9.00 }, { name: 'Prawn Spring Rolls', price: 8.00 },
-                { name: 'Sesame Prawn Toast', price: 8.50 }, { name: 'Wonton Soup', price: 10.00 },
-                { name: 'Jasmine Tea', price: 4.00 }, { name: 'Lychee Juice', price: 5.50 },
-            ]
-        };
-
+        // ── POS SHOP MENUS (live from Google Sheets) ────────────────
         let currentPosShop = 'cafe';
 
-        function setPosShop(shop) {
+        async function setPosShop(shop) {
             currentPosShop = shop;
             document.querySelectorAll('#posShopPicker .k-filter-btn').forEach(b => {
                 b.classList.toggle('active', b.dataset.shop === shop);
@@ -1591,13 +1557,35 @@
             manualSelectedItems = [];
             manualCurrentTotal = 0;
             document.getElementById('manualTotal').innerText = 0;
-            renderPosMenu(shop);
+            await loadPosItems(shop);
         }
 
-        function renderPosMenu(shop) {
+        async function loadPosItems(shop) {
             const grid = document.getElementById('menuGridBox');
-            const items = POS_MENUS[shop] || [];
+            grid.innerHTML = '<div style="padding:16px;color:#888;font-size:13px;">Loading menu…</div>';
+            try {
+                const res = await fetch(`${BASE_API_URL}?sheet=menus`);
+                const all = await res.json();
+                if (!all || all.error) { renderPosMenu(shop, []); return; }
+                const seen = new Map();
+                all.filter(m => (m.shop || '').toLowerCase() === shop)
+                   .forEach(m => { if (m.name) seen.set(m.name, m); });
+                const items = Array.from(seen.values())
+                    .filter(m => !m.deleted)
+                    .map(m => ({ name: m.name, price: parseFloat(m.price) || 0 }));
+                renderPosMenu(shop, items);
+            } catch(e) {
+                grid.innerHTML = '<div style="padding:16px;color:#c33;font-size:13px;">Failed to load menu. Check connection.</div>';
+            }
+        }
+
+        function renderPosMenu(shop, items) {
+            const grid = document.getElementById('menuGridBox');
             grid.innerHTML = '';
+            if (!items || items.length === 0) {
+                grid.innerHTML = '<div style="padding:16px;color:#888;font-size:13px;">No items found.</div>';
+                return;
+            }
             items.forEach(m => {
                 const el = document.createElement('div');
                 el.className = 'pos-item';
@@ -1610,8 +1598,7 @@
         }
 
         async function fetchStaffMenuReference() {
-            // Now replaced by renderPosMenu; load default shop on init
-            renderPosMenu(currentPosShop);
+            await loadPosItems(currentPosShop);
         }
 
         async function registerNewStaffProfile() {
