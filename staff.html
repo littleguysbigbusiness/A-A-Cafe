@@ -1272,7 +1272,7 @@
             }
 
             // Hide orders that are both Completed AND Paid — they've been archived
-            const active = pipeline.filter(o => !(o.status === 'Completed' && o.paid === 'Yes'));
+            const active = pipeline.filter(o => o.status !== 'Cancelled' && !(o.status === 'Completed' && o.paid === 'Yes'));
             const filtered = kitchenShopFilter === 'all'
                 ? [...active].reverse()
                 : [...active].reverse().filter(o => (o.shop || '').toLowerCase() === kitchenShopFilter);
@@ -1354,6 +1354,37 @@
             }
         }
 
+        // ── BANNED-CUSTOMER GUARD (kitchen side) ──
+        // Order pages block banned customers, but an old copy of a page can slip
+        // through. Any live order from a banned name / Roblox username is
+        // auto-cancelled here so it never gets cooked.
+        const autoCancelledIds = new Set();
+        async function cancelBannedOrders() {
+            let banned = new Set();
+            try {
+                const res = await fetch(`${BASE_API_URL}?sheet=customers`);
+                const rows = await res.json();
+                const latest = new Map();
+                (Array.isArray(rows) ? rows : []).forEach(r => {
+                    if (r.customer) latest.set(String(r.customer).trim().toLowerCase(), r.status);
+                });
+                latest.forEach((st, name) => { if (st === 'Banned') banned.add(name); });
+            } catch { return; }
+            if (!banned.size) return;
+            for (const o of currentLiveOrders) {
+                if (o.status === 'Completed' || o.status === 'Cancelled') continue;
+                const names = [o.customer, o.roblox_username].filter(Boolean).map(n => String(n).trim().toLowerCase());
+                if (!names.some(n => banned.has(n)) || autoCancelledIds.has(o.id)) continue;
+                autoCancelledIds.add(o.id);
+                const row = Object.assign({}, o, { status: 'Cancelled', chef_notes: 'Auto-cancelled: banned customer' });
+                try {
+                    await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'Sheet1', row }) });
+                    Object.assign(o, row);
+                    pushInternalNotification(`🚫 Ticket ${o.id} from banned customer ${o.customer} was auto-cancelled.`);
+                } catch { autoCancelledIds.delete(o.id); }
+            }
+        }
+
         async function fetchLiveKitchenOrders() {
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=Sheet1`);
@@ -1365,6 +1396,7 @@
                     const seen = new Map();
                     pipeline.forEach(o => { if (o.id) seen.set(o.id, o); });
                     currentLiveOrders = Array.from(seen.values());
+                    await cancelBannedOrders();
                 }
                 renderKitchenOrders(currentLiveOrders);
             } catch(e){}
