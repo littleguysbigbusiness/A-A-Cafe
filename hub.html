@@ -304,7 +304,7 @@
     const SHOP_DEFS = [
         { key: 'cafe',    emoji: '☕', name: 'A&A Cafe',       tags: 'Coffee · Pastries · Snacks',       page: 'cafe.html',       btnClass: 'shop-btn-cafe',    iconClass: 'icon-cafe'    },
         { key: 'steakhouse', emoji: '🍽️', name: 'A&A Buffet', tags: 'Mains · Sides · Desserts',      page: 'steakhouse.html', btnClass: 'shop-btn-steak',   iconClass: 'icon-steak'   },
-        { key: 'chinese', emoji: '🥡', name: 'A&A Chinese',    tags: 'Noodles · Rice · Dim Sum',          page: 'chinese.html',    btnClass: 'shop-btn-chinese', iconClass: 'icon-chinese' },
+        { key: 'chinese', emoji: '🥡', name: 'A&A Chinese',    tags: 'Asian Specials · Mains · Drinks',          page: 'chinese.html',    btnClass: 'shop-btn-chinese', iconClass: 'icon-chinese' },
     ];
 
     async function loadStatus() {
@@ -319,7 +319,7 @@
             } else if (data && typeof data === 'object') {
                 statusMap = data;
             }
-        } catch {}
+        } catch { return null; }
         return statusMap;
     }
 
@@ -386,7 +386,7 @@
     }
 
     async function init() {
-        const statusMap = await loadStatus();
+        const statusMap = (await loadStatus()) || {};
 
         // Hide loading, show content
         const loading = document.getElementById('loadingScreen');
@@ -399,7 +399,7 @@
         // Refresh every 30s
         setInterval(async () => {
             const fresh = await loadStatus();
-            renderHub(fresh);
+            if (fresh) renderHub(fresh); // keep last good state if the network blips
         }, 30000);
     }
 

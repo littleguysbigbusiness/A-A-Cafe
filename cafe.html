@@ -513,7 +513,8 @@
                     <div style="display:flex;gap:8px;margin-bottom:18px;" id="orderTypeRow">
                         <button class="order-type-btn active" id="btnDineIn" onclick="setOrderType('dine-in')">🪑 Dine In</button>
                         <button class="order-type-btn" id="btnTakeaway" onclick="setOrderType('takeaway')">🛍️ Takeaway</button>
-                        <button class="order-type-btn" id="btnDelivery" onclick="setOrderType('delivery')">🛵 Delivery</button>
+                        <button class="order-type-btn" id="btnDriveThru" onclick="setOrderType('drive-thru')">🚗 Drive-Thru</button>
+            <button class="order-type-btn" id="btnDelivery" onclick="setOrderType('delivery')">🛵 Delivery</button>
                     </div>
                     <div id="deliveryAddressRow" style="display:none;margin-bottom:4px;">
                         <label>Delivery Address</label>
@@ -591,8 +592,8 @@
 
         function setOrderType(type) {
             currentOrderType = type;
-            ['dine-in','takeaway','delivery'].forEach(t => {
-                const map = { 'dine-in':'btnDineIn', 'takeaway':'btnTakeaway', 'delivery':'btnDelivery' };
+            ['dine-in','takeaway','drive-thru','delivery'].forEach(t => {
+                const map = { 'dine-in':'btnDineIn', 'takeaway':'btnTakeaway', 'drive-thru':'btnDriveThru', 'delivery':'btnDelivery' };
                 document.getElementById(map[t]).classList.toggle('active', t === type);
             });
             document.getElementById('deliveryAddressRow').style.display = type === 'delivery' ? 'block' : 'none';
@@ -784,6 +785,7 @@
                 return alert("Please enter your name and select at least one item.");
             }
             if (!(await checkShopOpen())) return alert("Sorry, we are closed right now.");
+            if (currentOrderType === 'delivery' && !document.getElementById('deliveryAddress').value.trim()) return alert('Please enter a delivery address.');
 
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
@@ -796,7 +798,7 @@
                     action: 'insert',
                     sheet: 'Sheet1',
                     row: {
-                        id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                        id: 'ORD-' + (Date.now().toString(36) + Math.floor(Math.random()*36).toString(36)).slice(-6).toUpperCase(),
                         customer: name,
                         items: selectedItems.join(', '),
                         total: currentTotal,
@@ -836,16 +838,44 @@
             }
         }
 
+
+    function escHtml(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    // latest row per order id wins (append-only sheet)
+    function latestOrders(rows) {
+        const seen = new Map();
+        (Array.isArray(rows) ? rows : []).forEach(o => { if (o && o.id) seen.set(o.id, o); });
+        return Array.from(seen.values());
+    }
+    let lastTrackerOrders = [];
+    async function cancelMyOrder(orderId) {
+        const o = lastTrackerOrders.find(x => x.id === orderId);
+        if (!o) return;
+        if (o.status !== 'Pending') return alert('This order is already being made and can no longer be cancelled. Please ask a staff member.');
+        if (!confirm('Cancel this order?')) return;
+        try {
+            await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'Sheet1', row: Object.assign({}, o, { status: 'Cancelled', chef_notes: 'Cancelled by customer' }) }) });
+            updateCustomerData();
+        } catch { alert('Could not cancel the order. Please try again.'); }
+    }
+
         async function updateCustomerData() {
             const user = document.getElementById('custName').value.trim();
             if (!user) return;
 
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=Sheet1&customer=${encodeURIComponent(user)}`);
-                const orders = await res.json();
+                const rawOrders = await res.json();
                 const container = document.getElementById('customerTrackerList');
+                // latest row per id, cafe orders only, still in progress
+                const orders = latestOrders(rawOrders).filter(o =>
+                    ((o.shop || 'cafe').toLowerCase() === 'cafe') &&
+                    String(o.customer || '').trim().toLowerCase() === user.toLowerCase() &&
+                    !['Completed', 'Complete', 'Cancelled'].includes(o.status));
+                lastTrackerOrders = orders;
 
-                if (!orders || orders.length === 0 || orders.error) {
+                if (orders.length === 0) {
                     container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No active orders in the queue right now</p></div>';
                 } else {
                     container.innerHTML = '';
@@ -856,14 +886,15 @@
                         container.innerHTML += `
                             <div class="order-card">
                                 <div class="order-card-top">
-                                    <span class="order-id">${o.id}</span>
-                                    <span class="status-pill ${statusClass}">${o.status}</span>
+                                    <span class="order-id">${escHtml(o.id)}</span>
+                                    <span class="status-pill ${statusClass}">${escHtml(o.status)}</span>
                                 </div>
-                                <div class="order-items">${o.items}</div>
+                                <div class="order-items">${escHtml(o.items)}</div>
                                 <div class="order-meta">
-                                    <div class="eta">⏱️ Est. Wait: ${eta}</div>
-                                    <div>👨‍🍳 ${note}</div>
-                                    ${o.notes ? `<div style="margin-top:4px;opacity:0.75;font-size:11px;">📝 ${o.notes}</div>` : ''}
+                                    <div class="eta">⏱️ Est. Wait: ${escHtml(eta)}</div>
+                                    <div>👨‍🍳 ${escHtml(note)}</div>
+                                    ${o.notes ? `<div style="margin-top:4px;opacity:0.75;font-size:11px;">📝 ${escHtml(o.notes)}</div>` : ''}
+                                    ${o.status === 'Pending' ? `<button onclick="cancelMyOrder('${escHtml(o.id)}')" style="margin-top:8px;padding:6px 12px;font-size:12px;font-weight:700;border-radius:8px;border:1px solid #e0a3a3;background:transparent;color:#b3261e;cursor:pointer;">Cancel Order</button>` : ''}
                                 </div>
                             </div>`;
                     });

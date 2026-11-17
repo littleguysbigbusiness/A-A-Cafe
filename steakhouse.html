@@ -403,6 +403,7 @@
         <div style="display:flex;gap:8px;margin-bottom:18px;">
             <button class="order-type-btn active" id="btnDineIn" onclick="setOrderType('dine-in')">🪑 Dine In</button>
             <button class="order-type-btn" id="btnTakeaway" onclick="setOrderType('takeaway')">🛍️ Takeaway</button>
+            <button class="order-type-btn" id="btnDriveThru" onclick="setOrderType('drive-thru')">🚗 Drive-Thru</button>
             <button class="order-type-btn" id="btnDelivery" onclick="setOrderType('delivery')">🛵 Delivery</button>
         </div>
         <div id="deliveryAddressRow" style="display:none;margin-bottom:18px;">
@@ -497,8 +498,8 @@
     let currentOrderType = 'dine-in';
     function setOrderType(type) {
         currentOrderType = type;
-        ['dine-in','takeaway','delivery'].forEach(t => {
-            const m={'dine-in':'btnDineIn','takeaway':'btnTakeaway','delivery':'btnDelivery'};
+        ['dine-in','takeaway','drive-thru','delivery'].forEach(t => {
+            const m={'dine-in':'btnDineIn','takeaway':'btnTakeaway','drive-thru':'btnDriveThru', 'delivery':'btnDelivery' };
             document.getElementById(m[t]).classList.toggle('active', t===type);
         });
         document.getElementById('deliveryAddressRow').style.display = type==='delivery'?'block':'none';
@@ -547,6 +548,13 @@
                 });
             });
         } catch(e) { console.error('Menu load error:', e); }
+        // hide headings for sections with no items
+        document.querySelectorAll('#menuContainer .menu-grid').forEach(g => {
+            const title = g.previousElementSibling;
+            const empty = g.children.length === 0;
+            g.style.display = empty ? 'none' : '';
+            if (title && title.classList.contains('menu-section-title')) title.style.display = empty ? 'none' : '';
+        });
     }
 
     function modifyItem(el, name, price, action) {
@@ -633,31 +641,61 @@
         }
     }
 
+
+    function escHtml(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    // latest row per order id wins (append-only sheet)
+    function latestOrders(rows) {
+        const seen = new Map();
+        (Array.isArray(rows) ? rows : []).forEach(o => { if (o && o.id) seen.set(o.id, o); });
+        return Array.from(seen.values());
+    }
+    let lastTrackerOrders = [];
+    async function cancelMyOrder(orderId) {
+        const o = lastTrackerOrders.find(x => x.id === orderId);
+        if (!o) return;
+        if (o.status !== 'Pending') return alert('This order is already being made and can no longer be cancelled. Please ask a staff member.');
+        if (!confirm('Cancel this order?')) return;
+        try {
+            await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'Sheet1', row: Object.assign({}, o, { status: 'Cancelled', chef_notes: 'Cancelled by customer' }) }) });
+            updateCustomerData();
+        } catch { alert('Could not cancel the order. Please try again.'); }
+    }
+
     async function updateCustomerData() {
         const name = document.getElementById('custName').value.trim();
         if (!name) return;
         try {
-            const res = await fetch(`${BASE_API_URL}?sheet=Sheet1&customer=${encodeURIComponent(name)}&shop=${SHOP_KEY}`);
+            const res = await fetch(`${BASE_API_URL}?sheet=Sheet1&customer=${encodeURIComponent(name)}`);
             const data = await res.json();
-            renderTracker(data || []);
+            const mine = latestOrders(data).filter(o =>
+                (o.shop || '').toLowerCase() === SHOP_KEY &&
+                String(o.customer || '').trim().toLowerCase() === name.toLowerCase());
+            lastTrackerOrders = mine;
+            renderTracker(mine);
         } catch {}
     }
 
     function renderTracker(orders) {
         const live = document.getElementById('customerTrackerList');
         const hist = document.getElementById('pastHistoryList');
-        const active = orders.filter(o => o.status !== 'Complete' && o.status !== 'Cancelled');
-        const past   = orders.filter(o => o.status === 'Complete' || o.status === 'Cancelled');
-
+        const done = s => s === 'Completed' || s === 'Complete' || s === 'Cancelled';
+        const active = orders.filter(o => !done(o.status)).reverse();
+        const past   = orders.filter(o => done(o.status)).reverse();
         live.innerHTML = active.length ? active.map(renderOrderCard).join('') : '<div class="empty-state"><div class="icon">🍳</div><p>No active orders right now</p></div>';
         hist.innerHTML = past.length  ? past.map(renderOrderCard).join('') : '<div class="empty-state"><div class="icon">📭</div><p>No completed orders yet</p></div>';
     }
 
     function renderOrderCard(o) {
-        const sc = o.status === 'Pending' ? 'status-pending' : o.status === 'Ready' ? 'status-ready' : 'status-complete';
+        const st = o.status || 'Pending';
+        const sc = st === 'Pending' ? 'status-pending' : st === 'Ready' ? 'status-ready' : 'status-complete';
         return `<div class="order-card">
-            <div class="order-name">${o.items || 'Order'} <span class="status-badge ${sc}">${o.status || 'Pending'}</span></div>
-            <div class="order-items">$${parseFloat(o.total||0).toFixed(2)} · ${o.timestamp || ''}</div>
+            <div class="order-name">${escHtml(o.items || 'Order')} <span class="status-badge ${sc}">${escHtml(st)}</span></div>
+            <div class="order-items">$${parseFloat(o.total||0).toFixed(2)} · ${escHtml(o.id)}</div>
+            ${o.eta && st !== 'Cancelled' ? `<div class="order-items">⏱️ Wait: ${escHtml(o.eta)}</div>` : ''}
+            ${o.chef_notes ? `<div class="order-items">👨‍🍳 ${escHtml(o.chef_notes)}</div>` : ''}
+            ${st === 'Pending' ? `<button onclick="cancelMyOrder('${escHtml(o.id)}')" style="margin-top:8px;padding:6px 12px;font-size:12px;font-weight:700;border-radius:8px;border:1px solid #e0a3a3;background:transparent;color:#b3261e;cursor:pointer;">Cancel Order</button>` : ''}
         </div>`;
     }
 
@@ -734,6 +772,7 @@
         const name = document.getElementById('custName').value.trim();
         if (!name) return alert('Please enter your name first.');
         if (!(await checkShopOpen())) return alert('Sorry, we are closed right now.');
+        if (currentOrderType === 'delivery' && !document.getElementById('deliveryAddress').value.trim()) return alert('Please enter a delivery address.');
         if (await checkBan()) return alert('This account has been suspended.');
         if (selectedItems.length === 0) return alert('Please select at least one item.');
         const btn = document.getElementById('submitBtn');
@@ -742,7 +781,7 @@
         selectedItems.forEach(i => counts[i] = (counts[i]||0)+1);
         const itemStr = Object.entries(counts).map(([k,v]) => v > 1 ? `${k} x${v}` : k).join(', ');
         const delivAddr = currentOrderType === 'delivery' ? (document.getElementById('deliveryAddress').value.trim() || '') : '';
-        const payload = { action: 'insert', sheet: 'Sheet1', row: { id: 'ORD-' + Math.floor(1000 + Math.random() * 9000), customer: name, items: itemStr, total: Math.max(0,currentTotal).toFixed(2), status: 'Pending', paid: 'No', eta: '', notes: '', chef_notes: '', shop: SHOP_KEY, order_type: currentOrderType, delivery_address: delivAddr, roblox_username: document.getElementById('rblxUsername').value.trim(), bloxburg_street: document.getElementById('bloxburgStreet').value.trim() } };
+        const payload = { action: 'insert', sheet: 'Sheet1', row: { id: 'ORD-' + (Date.now().toString(36) + Math.floor(Math.random()*36).toString(36)).slice(-6).toUpperCase(), customer: name, items: itemStr, total: Math.max(0,currentTotal).toFixed(2), status: 'Pending', paid: 'No', eta: '', notes: '', chef_notes: '', shop: SHOP_KEY, order_type: currentOrderType, delivery_address: delivAddr, roblox_username: document.getElementById('rblxUsername').value.trim(), bloxburg_street: document.getElementById('bloxburgStreet').value.trim() } };
         try {
             const res = await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify(payload) });
             const result = await res.json();

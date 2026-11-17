@@ -468,7 +468,7 @@
         <label>Operator Initials / Name:</label>
         <input type="text" id="staffUser" autocomplete="off" placeholder="e.g. Aiden">
         <label>Console Access Pin:</label>
-        <input type="password" id="staffPass" placeholder="••••">
+        <input type="password" id="staffPass" placeholder="••••" onkeydown="if(event.key==='Enter')authenticateStaff()">
         <button class="btn-action" onclick="authenticateStaff()">Mount Core System</button>
     </div>
 
@@ -553,6 +553,14 @@
                             <button class="k-filter-btn"        data-shop="steakhouse" onclick="setPosShop('steakhouse')">🍽️ Buffet</button>
                             <button class="k-filter-btn"        data-shop="chinese"    onclick="setPosShop('chinese')">🥡 Chinese</button>
                         </div>
+
+                        <label>Order Type:</label>
+                        <select id="manualOrderType" style="margin-bottom:12px;">
+                            <option value="dine-in">🪑 Dine In</option>
+                            <option value="takeaway">🛍️ Takeaway</option>
+                            <option value="drive-thru">🚗 Drive-Thru</option>
+                            <option value="delivery">🛵 Delivery</option>
+                        </select>
 
                         <div id="menuGridBox" class="pos-grid">
                             <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); font-style: italic; padding: 20px;">
@@ -812,6 +820,13 @@
             } catch { return null; }
         }
 
+        // latest row per staff name wins (append-only sheet)
+        function latestStaff(rows) {
+            const seen = new Map();
+            (Array.isArray(rows) ? rows : []).forEach(s => { if (s && s.name) seen.set(String(s.name).trim().toLowerCase(), s); });
+            return Array.from(seen.values());
+        }
+
         async function fetchLiveRosterData() {
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=staff`);
@@ -1017,9 +1032,9 @@
             const pass = document.getElementById('staffPass').value.trim();
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=staff`);
-                const catalog = await res.json();
+                const catalog = latestStaff(await res.json());
                 systemStaffList = catalog;
-                const matched = catalog.find(s => s.name.toLowerCase() === user.toLowerCase() && String(s.code) === pass);
+                const matched = catalog.find(s => String(s.name).trim().toLowerCase() === user.toLowerCase() && String(s.code) === pass);
                 if(matched) {
                     activeStaffName = matched.name;
                     activeStaffRank = parseInt(matched.rank) || 1;
@@ -1161,10 +1176,11 @@
                 action: 'insert',
                 sheet: 'Sheet1',
                 row: {
-                    id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                    id: 'ORD-' + (Date.now().toString(36) + Math.floor(Math.random()*36).toString(36)).slice(-6).toUpperCase(),
                     customer: name,
                     items: manualSelectedItems.join(', '),
-                    total: manualCurrentTotal,
+                    total: Math.max(0, manualCurrentTotal).toFixed(2),
+                    order_type: document.getElementById('manualOrderType').value,
                     status: 'Pending',
                     paid: 'No',
                     eta: 'Asap',
@@ -1260,10 +1276,30 @@
             } catch(e) { alert("Archival pipeline dropped connection."); }
         }
 
+        function esc(v) {
+            return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        async function cancelKitchenOrder(orderId) {
+            const order = currentLiveOrders.find(o => o.id === orderId);
+            if (!order) return;
+            if (!confirm(`Cancel order ${orderId} for ${order.customer}?`)) return;
+            const row = Object.assign({}, order, { status: 'Cancelled', chef_notes: `Cancelled by ${activeStaffName}` });
+            try {
+                await fetch(BASE_API_URL, { method: 'POST', body: JSON.stringify({ action: 'insert', sheet: 'Sheet1', row }) });
+                pushInternalNotification(`❌ Ticket ${orderId} cancelled by ${activeStaffName}`);
+                fetchLiveKitchenOrders();
+            } catch(e) { alert('Failed to cancel order.'); }
+        }
+
+        const ORDER_TYPE_LABELS = { 'dine-in': '🪑 Dine In', 'takeaway': '🛍️ Takeaway', 'delivery': '🛵 Delivery', 'drive-thru': '🚗 Drive-Thru' };
+
         const SHOP_LABELS = { cafe: '☕ Cafe', steakhouse: '🍽️ Buffet', chinese: '🥡 Chinese' };
 
         function renderKitchenOrders(pipeline) {
             const target = document.getElementById('liveOrdersList');
+            // Skip auto-refresh while someone is typing an ETA / note, so it isn't wiped
+            if (target.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return;
             target.innerHTML = '';
 
             if (!pipeline || pipeline.length === 0 || pipeline.error) {
@@ -1303,9 +1339,9 @@
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     ${o.roblox_username ? `<img id="rblx-avatar-${o.id}" src="" alt="" style="width:38px;height:38px;border-radius:50%;background:#1a2235;border:2px solid var(--border-active);" onerror="this.style.display='none'">` : ''}
                                     <div>
-                                        <h3 style="border:none; margin:0; font-size:18px;">${o.customer}</h3>
-                                        ${o.roblox_username ? `<div style="font-size:11px;color:var(--text-secondary);">@${o.roblox_username}</div>` : ''}
-                                        ${o.bloxburg_street ? `<div style="font-size:11px;color:var(--text-secondary);">📍 ${o.bloxburg_street}</div>` : ''}
+                                        <h3 style="border:none; margin:0; font-size:18px;">${esc(o.customer)}</h3>
+                                        ${o.roblox_username ? `<div style="font-size:11px;color:var(--text-secondary);">@${esc(o.roblox_username)}</div>` : ''}
+                                        ${o.bloxburg_street ? `<div style="font-size:11px;color:var(--text-secondary);">📍 ${esc(o.bloxburg_street)}</div>` : ''}
                                     </div>
                                 </div>
                                 <div style="display:flex; gap:6px;">
@@ -1315,21 +1351,24 @@
                                     </span>
                                 </div>
                             </div>
-                            <p style="margin:12px 0; font-size:14px; color:var(--text-secondary); line-height:1.5;">${o.items}</p>
-                            ${o.notes ? `<div style="background: rgba(56, 189, 248, 0.1); padding: 8px; border-radius: 6px; font-size: 13px; color: var(--accent-brand); margin-bottom: 12px; border-left: 3px solid var(--accent-brand);"><strong>📋 Special Notes:</strong> ${o.notes}</div>` : ''}
+                            ${o.order_type ? `<div style="font-size:12px;font-weight:700;margin-bottom:6px;">${ORDER_TYPE_LABELS[o.order_type] || esc(o.order_type)}</div>` : ''}
+                            ${o.delivery_address ? `<div style="font-size:13px;margin-bottom:6px;color:var(--color-alert);">🏠 Deliver to: ${esc(o.delivery_address)}</div>` : ''}
+                            <p style="margin:12px 0; font-size:14px; color:var(--text-secondary); line-height:1.5;">${esc(o.items)}</p>
+                            ${o.notes ? `<div style="background: rgba(56, 189, 248, 0.1); padding: 8px; border-radius: 6px; font-size: 13px; color: var(--accent-brand); margin-bottom: 12px; border-left: 3px solid var(--accent-brand);"><strong>📋 Special Notes:</strong> ${esc(o.notes)}</div>` : ''}
                         </div>
 
                         <div style="margin-top:14px;">
                             <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Custom Wait/ETA Time:</label>
-                            <input type="text" value="${o.eta || ''}" placeholder="e.g., 7 mins, next, done" style="margin-bottom:10px; padding:10px;" onchange="updateOrderField('${o.id}', 'eta', this.value)">
+                            <input type="text" value="${esc(o.eta)}" placeholder="e.g., 7 mins, next, done" style="margin-bottom:10px; padding:10px;" onchange="updateOrderField('${o.id}', 'eta', this.value)">
 
                             <label style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700;">Kitchen Note:</label>
-                            <input type="text" value="${o.chef_notes || ''}" placeholder="Add update..." style="margin-bottom:14px; padding:10px;" onchange="updateOrderField('${o.id}', 'chef_notes', this.value)">
+                            <input type="text" value="${esc(o.chef_notes)}" placeholder="Add update..." style="margin-bottom:14px; padding:10px;" onchange="updateOrderField('${o.id}', 'chef_notes', this.value)">
 
                             ${isCompleted ?
                                 `<div style="text-align:center; color:var(--color-alert); font-size:12px; font-weight:bold; padding:12px; border:1px dashed var(--color-alert); border-radius:8px; background:rgba(251,191,36,0.02)">⚠️ Collect Payment to Clear Ticket</div>` :
                                 `<button class="btn-action" style="background:var(--color-success); color:white;" onclick="completeKitchenOrder('${o.id}')">Fulfill & Archive</button>`
                             }
+                            <button class="btn-action" style="background:transparent; color:var(--color-danger); border:1px solid var(--color-danger); margin-top:8px;" onclick="cancelKitchenOrder('${o.id}')">Cancel Order</button>
                         </div>
                     </div>`;
             });
@@ -1470,8 +1509,8 @@
                 const select = document.getElementById('financeStaffDropdown');
                 select.innerHTML = '<option value="">-- Choose Staff Target --</option>';
                 const res = await fetch(`${BASE_API_URL}?sheet=staff`);
-                const catalog = await res.json();
-                catalog.forEach(s => { select.innerHTML += `<option value="${s.name}">${s.name}</option>`; });
+                const catalog = latestStaff(await res.json());
+                catalog.forEach(s => { select.innerHTML += `<option value="${esc(s.name)}">${esc(s.name)}</option>`; });
             } catch(e){}
         }
 
@@ -1575,10 +1614,10 @@
         async function fetchStaffDirectory() {
             try {
                 const res = await fetch(`${BASE_API_URL}?sheet=staff`);
-                const staff = await res.json();
+                const staff = latestStaff(await res.json());
                 const list = document.getElementById('staffDirectoryList');
                 list.innerHTML = '';
-                staff.forEach(s => { list.innerHTML += `<li>Node ID: <strong>${s.name}</strong> — Rank [${s.rank}]</li>`; });
+                staff.forEach(s => { list.innerHTML += `<li>Node ID: <strong>${esc(s.name)}</strong> — Rank [${esc(s.rank)}]</li>`; });
             } catch(e){}
         }
 
@@ -1626,10 +1665,9 @@
             items.forEach(m => {
                 const el = document.createElement('div');
                 el.className = 'pos-item';
-                const safeName = m.name.replace(/"/g, '&quot;');
-                el.setAttribute('onclick', `modifyManualItem(this, "${safeName}", ${m.price}, 'add')`);
-                el.setAttribute('oncontextmenu', `event.preventDefault(); modifyManualItem(this, "${safeName}", ${m.price}, 'remove')`);
-                el.innerHTML = `<span>${m.name}</span><span class="item-price">$${m.price.toFixed(2)}</span>`;
+                el.addEventListener('click', () => modifyManualItem(el, m.name, m.price, 'add'));
+                el.addEventListener('contextmenu', e => { e.preventDefault(); modifyManualItem(el, m.name, m.price, 'remove'); });
+                el.innerHTML = `<span>${esc(m.name)}</span><span class="item-price">$${m.price.toFixed(2)}</span>`;
                 grid.appendChild(el);
             });
         }
@@ -1721,7 +1759,7 @@
                             <span style="font-weight:600;">${m.name}</span>
                             <span style="color:var(--text-secondary);margin-left:8px;font-size:13px;">$${parseFloat(m.price||0).toFixed(2)}</span>
                         </div>
-                        <button onclick="deleteMenuItem('${m.name}', '${m.category}')" style="background:rgba(244,63,94,0.1);color:var(--color-danger);border:1px solid rgba(244,63,94,0.2);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">✕ Remove</button>
+                        <button onclick="deleteMenuItem(${esc(JSON.stringify(m.name))}, ${esc(JSON.stringify(m.category || ''))})" style="background:rgba(244,63,94,0.1);color:var(--color-danger);border:1px solid rgba(244,63,94,0.2);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">✕ Remove</button>
                     </div>`).join('')}
                 </div>
             `).join('');
