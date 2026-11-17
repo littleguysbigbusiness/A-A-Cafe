@@ -791,7 +791,9 @@
                 return alert("Please enter your name and select at least one item.");
             }
             const wantedType = currentOrderType;
-            if (!(await checkShopOpen())) return alert("Sorry, we are closed right now.");
+            const [openNow, bannedNow] = await Promise.all([checkShopOpen(), checkUserBan(name)]);  // both checks at once
+            if (bannedNow) return;
+            if (!openNow) return alert("Sorry, we are closed right now.");
             if (wantedType === 'drive-thru' && !driveThruOpen) return alert('Sorry, the Cafe Drive-Thru is closed right now.');
             if (currentOrderType === 'delivery' && !document.getElementById('deliveryAddress').value.trim()) return alert('Please enter a delivery address.');
 
@@ -800,7 +802,6 @@
             btn.textContent = '⏳ Sending order…';
 
             try {
-                if (await checkUserBan(name)) return;
 
                 const payload = {
                     action: 'insert',
@@ -932,11 +933,28 @@
             } catch(e) { console.error("Error fetching history:", e); }
         }
 
-        async function fetchGoogleDocMenu() {
+
+        // safe localStorage (some browsers block it)
+        function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+        function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+        async function fetchGoogleDocMenu(preloaded) {
             const grid = document.getElementById('menuGridBox');
             try {
-                const res = await fetch(`${BASE_API_URL}?sheet=menus`);
-                const all = await res.json();
+                let all = preloaded;
+                if (!all) {
+                    // paint the last-known menu instantly, then refresh in the background
+                    const cached = lsGet('menuCache');
+                    if (cached) { try { fetchGoogleDocMenu(JSON.parse(cached)); } catch {} }
+                    const res = await fetch(`${BASE_API_URL}?sheet=menus`);
+                    all = await res.json();
+                    if (all && !all.error && all.length) {
+                        const fresh = JSON.stringify(all);
+                        lsSet('menuCache', fresh);
+                        if (cached === fresh) return;
+                        if (cached && selectedItems.length > 0) return;
+                    } else if (cached) return;   // keep the cached menu if the refresh failed
+                }
 
                 if (!all || all.length === 0 || all.error) {
                     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--danger);padding:24px;font-size:13px;">⚠️ ${all.error || 'Menu unavailable.'}</div>`;

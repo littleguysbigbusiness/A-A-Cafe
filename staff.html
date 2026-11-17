@@ -1425,11 +1425,10 @@
         // through. Any live order from a banned name / Roblox username is
         // auto-cancelled here so it never gets cooked.
         const autoCancelledIds = new Set();
-        async function cancelBannedOrders() {
+        async function cancelBannedOrders(customersPromise) {
             let banned = new Set();
             try {
-                const res = await fetch(`${BASE_API_URL}?sheet=customers`);
-                const rows = await res.json();
+                const rows = await (customersPromise || fetch(`${BASE_API_URL}?sheet=customers`).then(r => r.json()));
                 const latest = new Map();
                 (Array.isArray(rows) ? rows : []).forEach(r => {
                     if (r.customer) latest.set(String(r.customer).trim().toLowerCase(), r.status);
@@ -1451,8 +1450,13 @@
             }
         }
 
+        let kitchenLoading = false;
         async function fetchLiveKitchenOrders() {
+            if (kitchenLoading) return;          // previous refresh still running — skip
+            kitchenLoading = true;
             try {
+                // orders + ban list in parallel (each Google request takes ~1.5–2.5s)
+                const customersPromise = fetch(`${BASE_API_URL}?sheet=customers`).then(r => r.json()).catch(() => null);
                 const res = await fetch(`${BASE_API_URL}?sheet=Sheet1`);
                 const pipeline = await res.json();
                 if (pipeline && !pipeline.error) {
@@ -1462,10 +1466,10 @@
                     const seen = new Map();
                     pipeline.forEach(o => { if (o.id) seen.set(o.id, o); });
                     currentLiveOrders = Array.from(seen.values());
-                    await cancelBannedOrders();
+                    await cancelBannedOrders(customersPromise);
                 }
                 renderKitchenOrders(currentLiveOrders);
-            } catch(e){}
+            } catch(e){} finally { kitchenLoading = false; }
         }
 
         async function fetchArchiveLogs() {
@@ -1667,12 +1671,20 @@
             await loadPosItems(shop);
         }
 
+        // menus are fetched once and reused for 60s (Menu Editor changes clear this)
+        let menusCache = { at: 0, rows: null };
+        async function getMenusCached() {
+            if (menusCache.rows && Date.now() - menusCache.at < 60000) return menusCache.rows;
+            const rows = await fetch(`${BASE_API_URL}?sheet=menus`).then(r => r.json());
+            if (Array.isArray(rows)) menusCache = { at: Date.now(), rows };
+            return rows;
+        }
+
         async function loadPosItems(shop) {
             const grid = document.getElementById('menuGridBox');
-            grid.innerHTML = '<div style="padding:16px;color:#888;font-size:13px;">Loading menu…</div>';
+            if (!menusCache.rows) grid.innerHTML = '<div style="padding:16px;color:#888;font-size:13px;">Loading menu…</div>';
             try {
-                const res = await fetch(`${BASE_API_URL}?sheet=menus`);
-                const all = await res.json();
+                const all = await getMenusCached();
                 if (!all || all.error) { renderPosMenu(shop, []); return; }
                 const seen = new Map();
                 all.filter(m => (m.shop || '').toLowerCase() === shop)
@@ -1747,6 +1759,7 @@
         }
 
         async function loadMenuEditorItems() {
+            menusCache.at = 0;   // editor changes → POS reloads fresh menu next time
             const list = document.getElementById('menuEditorList');
             const empty = document.getElementById('menuEditorEmpty');
             list.innerHTML = '<div style="color:var(--text-secondary);font-style:italic;padding:12px;">Loading…</div>';

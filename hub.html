@@ -398,8 +398,21 @@
         }
     }
 
+    function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
     async function init() {
-        const statusMap = (await loadStatus()) || {};
+        // show the last-known status instantly, then refresh from the sheet
+        const cached = lsGet('hubStatus');
+        if (cached) {
+            try {
+                renderHub(JSON.parse(cached));
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('mainContent').classList.add('visible');
+            } catch {}
+        }
+        const statusMap = (await loadStatus()) || (cached ? JSON.parse(cached) : {});
+        lsSet('hubStatus', JSON.stringify(statusMap));
 
         // Hide loading, show content
         const loading = document.getElementById('loadingScreen');
@@ -412,7 +425,7 @@
         // Refresh every 30s
         setInterval(async () => {
             const fresh = await loadStatus();
-            if (fresh) renderHub(fresh); // keep last good state if the network blips
+            if (fresh) { renderHub(fresh); lsSet('hubStatus', JSON.stringify(fresh)); } // keep last good state if the network blips
         }, 30000);
     }
 

@@ -268,10 +268,26 @@
         document.getElementById('deliveryAddressRow').style.display = type==='delivery'?'block':'none';
     }
 
-    async function buildMenu() {
+
+    // safe localStorage (some browsers block it)
+    function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+    async function buildMenu(preloaded) {
         try {
-            const res = await fetch(`${BASE_API_URL}?sheet=menus`);
-            const all = await res.json();
+            let all = preloaded;
+            if (!all) {
+                // paint the last-known menu instantly, then refresh in the background
+                const cached = lsGet('menuCache');
+                if (cached) { try { buildMenu(JSON.parse(cached)); } catch {} }
+                const res = await fetch(`${BASE_API_URL}?sheet=menus`);
+                all = await res.json();
+                if (!all || all.error) return;
+                const fresh = JSON.stringify(all);
+                lsSet('menuCache', fresh);
+                if (cached === fresh) return;                         // unchanged — already shown
+                if (cached && selectedItems.length > 0) return;       // don't wipe a selection in progress
+            }
             if (!all || all.error) return;
             const seen = new Map();
             all.filter(m => (m.shop || '').toLowerCase() === 'chinese')
@@ -525,9 +541,10 @@
         const name = document.getElementById('custName').value.trim();
         if (!name) return alert('Please enter your name first.');
         const wantedType = currentOrderType;
-        if (!(await checkShopOpen())) return alert('Sorry, we are closed right now.');
+        const [openNow, bannedNow] = await Promise.all([checkShopOpen(), checkBan()]);  // run both checks at once
+        if (!openNow) return alert('Sorry, we are closed right now.');
         if (currentOrderType === 'delivery' && !document.getElementById('deliveryAddress').value.trim()) return alert('Please enter a delivery address.');
-        if (await checkBan()) return alert('This account has been suspended.');
+        if (bannedNow) return alert('This account has been suspended.');
         if (selectedItems.length === 0) return alert('Please select at least one item.');
         const btn = document.getElementById('submitBtn');
         btn.disabled=true; btn.textContent='⏳ Sending order…';
