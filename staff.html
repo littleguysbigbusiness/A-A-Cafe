@@ -529,7 +529,7 @@
                                     <button class="shop-toggle-btn" id="shopBtn-chinese" data-shop="chinese" onclick="toggleShop('chinese')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
                                 </div>
                                 <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-darker); border:1px solid var(--border-glow); border-radius:10px; padding:10px 14px;">
-                                    <span style="font-size:13px; font-weight:600;">🚗 Drive-Thru</span>
+                                    <span style="font-size:13px; font-weight:600;">🚗 Cafe Drive-Thru</span>
                                     <button class="shop-toggle-btn" id="shopBtn-drivethru" data-shop="drivethru" onclick="toggleShop('drivethru')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
                                 </div>
                             </div>
@@ -562,7 +562,7 @@
                         <select id="manualOrderType" style="margin-bottom:12px;">
                             <option value="dine-in">🪑 Dine In</option>
                             <option value="takeaway">🛍️ Takeaway</option>
-                            <option value="drive-thru">🚗 Drive-Thru</option>
+                            <option value="drive-thru" id="posDriveThruOpt">🚗 Drive-Thru (Cafe)</option>
                             <option value="delivery">🛵 Delivery</option>
                         </select>
 
@@ -1660,6 +1660,10 @@
             manualSelectedItems = [];
             manualCurrentTotal = 0;
             document.getElementById('manualTotal').innerText = 0;
+            const dtOpt = document.getElementById('posDriveThruOpt');
+            const typeSel = document.getElementById('manualOrderType');
+            dtOpt.hidden = shop !== 'cafe'; dtOpt.disabled = shop !== 'cafe';
+            if (shop !== 'cafe' && typeSel.value === 'drive-thru') typeSel.value = 'dine-in';
             await loadPosItems(shop);
         }
 

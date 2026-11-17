@@ -170,7 +170,6 @@
         <div style="display:flex;gap:8px;margin-bottom:18px;">
             <button class="order-type-btn active" id="btnDineIn" onclick="setOrderType('dine-in')">🪑 Dine In</button>
             <button class="order-type-btn" id="btnTakeaway" onclick="setOrderType('takeaway')">🛍️ Takeaway</button>
-            <button class="order-type-btn" id="btnDriveThru" style="display:none;" onclick="setOrderType('drive-thru')">🚗 Drive-Thru</button>
             <button class="order-type-btn" id="btnDelivery" onclick="setOrderType('delivery')">🛵 Delivery</button>
         </div>
         <div id="deliveryAddressRow" style="display:none;margin-bottom:18px;">
@@ -262,8 +261,8 @@
     let currentOrderType = 'dine-in';
     function setOrderType(type) {
         currentOrderType = type;
-        ['dine-in','takeaway','drive-thru','delivery'].forEach(t => {
-            const m={'dine-in':'btnDineIn','takeaway':'btnTakeaway','drive-thru':'btnDriveThru', 'delivery':'btnDelivery' };
+        ['dine-in','takeaway','delivery'].forEach(t => {
+            const m={'dine-in':'btnDineIn','takeaway':'btnTakeaway','delivery':'btnDelivery' };
             document.getElementById(m[t]).classList.toggle('active', t===type);
         });
         document.getElementById('deliveryAddressRow').style.display = type==='delivery'?'block':'none';
@@ -527,7 +526,6 @@
         if (!name) return alert('Please enter your name first.');
         const wantedType = currentOrderType;
         if (!(await checkShopOpen())) return alert('Sorry, we are closed right now.');
-        if (wantedType === 'drive-thru' && !driveThruOpen) return alert('Sorry, the Drive-Thru is closed right now.');
         if (currentOrderType === 'delivery' && !document.getElementById('deliveryAddress').value.trim()) return alert('Please enter a delivery address.');
         if (await checkBan()) return alert('This account has been suspended.');
         if (selectedItems.length === 0) return alert('Please select at least one item.');

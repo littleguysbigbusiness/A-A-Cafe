@@ -362,9 +362,9 @@
             openList.parentNode.insertBefore(dtLine, openList);
         }
         const dtOpen = statusMap.drivethru === true;
-        dtLine.textContent = dtOpen ? '🚗 Drive-Thru is OPEN' : '🚗 Drive-Thru is closed';
+        dtLine.textContent = dtOpen ? '☕🚗 Cafe Drive-Thru is OPEN' : '☕🚗 Cafe Drive-Thru is closed';
         dtLine.style.color = dtOpen ? '#1e8e3e' : '#999';
-        dtLine.style.display = openShops.length ? 'block' : 'none';
+        dtLine.style.display = statusMap.cafe === true ? 'block' : 'none';
 
         // Render open buttons
         openShops.forEach(s => {

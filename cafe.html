@@ -792,7 +792,7 @@
             }
             const wantedType = currentOrderType;
             if (!(await checkShopOpen())) return alert("Sorry, we are closed right now.");
-            if (wantedType === 'drive-thru' && !driveThruOpen) return alert('Sorry, the Drive-Thru is closed right now.');
+            if (wantedType === 'drive-thru' && !driveThruOpen) return alert('Sorry, the Cafe Drive-Thru is closed right now.');
             if (currentOrderType === 'delivery' && !document.getElementById('deliveryAddress').value.trim()) return alert('Please enter a delivery address.');
 
             const btn = document.getElementById('submitBtn');
