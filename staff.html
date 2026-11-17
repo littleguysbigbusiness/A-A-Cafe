@@ -518,7 +518,7 @@
                                     <button class="shop-toggle-btn" id="shopBtn-cafe" data-shop="cafe" onclick="toggleShop('cafe')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
                                 </div>
                                 <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-darker); border:1px solid var(--border-glow); border-radius:10px; padding:10px 14px;">
-                                    <span style="font-size:13px; font-weight:600;">🥩 A&amp;A Steakhouse</span>
+                                    <span style="font-size:13px; font-weight:600;">🥩 A&amp;A Buffet</span>
                                     <button class="shop-toggle-btn" id="shopBtn-steakhouse" data-shop="steakhouse" onclick="toggleShop('steakhouse')" style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px; border:none; cursor:pointer; transition:all 0.2s;">…</button>
                                 </div>
                                 <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-darker); border:1px solid var(--border-glow); border-radius:10px; padding:10px 14px;">
@@ -547,7 +547,7 @@
                         <label style="margin-top:10px;">Shop:</label>
                         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="posShopPicker">
                             <button class="k-filter-btn active" data-shop="cafe"       onclick="setPosShop('cafe')">☕ Cafe</button>
-                            <button class="k-filter-btn"        data-shop="steakhouse" onclick="setPosShop('steakhouse')">🥩 Steakhouse</button>
+                            <button class="k-filter-btn"        data-shop="steakhouse" onclick="setPosShop('steakhouse')">🍽️ Buffet</button>
                             <button class="k-filter-btn"        data-shop="chinese"    onclick="setPosShop('chinese')">🥡 Chinese</button>
                         </div>
 
@@ -566,7 +566,7 @@
                         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="kitchenShopFilters">
                             <button class="k-filter-btn active" data-shop="all"     onclick="setKitchenFilter('all')">🍽️ All Shops</button>
                             <button class="k-filter-btn"        data-shop="cafe"        onclick="setKitchenFilter('cafe')">☕ Cafe</button>
-                            <button class="k-filter-btn"        data-shop="steakhouse"  onclick="setKitchenFilter('steakhouse')">🥩 Steakhouse</button>
+                            <button class="k-filter-btn"        data-shop="steakhouse"  onclick="setKitchenFilter('steakhouse')">🍽️ Buffet</button>
                             <button class="k-filter-btn"        data-shop="chinese"     onclick="setKitchenFilter('chinese')">🥡 Chinese</button>
                         </div>
                         <div id="liveOrdersList" class="kitchen-stack">Syncing with kitchen lines...</div>
@@ -681,7 +681,7 @@
                     <h3 style="margin-bottom:16px;">🍽️ Menu Editor</h3>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
                         <button class="k-filter-btn active" data-shop="cafe" onclick="setMenuEditorShop('cafe')">☕ Cafe</button>
-                        <button class="k-filter-btn" data-shop="steakhouse" onclick="setMenuEditorShop('steakhouse')">🥩 Steakhouse</button>
+                        <button class="k-filter-btn" data-shop="steakhouse" onclick="setMenuEditorShop('steakhouse')">🍽️ Buffet</button>
                         <button class="k-filter-btn" data-shop="chinese" onclick="setMenuEditorShop('chinese')">🥡 Chinese</button>
                     </div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;padding:14px;background:var(--bg-panel);border-radius:10px;border:1px solid var(--border);">
@@ -1256,7 +1256,7 @@
             } catch(e) { alert("Archival pipeline dropped connection."); }
         }
 
-        const SHOP_LABELS = { cafe: '☕ Cafe', steakhouse: '🥩 Steakhouse', chinese: '🥡 Chinese' };
+        const SHOP_LABELS = { cafe: '☕ Cafe', steakhouse: '🍽️ Buffet', chinese: '🥡 Chinese' };
 
         function renderKitchenOrders(pipeline) {
             const target = document.getElementById('liveOrdersList');
